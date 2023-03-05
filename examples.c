@@ -520,7 +520,7 @@ static void example_item(void) {
   }
 }
 
-int main() {
+int main(void) {
   example_dictionary();
   example_list();
   example_item();
