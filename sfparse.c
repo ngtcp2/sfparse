@@ -28,6 +28,7 @@
 
 #include <string.h>
 #include <assert.h>
+#include <stdlib.h>
 
 #define DIGIT_CASES                                                            \
   case '0':                                                                    \
@@ -248,6 +249,7 @@ fin:
     return 0;
   default:
     assert(0);
+    abort();
   }
 }
 
@@ -507,6 +509,7 @@ static int parser_byteseq(sf_parser *sfp, sf_value *dest) {
           break;
         default:
           assert(0);
+          abort();
         }
 
         for (i = r; i < 3; ++i) {
@@ -626,6 +629,7 @@ int sf_parser_param(sf_parser *sfp, sf_vec *dest_key, sf_value *dest_value) {
     break;
   default:
     assert(0);
+    abort();
   }
 
   if (parser_eof(sfp) || *sfp->pos != ';') {
@@ -648,6 +652,7 @@ int sf_parser_param(sf_parser *sfp, sf_vec *dest_key, sf_value *dest_value) {
       break;
     default:
       assert(0);
+      abort();
     }
 
     return SF_ERR_EOF;
@@ -698,6 +703,7 @@ static int parser_skip_params(sf_parser *sfp) {
       return rv;
     default:
       assert(0);
+      abort();
     }
   }
 }
@@ -749,6 +755,7 @@ int sf_parser_inner_list(sf_parser *sfp, sf_value *dest) {
     break;
   default:
     assert(0);
+    abort();
   }
 
   if (*sfp->pos == ')') {
@@ -800,6 +807,7 @@ static int parser_skip_inner_list(sf_parser *sfp) {
       return rv;
     default:
       assert(0);
+      abort();
     }
   }
 }
@@ -905,6 +913,7 @@ int sf_parser_dict(sf_parser *sfp, sf_vec *dest_key, sf_value *dest_value) {
     break;
   default:
     assert(0);
+    abort();
   }
 
   rv = parser_key(sfp, dest_key);
@@ -950,6 +959,7 @@ int sf_parser_list(sf_parser *sfp, sf_value *dest) {
     break;
   default:
     assert(0);
+    abort();
   }
 
   if (*sfp->pos == '(') {
@@ -1011,6 +1021,7 @@ int sf_parser_item(sf_parser *sfp, sf_value *dest) {
     return SF_ERR_EOF;
   default:
     assert(0);
+    abort();
   }
 
   if (*sfp->pos == '(') {

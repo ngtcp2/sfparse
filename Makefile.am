@@ -56,7 +56,7 @@ check_PROGRAMS = test
 
 test_SOURCES = sfparse_test_main.c sfparse_test.c sfparse_test.h
 
-test_CFLAGS = $(WARNCFLAGS) -I$(top_srcdir)
+test_CFLAGS = $(WARNCFLAGS) -I$(top_srcdir) @CUNIT_CFLAGS@
 test_LDADD = $(top_builddir)/.libs/sfparse.o @CUNIT_LIBS@
 test_LDFLAGS = -static
 

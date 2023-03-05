@@ -112,5 +112,4 @@ jobs:
     - name: Run tests
       if: matrix.host == 'x86_64-w64-mingw32'
       run: |
-        cd tests
-        wine main.exe
+        wine test.exe
