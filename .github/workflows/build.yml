@@ -1,0 +1,116 @@
+name: build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, macos-11]
+        compiler: [gcc, clang]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Linux setup
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get install \
+          g++-12 \
+          clang-14 \
+          autoconf \
+          automake \
+          autotools-dev \
+          libtool \
+          pkg-config \
+          libcunit1-dev
+    - name: MacOS setup
+      if: runner.os == 'macOS'
+      run: |
+        brew install cunit autoconf automake pkg-config libtool
+    - name: Setup clang (Linux)
+      if: runner.os == 'Linux' && matrix.compiler == 'clang'
+      run: |
+        echo 'CC=clang-14' >> $GITHUB_ENV
+        echo 'CXX=clang++-14' >> $GITHUB_ENV
+    - name: Setup clang (MacOS)
+      if: runner.os == 'macOS' && matrix.compiler == 'clang'
+      run: |
+        echo 'CC=clang' >> $GITHUB_ENV
+        echo 'CXX=clang++' >> $GITHUB_ENV
+    - name: Setup gcc (Linux)
+      if: runner.os == 'Linux' && matrix.compiler == 'gcc'
+      run: |
+        echo 'CC=gcc-12' >> $GITHUB_ENV
+        echo 'CXX=g++-12' >> $GITHUB_ENV
+    - name: Setup gcc (MacOS)
+      if: runner.os == 'macOS' && matrix.compiler == 'gcc'
+      run: |
+        echo 'CC=gcc' >> $GITHUB_ENV
+        echo 'CXX=g++' >> $GITHUB_ENV
+    - name: Enable ASAN
+      if: runner.os == 'Linux'
+      run: |
+        asanflags="-fsanitize=address,undefined -fno-sanitize-recover=undefined"
+
+        LDFLAGS="$LDFLAGS $asanflags"
+        CFLAGS="$CFLAGS $asanflags -g3"
+        CXXFLAGS="$CXXFLAGS $asanflags -g3"
+
+        echo 'LDFLAGS='"$LDFLAGS" >> $GITHUB_ENV
+        echo 'CFLAGS='"$CFLAGS" >> $GITHUB_ENV
+        echo 'CXXFLAGS='"$CXXFLAGS" >> $GITHUB_ENV
+    - name: Configure autotools
+      run: |
+        autoreconf -i && ./configure
+    - name: Build sfparse with distcheck
+      run: |
+        make distcheck DISTCHECK_CONFIGURE_FLAGS="--enable-werror"
+
+  build-cross:
+    strategy:
+      matrix:
+        host: [x86_64-w64-mingw32, i686-w64-mingw32]
+
+    runs-on: ubuntu-22.04
+
+    env:
+      HOST: ${{ matrix.host }}
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Linux setup
+      run: |
+        sudo dpkg --add-architecture i386
+        sudo apt-get update
+        sudo apt-get install \
+          gcc-mingw-w64 \
+          autoconf \
+          automake \
+          autotools-dev \
+          libtool \
+          pkg-config \
+          wine
+    - name: Build CUnit
+      run: |
+        curl -LO https://jaist.dl.sourceforge.net/project/cunit/CUnit/2.1-3/CUnit-2.1-3.tar.bz2
+        tar xf CUnit-2.1-3.tar.bz2
+        cd CUnit-2.1-3
+        ./bootstrap
+        ./configure --disable-shared --host="$HOST" --prefix="$PWD/build"
+        make -j$(nproc) install
+    - name: Configure autotools
+      run: |
+        autoreconf -i && \
+        ./configure --enable-werror --with-cunit \
+          --host="$HOST" PKG_CONFIG_PATH="$PWD/CUnit-2.1-3/build/lib/pkgconfig"
+    - name: Build sfparse
+      run: |
+        make -j$(nproc)
+        make -j$(nproc) check TESTS=""
+    - name: Run tests
+      if: matrix.host == 'x86_64-w64-mingw32'
+      run: |
+        cd tests
+        wine main.exe
