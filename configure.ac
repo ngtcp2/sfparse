@@ -194,6 +194,8 @@ AC_SUBST([WARNCFLAGS])
 
 AC_CONFIG_FILES([
   Makefile
+  doc/Makefile
+  doc/source/conf.py
 ])
 AC_OUTPUT
 
