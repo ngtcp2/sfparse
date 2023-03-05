@@ -872,6 +872,70 @@ void test_sf_parser_number(void) {
   }
 }
 
+void test_sf_parser_date(void) {
+  sf_parser sfp;
+  sf_value val;
+
+  /* https://github.com/httpwg/structured-field-tests/blob/main/date.json */
+
+  {
+    /* date - 1970-01-01 00:00:00 */
+    sf_parser_bytes_init(&sfp, "@0");
+
+    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
+    CU_ASSERT(SF_TYPE_DATE == val.type);
+    CU_ASSERT(0 == val.integer);
+    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+  }
+
+  {
+    /* date - 2022-08-04 01:57:13 */
+    sf_parser_bytes_init(&sfp, "@1659578233");
+
+    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
+    CU_ASSERT(SF_TYPE_DATE == val.type);
+    CU_ASSERT(1659578233 == val.integer);
+    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+  }
+
+  {
+    /* date - 1917-05-30 22:02:47 */
+    sf_parser_bytes_init(&sfp, "@-1659578233");
+
+    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
+    CU_ASSERT(SF_TYPE_DATE == val.type);
+    CU_ASSERT(-1659578233 == val.integer);
+    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+  }
+
+  {
+    /* date - 2^31 */
+    sf_parser_bytes_init(&sfp, "@2147483648");
+
+    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
+    CU_ASSERT(SF_TYPE_DATE == val.type);
+    CU_ASSERT(2147483648 == val.integer);
+    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+  }
+
+  {
+    /* date - 2^32 */
+    sf_parser_bytes_init(&sfp, "@4294967296");
+
+    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
+    CU_ASSERT(SF_TYPE_DATE == val.type);
+    CU_ASSERT(4294967296 == val.integer);
+    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+  }
+
+  {
+    /* date - decimal */
+    sf_parser_bytes_init(&sfp, "@1659578233.12");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+  }
+}
+
 void test_sf_parser_string(void) {
   sf_parser sfp;
   sf_value val;
