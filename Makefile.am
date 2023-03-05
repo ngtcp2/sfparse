@@ -45,6 +45,11 @@ libsfparse_la_LDFLAGS = -no-undefined \
 
 include_HEADERS = sfparse.h
 
+noinst_PROGRAMS = examples
+
+examples_SOURCES = examples.c
+examples_LDADD = $(top_builddir)/libsfparse.la
+
 if HAVE_CUNIT
 
 check_PROGRAMS = test
