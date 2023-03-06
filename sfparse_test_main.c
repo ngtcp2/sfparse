@@ -56,8 +56,6 @@ int main(void) {
 
   /* add the tests to the suite */
   if (!CU_add_test(pSuite, "sf_parser_item_skip", test_sf_parser_item_skip) ||
-      !CU_add_test(pSuite, "sf_parser_inner_list_skip",
-                   test_sf_parser_inner_list_skip) ||
       !CU_add_test(pSuite, "sf_parser_dict_skip", test_sf_parser_dict_skip) ||
       !CU_add_test(pSuite, "sf_parser_list_skip", test_sf_parser_list_skip) ||
       !CU_add_test(pSuite, "sf_parser_byteseq", test_sf_parser_byteseq) ||
