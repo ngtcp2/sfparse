@@ -257,9 +257,8 @@ static int parser_string(sf_parser *sfp, sf_value *dest) {
   const uint8_t *base;
   uint32_t flags = SF_VALUE_FLAG_NONE;
 
-  if (*sfp->pos != '"') {
-    return SF_ERR_PARSE_ERROR;
-  }
+  /* The first byte has already been validated by the caller. */
+  assert('"' == *sfp->pos);
 
   base = ++sfp->pos;
 
@@ -398,14 +397,7 @@ static int parser_string(sf_parser *sfp, sf_value *dest) {
 static int parser_token(sf_parser *sfp, sf_value *dest) {
   const uint8_t *base;
 
-  switch (*sfp->pos) {
-  case '*':
-  ALPHA_CASES:
-    break;
-  default:
-    return SF_ERR_PARSE_ERROR;
-  }
-
+  /* The first byte has already been validated by the caller. */
   base = sfp->pos++;
 
   for (; !parser_eof(sfp); ++sfp->pos) {
@@ -449,9 +441,8 @@ static int parser_byteseq(sf_parser *sfp, sf_value *dest) {
   const uint8_t *base;
   size_t i, r;
 
-  if (*sfp->pos != ':') {
-    return SF_ERR_PARSE_ERROR;
-  }
+  /* The first byte has already been validated by the caller. */
+  assert(':' == *sfp->pos);
 
   base = ++sfp->pos;
 
@@ -557,9 +548,8 @@ fin:
 static int parser_boolean(sf_parser *sfp, sf_value *dest) {
   int b;
 
-  if (*sfp->pos != '?') {
-    return SF_ERR_PARSE_ERROR;
-  }
+  /* The first byte has already been validated by the caller. */
+  assert('?' == *sfp->pos);
 
   ++sfp->pos;
 
