@@ -63,6 +63,7 @@ static int is_key_char(const uint8_t c) {
 
 void test_sf_parser_item_skip(void) {
   sf_parser sfp;
+  sf_vec key;
   sf_value val;
 
   {
@@ -70,6 +71,8 @@ void test_sf_parser_item_skip(void) {
     sf_parser_bytes_init(&sfp, "a");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
+    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(str_sf_vec_eq("a", &val.vec));
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
   }
 
@@ -78,6 +81,8 @@ void test_sf_parser_item_skip(void) {
     sf_parser_bytes_init(&sfp, "a;f=1000000009;g=1000000007");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
+    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(str_sf_vec_eq("a", &val.vec));
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
   }
 
@@ -86,58 +91,57 @@ void test_sf_parser_item_skip(void) {
     sf_parser_bytes_init(&sfp, "a;f");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
+    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(str_sf_vec_eq("a", &val.vec));
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
   }
-}
-
-void test_sf_parser_inner_list_skip(void) {
-  sf_parser sfp;
-  sf_value val;
 
   {
-    /* skip empty parameter */
-    sf_parser_bytes_init(&sfp, "(1)");
+    /* skip inner list with empty parameter */
+    sf_parser_bytes_init(&sfp, "(a)");
+
+    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
+    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+  }
+
+  {
+    /* skip inner list with non-empty parameter */
+    sf_parser_bytes_init(&sfp, "(a);f=1000000009;g=1000000007");
+
+    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
+    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+  }
+
+  {
+    /* skip inner list with boolean parameter */
+    sf_parser_bytes_init(&sfp, "(a);f");
+
+    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
+    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+  }
+
+  {
+    /* skip inner list but read parameter */
+    sf_parser_bytes_init(&sfp, "(a);f");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
     CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
+    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
+    CU_ASSERT(str_sf_vec_eq("f", &key));
+    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(1 == val.boolean);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
-
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
-  }
-
-  {
-    /* skip non-empty parameter */
-    sf_parser_bytes_init(&sfp, "(1);f=100;g=999");
-
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
-
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-
-    CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
+    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
   }
 
   {
-    /* skip boolean parameter */
-    sf_parser_bytes_init(&sfp, "(1);f");
-
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
-
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-
-    CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
-
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
-  }
-
-  {
-    /* skip item parameter */
+    /* skip inner list item parameter */
     sf_parser_bytes_init(&sfp, "(1;foo=100 2;bar)");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
@@ -255,6 +259,21 @@ void test_sf_parser_dict_skip(void) {
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
   }
+
+  {
+    /* skip inner list item parameter */
+    sf_parser_bytes_init(&sfp, "a=(1;foo=100 2;bar)");
+
+    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
+    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+
+    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
+    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
+
+    CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
+
+    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, NULL, NULL));
+  }
 }
 
 void test_sf_parser_list_skip(void) {
@@ -346,6 +365,21 @@ void test_sf_parser_list_skip(void) {
     CU_ASSERT(333 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
+  }
+
+  {
+    /* skip inner list item parameter */
+    sf_parser_bytes_init(&sfp, "(1;foo=100 2;bar)");
+
+    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
+    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+
+    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
+    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
+
+    CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
+
+    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, NULL));
   }
 }
 
@@ -3071,6 +3105,8 @@ void test_sf_parser_large_generated(void) {
     }
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
+
+    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, NULL));
   }
 
   {
@@ -3090,6 +3126,8 @@ void test_sf_parser_large_generated(void) {
         &key));
     CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
+
+    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, NULL));
   }

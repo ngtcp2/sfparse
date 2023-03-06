@@ -26,7 +26,6 @@
 #define SFPARSE_TEST_H
 
 void test_sf_parser_item_skip(void);
-void test_sf_parser_inner_list_skip(void);
 void test_sf_parser_dict_skip(void);
 void test_sf_parser_list_skip(void);
 void test_sf_parser_byteseq(void);
