@@ -193,12 +193,14 @@ typedef struct sf_value {
      * :member:`vec` contains sequence of bytes if :member:`type` is
      * either :enum:`sf_value_type.SF_VALUE_TYPE_STRING`,
      * :enum:`sf_value_type.SF_VALUE_TYPE_TOKEN`, or
-     * :enum:`sf_value_type.SF_VALUE_TYPE_BYTESEQ`.  For
-     * :enum:`sf_value_type.SF_VALUE_TYPE_STRING`, the string
-     * contained in this field contains escaped character if
-     * :member:`flags` has :macro:`SF_VALUE_FLAG_ESCAPED_STRING` set.
-     * To unescape the string, use `sf_unescape`.  For
-     * :enum:`sf_value_type.SF_VALUE_TYPE_BYTESEQ`, this field
+     * :enum:`sf_value_type.SF_VALUE_TYPE_BYTESEQ`.
+     *
+     * For :enum:`sf_value_type.SF_VALUE_TYPE_STRING`, this field
+     * contains one or more escaped characters if :member:`flags` has
+     * :macro:`SF_VALUE_FLAG_ESCAPED_STRING` set.  To unescape the
+     * string, use `sf_unescape`.
+     *
+     * For :enum:`sf_value_type.SF_VALUE_TYPE_BYTESEQ`, this field
      * contains base64 encoded string.  To decode this byte string,
      * use `sf_base64decode`.
      */
