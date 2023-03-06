@@ -253,6 +253,9 @@ void sf_parser_init(sf_parser *sfp, const uint8_t *data, size_t datalen);
  * it stores parameter key and value in |dest_key| and |dest_value|
  * respectively, if they are not NULL.
  *
+ * This function does no effort to find duplicated keys.  Same key may
+ * be reported more than once.
+ *
  * Caller should keep calling this function until it returns negative
  * error code.  If it returns :macro:`SF_ERR_EOF`, all parameters have
  * read, and caller can continue to read rest of the values.  If it
@@ -270,6 +273,9 @@ int sf_parser_param(sf_parser *sfp, sf_vec *dest_key, sf_value *dest_value);
  *
  * Caller can optionally read parameters attached to the pair by
  * calling `sf_parser_param`.
+ *
+ * This function does no effort to find duplicated keys.  Same key may
+ * be reported more than once.
  *
  * Caller should keep calling this function until it returns negative
  * error code.  If it returns :macro:`SF_ERR_EOF`, all key and value
