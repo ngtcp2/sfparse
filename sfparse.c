@@ -434,7 +434,6 @@ static int parser_token(sf_parser *sfp, sf_value *dest) {
 
 static int parser_byteseq(sf_parser *sfp, sf_value *dest) {
   const uint8_t *base;
-  size_t i, r;
 
   /* The first byte has already been validated by the caller. */
   assert(':' == *sfp->pos);
@@ -449,9 +448,7 @@ static int parser_byteseq(sf_parser *sfp, sf_value *dest) {
     ALPHA_CASES:
       continue;
     case '=':
-      r = (size_t)((sfp->pos - base) & 0x3);
-
-      switch (r) {
+      switch ((sfp->pos - base) & 0x3) {
       case 0:
       case 1:
         return SF_ERR_PARSE_ERROR;
@@ -463,6 +460,12 @@ static int parser_byteseq(sf_parser *sfp, sf_value *dest) {
         case 'w':
           break;
         default:
+          return SF_ERR_PARSE_ERROR;
+        }
+
+        ++sfp->pos;
+
+        if (parser_eof(sfp) || *sfp->pos != '=') {
           return SF_ERR_PARSE_ERROR;
         }
 
@@ -491,14 +494,6 @@ static int parser_byteseq(sf_parser *sfp, sf_value *dest) {
         }
 
         break;
-      }
-
-      for (i = r; i < 3; ++i) {
-        ++sfp->pos;
-
-        if (parser_eof(sfp) || *sfp->pos != '=') {
-          return SF_ERR_PARSE_ERROR;
-        }
       }
 
       ++sfp->pos;
