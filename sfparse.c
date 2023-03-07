@@ -502,65 +502,59 @@ static int parser_byteseq(sf_parser *sfp, sf_value *dest) {
       case 0:
       case 1:
         return SF_ERR_PARSE_ERROR;
-      default:
-        switch (r) {
-        case 2:
-          switch (*(sfp->pos - 1)) {
-          case 'A':
-          case 'Q':
-          case 'g':
-          case 'w':
-            break;
-          default:
-            return SF_ERR_PARSE_ERROR;
-          }
-
-          break;
-        case 3:
-          switch (*(sfp->pos - 1)) {
-          case 'A':
-          case 'E':
-          case 'I':
-          case 'M':
-          case 'Q':
-          case 'U':
-          case 'Y':
-          case 'c':
-          case 'g':
-          case 'k':
-          case 'o':
-          case 's':
-          case 'w':
-          case '0':
-          case '4':
-          case '8':
-            break;
-          default:
-            return SF_ERR_PARSE_ERROR;
-          }
-
+      case 2:
+        switch (*(sfp->pos - 1)) {
+        case 'A':
+        case 'Q':
+        case 'g':
+        case 'w':
           break;
         default:
-          assert(0);
-          abort();
-        }
-
-        for (i = r; i < 3; ++i) {
-          ++sfp->pos;
-
-          if (parser_eof(sfp) || *sfp->pos != '=') {
-            return SF_ERR_PARSE_ERROR;
-          }
-        }
-
-        ++sfp->pos;
-
-        if (*sfp->pos != ':') {
           return SF_ERR_PARSE_ERROR;
         }
 
-        goto fin;
+        break;
+      case 3:
+        switch (*(sfp->pos - 1)) {
+        case 'A':
+        case 'E':
+        case 'I':
+        case 'M':
+        case 'Q':
+        case 'U':
+        case 'Y':
+        case 'c':
+        case 'g':
+        case 'k':
+        case 'o':
+        case 's':
+        case 'w':
+        case '0':
+        case '4':
+        case '8':
+          break;
+        default:
+          return SF_ERR_PARSE_ERROR;
+        }
+
+        break;
       }
+
+      for (i = r; i < 3; ++i) {
+        ++sfp->pos;
+
+        if (parser_eof(sfp) || *sfp->pos != '=') {
+          return SF_ERR_PARSE_ERROR;
+        }
+      }
+
+      ++sfp->pos;
+
+      if (*sfp->pos != ':') {
+        return SF_ERR_PARSE_ERROR;
+      }
+
+      goto fin;
     case ':':
       if ((sfp->pos - base) & 0x3) {
         return SF_ERR_PARSE_ERROR;
