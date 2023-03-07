@@ -292,7 +292,7 @@ static int parser_number(sf_parser *sfp, sf_value *dest) {
       }
 
       goto fin;
-    };
+    }
   }
 
 fin:
