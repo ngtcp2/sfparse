@@ -487,6 +487,21 @@ void test_sf_parser_byteseq(void) {
 
     CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
   }
+
+  /* Additional tests */
+
+  {
+    /* missing closing DQUOTE */
+    const uint8_t s[] = {'z', ',', ':', '1', 'j', 'k', '='};
+
+    sf_parser_init(&sfp, s, sizeof(s));
+
+    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
+    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(str_sf_vec_eq("z", &val.vec));
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_list(&sfp, &val));
+  }
 }
 
 void test_sf_parser_boolean(void) {
