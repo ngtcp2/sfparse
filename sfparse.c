@@ -498,7 +498,7 @@ static int parser_byteseq(sf_parser *sfp, sf_value *dest) {
 
       ++sfp->pos;
 
-      if (*sfp->pos != ':') {
+      if (parser_eof(sfp) || *sfp->pos != ':') {
         return SF_ERR_PARSE_ERROR;
       }
 
