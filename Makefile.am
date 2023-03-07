@@ -32,7 +32,7 @@ ACLOCAL_AMFLAGS = -I m4
 clang-format:
 	CLANGFORMAT=`git config --get clangformat.binary`; \
 	test -z $${CLANGFORMAT} && CLANGFORMAT="clang-format"; \
-	$${CLANGFORMAT} -i *.{c,h}
+	$${CLANGFORMAT} -i *.{c,h} fuzz/*.cc
 
 AM_CFLAGS = $(WARNCFLAGS)
 AM_CPPFLAGS = -I$(srcdir)
