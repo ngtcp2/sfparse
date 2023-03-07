@@ -596,7 +596,7 @@ static int parser_boolean(sf_parser *sfp, sf_value *dest) {
   ++sfp->pos;
 
   if (parser_eof(sfp)) {
-    return -1;
+    return SF_ERR_PARSE_ERROR;
   }
 
   switch (*sfp->pos) {
