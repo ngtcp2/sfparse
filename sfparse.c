@@ -1089,7 +1089,7 @@ void sf_base64decode(sf_vec *dest, const sf_vec *src) {
         assert(*p == '=' && p + 1 == end);
 
         *o++ = (uint8_t)(n >> 16);
-        *o++ = n >> 8 & 0xffu;
+        *o++ = (n >> 8) & 0xffu;
 
         goto fin;
       }
@@ -1098,7 +1098,7 @@ void sf_base64decode(sf_vec *dest, const sf_vec *src) {
     }
 
     *o++ = (uint8_t)(n >> 16);
-    *o++ = n >> 8 & 0xffu;
+    *o++ = (n >> 8) & 0xffu;
     *o++ = n & 0xffu;
   }
 
