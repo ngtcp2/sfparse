@@ -544,9 +544,11 @@ static int parser_boolean(sf_parser *sfp, sf_value *dest) {
   switch (*sfp->pos) {
   case '0':
     b = 0;
+
     break;
   case '1':
     b = 1;
+
     break;
   default:
     return SF_ERR_PARSE_ERROR;
@@ -1062,6 +1064,7 @@ void sf_base64decode(sf_vec *dest, const sf_vec *src) {
 
   if (src->len == 0) {
     *dest = *src;
+
     return;
   }
 
