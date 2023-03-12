@@ -520,10 +520,65 @@ static void example_item(void) {
   }
 }
 
+static void example_rfc9218_priority(void) {
+  static const uint8_t s[] = "u=5,i";
+  sf_parser sfp;
+  sf_vec key;
+  sf_value val;
+  int u = -1;
+  int i = -1;
+  int rv;
+
+  printf("# RFC 9218 priority\n");
+
+  sf_parser_init(&sfp, s, sizeof(s) - 1);
+
+  for (;;) {
+    rv = sf_parser_dict(&sfp, &key, &val);
+    if (rv != 0) {
+      if (rv == SF_ERR_PARSE_ERROR) {
+        u = i = -1;
+      }
+
+      break;
+    }
+
+    if (key.len != 1) {
+      continue;
+    }
+
+    switch (key.base[0]) {
+    case 'u':
+      if (val.type != SF_VALUE_TYPE_INTEGER) {
+        break;
+      }
+
+      if (val.integer < 0 || 7 < val.integer) {
+        break;
+      }
+
+      u = (int)val.integer;
+
+      break;
+    case 'i':
+      if (val.type != SF_VALUE_TYPE_BOOLEAN) {
+        break;
+      }
+
+      i = val.boolean;
+
+      break;
+    }
+  }
+
+  printf("u=%d i=%d\n", u, i);
+}
+
 int main(void) {
   example_dictionary();
   example_list();
   example_item();
+  example_rfc9218_priority();
 
   return 0;
 }
