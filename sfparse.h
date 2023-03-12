@@ -135,9 +135,9 @@ typedef struct sf_vec {
 /**
  * @struct
  *
- * :type:`decimal` contains decimal value.
+ * :type:`sf_decimal` contains decimal value.
  */
-typedef struct decimal {
+typedef struct sf_decimal {
   /**
    * :member:`numer` contains numerator of the decimal value.
    */
@@ -146,7 +146,7 @@ typedef struct decimal {
    * :member:`denom` contains denominator of the decimal value.
    */
   int64_t denom;
-} decimal;
+} sf_decimal;
 
 /**
  * @struct
@@ -188,7 +188,7 @@ typedef struct sf_value {
      * :member:`decimal` contains decimal value if :member:`type` ==
      * :enum:`sf_value_type.SF_VALUE_TYPE_DECIMAL`.
      */
-    decimal decimal;
+    sf_decimal decimal;
     /**
      * :member:`vec` contains sequence of bytes if :member:`type` is
      * either :enum:`sf_value_type.SF_VALUE_TYPE_STRING`,
