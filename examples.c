@@ -37,20 +37,20 @@ static void print_value(const char *prefix, const sf_value *val) {
   sf_vec decoded;
 
   switch (val->type) {
-  case SF_VALUE_TYPE_BOOLEAN:
+  case SF_TYPE_BOOLEAN:
     printf("%s: %s\n", prefix, val->boolean ? "true" : "false");
 
     break;
-  case SF_VALUE_TYPE_INTEGER:
+  case SF_TYPE_INTEGER:
     printf("%s: %" PRId64 "\n", prefix, val->integer);
 
     break;
-  case SF_VALUE_TYPE_DECIMAL:
+  case SF_TYPE_DECIMAL:
     printf("%s: %.03f\n", prefix,
            (double)val->decimal.numer / (double)val->decimal.denom);
 
     break;
-  case SF_VALUE_TYPE_STRING:
+  case SF_TYPE_STRING:
     if (!(val->flags & SF_VALUE_FLAG_ESCAPED_STRING)) {
       printf("%s: (string) %.*s\n", prefix, (int)val->vec.len, val->vec.base);
 
@@ -66,11 +66,11 @@ static void print_value(const char *prefix, const sf_value *val) {
     free(buf);
 
     break;
-  case SF_VALUE_TYPE_TOKEN:
+  case SF_TYPE_TOKEN:
     printf("%s: (token) %.*s\n", prefix, (int)val->vec.len, val->vec.base);
 
     break;
-  case SF_VALUE_TYPE_BYTESEQ:
+  case SF_TYPE_BYTESEQ:
     buf = malloc(val->vec.len);
     decoded.base = buf;
     sf_base64decode(&decoded, &val->vec);
@@ -80,7 +80,7 @@ static void print_value(const char *prefix, const sf_value *val) {
     free(buf);
 
     break;
-  case SF_VALUE_TYPE_INNER_LIST:
+  case SF_TYPE_INNER_LIST:
     printf("%s: (inner list)\n", prefix);
 
     break;
@@ -146,7 +146,7 @@ static void example_dictionary(void) {
         break;
       }
 
-      if (val.type == SF_VALUE_TYPE_INNER_LIST) {
+      if (val.type == SF_TYPE_INNER_LIST) {
         for (;;) {
           rv = sf_parser_inner_list(&sfp, &val);
           if (rv != 0) {
@@ -204,7 +204,7 @@ static void example_dictionary(void) {
         break;
       }
 
-      if (val.type == SF_VALUE_TYPE_INNER_LIST) {
+      if (val.type == SF_TYPE_INNER_LIST) {
         for (;;) {
           rv = sf_parser_inner_list(&sfp, &val);
           if (rv != 0) {
@@ -269,7 +269,7 @@ static void example_list(void) {
         break;
       }
 
-      if (val.type == SF_VALUE_TYPE_INNER_LIST) {
+      if (val.type == SF_TYPE_INNER_LIST) {
         for (;;) {
           rv = sf_parser_inner_list(&sfp, &val);
           if (rv != 0) {
@@ -458,7 +458,7 @@ static void example_item(void) {
     rv = sf_parser_item(&sfp, &val);
 
     assert(0 == rv);
-    assert(SF_VALUE_TYPE_INNER_LIST == val.type);
+    assert(SF_TYPE_INNER_LIST == val.type);
 
     for (;;) {
       rv = sf_parser_inner_list(&sfp, &val);
@@ -549,7 +549,7 @@ static void example_rfc9218_priority(void) {
 
     switch (key.base[0]) {
     case 'u':
-      if (val.type != SF_VALUE_TYPE_INTEGER) {
+      if (val.type != SF_TYPE_INTEGER) {
         break;
       }
 
@@ -561,7 +561,7 @@ static void example_rfc9218_priority(void) {
 
       break;
     case 'i':
-      if (val.type != SF_VALUE_TYPE_BOOLEAN) {
+      if (val.type != SF_TYPE_BOOLEAN) {
         break;
       }
 
