@@ -378,8 +378,8 @@ static int parser_string(sf_parser *sfp, sf_value *dest) {
       if (dest) {
         dest->type = SF_TYPE_STRING;
         dest->flags = flags;
-        dest->vec.base = (uint8_t *)base;
         dest->vec.len = (size_t)(sfp->pos - base);
+        dest->vec.base = dest->vec.len == 0 ? NULL : (uint8_t *)base;
       }
 
       ++sfp->pos;
@@ -524,8 +524,8 @@ fin:
   if (dest) {
     dest->type = SF_TYPE_BYTESEQ;
     dest->flags = SF_VALUE_FLAG_NONE;
-    dest->vec.base = (uint8_t *)base;
     dest->vec.len = (size_t)(sfp->pos - base);
+    dest->vec.base = dest->vec.len == 0 ? NULL : (uint8_t *)base;
   }
 
   ++sfp->pos;

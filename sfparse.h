@@ -203,6 +203,9 @@ typedef struct sf_value {
      * For :enum:`sf_type.SF_TYPE_BYTESEQ`, this field contains base64
      * encoded string.  To decode this byte string, use
      * `sf_base64decode`.
+     *
+     * If :member:`vec.len <sf_vec.len>` == 0, :member:`vec.base
+     * <sf_vec.base>` is guaranteed to be NULL.
      */
     sf_vec vec;
     /**
