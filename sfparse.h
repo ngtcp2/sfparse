@@ -152,8 +152,9 @@ typedef struct sf_decimal {
  * @struct
  *
  * :type:`sf_value` stores a Structured Field item.  For Inner List,
- * only type is set to :enum:`SF_TYPE_INNER_LIST`.  In order to read
- * the items contained in an inner list, call `sf_parser_inner_list`.
+ * only type is set to :enum:`sf_type.SF_TYPE_INNER_LIST`.  In order
+ * to read the items contained in an inner list, call
+ * `sf_parser_inner_list`.
  */
 typedef struct sf_value {
   /**
@@ -384,6 +385,9 @@ void sf_unescape(sf_vec *dest, const sf_vec *src);
  *
  * :member:`dest->base <sf_vec.base>` must point to the buffer that
  * has sufficient space to store the decoded byte string.
+ *
+ * If :member:`src->len <sf_vec.len>` == 0, |*src| is assigned to
+ * |*dest|.
  *
  * This function sets the length of decoded byte string to
  * :member:`dest->len <sf_vec.len>`.
