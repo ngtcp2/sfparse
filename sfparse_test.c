@@ -37,7 +37,8 @@
   sf_parser_init((SFP), (const uint8_t *)(S), sizeof((S)) - 1)
 
 static int str_sf_vec_eq(const char *s, const sf_vec *v) {
-  return strlen(s) == v->len && 0 == memcmp(s, v->base, v->len);
+  return strlen(s) == v->len &&
+         (v->len == 0 || 0 == memcmp(s, v->base, v->len));
 }
 
 static int is_first_token_char(const uint8_t c) {
