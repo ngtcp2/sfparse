@@ -51,38 +51,38 @@ extern "C" {
 /**
  * @enum
  *
- * :type:`sf_value_type` defines value type.
+ * :type:`sf_type` defines value type.
  */
-typedef enum sf_value_type {
+typedef enum sf_type {
   /**
-   * :enum:`SF_VALUE_TYPE_BOOLEAN` indicates boolean type.
+   * :enum:`SF_TYPE_BOOLEAN` indicates boolean type.
    */
-  SF_VALUE_TYPE_BOOLEAN,
+  SF_TYPE_BOOLEAN,
   /**
-   * :enum:`SF_VALUE_TYPE_INTEGER` indicates integer type.
+   * :enum:`SF_TYPE_INTEGER` indicates integer type.
    */
-  SF_VALUE_TYPE_INTEGER,
+  SF_TYPE_INTEGER,
   /**
-   * :enum:`SF_VALUE_TYPE_DECIMAL` indicates decimal type.
+   * :enum:`SF_TYPE_DECIMAL` indicates decimal type.
    */
-  SF_VALUE_TYPE_DECIMAL,
+  SF_TYPE_DECIMAL,
   /**
-   * :enum:`SF_VALUE_TYPE_STRING` indicates string type.
+   * :enum:`SF_TYPE_STRING` indicates string type.
    */
-  SF_VALUE_TYPE_STRING,
+  SF_TYPE_STRING,
   /**
-   * :enum:`SF_VALUE_TYPE_TOKEN` indicates token type.
+   * :enum:`SF_TYPE_TOKEN` indicates token type.
    */
-  SF_VALUE_TYPE_TOKEN,
+  SF_TYPE_TOKEN,
   /**
-   * :enum:`SF_VALUE_TYPE_BYTESEQ` indicates byte sequence type.
+   * :enum:`SF_TYPE_BYTESEQ` indicates byte sequence type.
    */
-  SF_VALUE_TYPE_BYTESEQ,
+  SF_TYPE_BYTESEQ,
   /**
-   * :enum:`SF_VALUE_TYPE_INNER_LIST` indicates inner list type.
+   * :enum:`SF_TYPE_INNER_LIST` indicates inner list type.
    */
-  SF_VALUE_TYPE_INNER_LIST
-} sf_value_type;
+  SF_TYPE_INNER_LIST
+} sf_type;
 
 /**
  * @macro
@@ -152,16 +152,15 @@ typedef struct sf_decimal {
  * @struct
  *
  * :type:`sf_value` stores a Structured Field item.  For Inner List,
- * only type is set to :enum:`SF_VALUE_TYPE_INNER_LIST`.  In order to
- * read the items contained in an inner list, call
- * `sf_parser_inner_list`.
+ * only type is set to :enum:`SF_TYPE_INNER_LIST`.  In order to read
+ * the items contained in an inner list, call `sf_parser_inner_list`.
  */
 typedef struct sf_value {
   /**
    * :member:`type` is the type of the value contained in this
    * particular object.
    */
-  sf_value_type type;
+  sf_type type;
   /**
    * :member:`flags` is bitwise OR of one or more of
    * :macro:`SF_VALUE_FLAG_* <SF_VALUE_FLAG_NONE>`.
@@ -175,34 +174,34 @@ typedef struct sf_value {
   union {
     /**
      * :member:`boolean` contains boolean value if :member:`type` ==
-     * :enum:`sf_value_type.SF_VALUE_TYPE_BOOLEAN`.  1 indicates true,
-     * and 0 indicates false.
+     * :enum:`sf_type.SF_TYPE_BOOLEAN`.  1 indicates true, and 0
+     * indicates false.
      */
     int boolean;
     /**
      * :member:`integer` contains integer value if :member:`type` ==
-     * :enum:`sf_value_type.SF_VALUE_TYPE_INTEGER`.
+     * :enum:`sf_type.SF_TYPE_INTEGER`.
      */
     int64_t integer;
     /**
      * :member:`decimal` contains decimal value if :member:`type` ==
-     * :enum:`sf_value_type.SF_VALUE_TYPE_DECIMAL`.
+     * :enum:`sf_type.SF_TYPE_DECIMAL`.
      */
     sf_decimal decimal;
     /**
      * :member:`vec` contains sequence of bytes if :member:`type` is
-     * either :enum:`sf_value_type.SF_VALUE_TYPE_STRING`,
-     * :enum:`sf_value_type.SF_VALUE_TYPE_TOKEN`, or
-     * :enum:`sf_value_type.SF_VALUE_TYPE_BYTESEQ`.
+     * either :enum:`sf_type.SF_TYPE_STRING`,
+     * :enum:`sf_type.SF_TYPE_TOKEN`, or
+     * :enum:`sf_type.SF_TYPE_BYTESEQ`.
      *
-     * For :enum:`sf_value_type.SF_VALUE_TYPE_STRING`, this field
-     * contains one or more escaped characters if :member:`flags` has
+     * For :enum:`sf_type.SF_TYPE_STRING`, this field contains one or
+     * more escaped characters if :member:`flags` has
      * :macro:`SF_VALUE_FLAG_ESCAPED_STRING` set.  To unescape the
      * string, use `sf_unescape`.
      *
-     * For :enum:`sf_value_type.SF_VALUE_TYPE_BYTESEQ`, this field
-     * contains base64 encoded string.  To decode this byte string,
-     * use `sf_base64decode`.
+     * For :enum:`sf_type.SF_TYPE_BYTESEQ`, this field contains base64
+     * encoded string.  To decode this byte string, use
+     * `sf_base64decode`.
      */
     sf_vec vec;
     /**
@@ -356,11 +355,10 @@ int sf_parser_inner_list(sf_parser *sfp, sf_value *dest);
  * @function
  *
  * `sf_unescape` copies |src| to |dest| by removing escapes.  |src|
- * should be the item value of type
- * :enum:`sf_value_type.SF_VALUE_TYPE_STRING` produced by either
- * `sf_parser_dict`, `sf_parser_list`, `sf_parser_inner_list`,
- * `sf_parser_item`, or `sf_parser_param`, otherwise the behavior is
- * undefined.
+ * should be the item value of type :enum:`sf_type.SF_TYPE_STRING`
+ * produced by either `sf_parser_dict`, `sf_parser_list`,
+ * `sf_parser_inner_list`, `sf_parser_item`, or `sf_parser_param`,
+ * otherwise the behavior is undefined.
  *
  * :member:`dest->base <sf_vec.base>` must point to the buffer that
  * has sufficient space to store the unescaped string.
@@ -379,7 +377,7 @@ void sf_unescape(sf_vec *dest, const sf_vec *src);
  *
  * `sf_base64decode` decodes Base64 encoded string |src| and writes
  * the result into |dest|.  |src| should be the item value of type
- * :enum:`sf_value_type.SF_VALUE_TYPE_BYTESEQ` produced by either
+ * :enum:`sf_type.SF_TYPE_BYTESEQ` produced by either
  * `sf_parser_dict`, `sf_parser_list`, `sf_parser_inner_list`,
  * `sf_parser_item`, or `sf_parser_param`, otherwise the behavior is
  * undefined.

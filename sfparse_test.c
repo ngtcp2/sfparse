@@ -71,7 +71,7 @@ void test_sf_parser_item_skip(void) {
     sf_parser_bytes_init(&sfp, "a");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("a", &val.vec));
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
   }
@@ -81,7 +81,7 @@ void test_sf_parser_item_skip(void) {
     sf_parser_bytes_init(&sfp, "a;f=1000000009;g=1000000007");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("a", &val.vec));
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
   }
@@ -91,7 +91,7 @@ void test_sf_parser_item_skip(void) {
     sf_parser_bytes_init(&sfp, "a;f");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("a", &val.vec));
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
   }
@@ -101,7 +101,7 @@ void test_sf_parser_item_skip(void) {
     sf_parser_bytes_init(&sfp, "(a)");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
   }
 
@@ -110,7 +110,7 @@ void test_sf_parser_item_skip(void) {
     sf_parser_bytes_init(&sfp, "(a);f=1000000009;g=1000000007");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
   }
 
@@ -119,7 +119,7 @@ void test_sf_parser_item_skip(void) {
     sf_parser_bytes_init(&sfp, "(a);f");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
   }
 
@@ -128,11 +128,11 @@ void test_sf_parser_item_skip(void) {
     sf_parser_bytes_init(&sfp, "(a);f");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("f", &key));
-    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
     CU_ASSERT(1 == val.boolean);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
@@ -145,7 +145,7 @@ void test_sf_parser_item_skip(void) {
     sf_parser_bytes_init(&sfp, "(1;foo=100 2;bar)");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
@@ -193,11 +193,11 @@ void test_sf_parser_dict_skip(void) {
     sf_parser_bytes_init(&sfp, "a=(1 2 3) , b=3");
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(3 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
@@ -208,11 +208,11 @@ void test_sf_parser_dict_skip(void) {
     sf_parser_bytes_init(&sfp, "a=(1 2 3);f=a;g=b , b=3");
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(3 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
@@ -223,11 +223,11 @@ void test_sf_parser_dict_skip(void) {
     sf_parser_bytes_init(&sfp, "a=(1 2 3);f;g , b=3");
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(3 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
@@ -238,23 +238,23 @@ void test_sf_parser_dict_skip(void) {
     sf_parser_bytes_init(&sfp, "a=(1 2 3);f;g , b=3");
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("f", &key));
-    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
     CU_ASSERT(1 == val.boolean);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("g", &key));
-    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
     CU_ASSERT(1 == val.boolean);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(3 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
@@ -265,7 +265,7 @@ void test_sf_parser_dict_skip(void) {
     sf_parser_bytes_init(&sfp, "a=(1;foo=100 2;bar)");
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
@@ -304,10 +304,10 @@ void test_sf_parser_list_skip(void) {
     sf_parser_bytes_init(&sfp, "(1 2 3) , 333");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(333 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
@@ -318,10 +318,10 @@ void test_sf_parser_list_skip(void) {
     sf_parser_bytes_init(&sfp, "(1 2 3);f=a;g=b , 333");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(333 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
@@ -332,10 +332,10 @@ void test_sf_parser_list_skip(void) {
     sf_parser_bytes_init(&sfp, "(1 2 3);f;g , 333");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(333 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
@@ -346,22 +346,22 @@ void test_sf_parser_list_skip(void) {
     sf_parser_bytes_init(&sfp, "(1 2 3);f;g , 333");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("f", &key));
-    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
     CU_ASSERT(1 == val.boolean);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("g", &key));
-    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
     CU_ASSERT(1 == val.boolean);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(333 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
@@ -372,7 +372,7 @@ void test_sf_parser_list_skip(void) {
     sf_parser_bytes_init(&sfp, "(1;foo=100 2;bar)");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
@@ -396,7 +396,7 @@ void test_sf_parser_byteseq(void) {
     sf_parser_bytes_init(&sfp, ":aGVsbG8=:");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_BYTESEQ == val.type);
+    CU_ASSERT(SF_TYPE_BYTESEQ == val.type);
     CU_ASSERT(str_sf_vec_eq("aGVsbG8=", &val.vec));
 
     decoded.base = buf;
@@ -412,7 +412,7 @@ void test_sf_parser_byteseq(void) {
     sf_parser_bytes_init(&sfp, "::");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_BYTESEQ == val.type);
+    CU_ASSERT(SF_TYPE_BYTESEQ == val.type);
     CU_ASSERT(str_sf_vec_eq("", &val.vec));
 
     decoded.base = buf;
@@ -470,7 +470,7 @@ void test_sf_parser_byteseq(void) {
     sf_parser_bytes_init(&sfp, ":/+Ah:");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_BYTESEQ == val.type);
+    CU_ASSERT(SF_TYPE_BYTESEQ == val.type);
     CU_ASSERT(str_sf_vec_eq("/+Ah", &val.vec));
 
     decoded.base = buf;
@@ -497,7 +497,7 @@ void test_sf_parser_byteseq(void) {
     sf_parser_init(&sfp, s, sizeof(s));
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("z", &val.vec));
 
     CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_list(&sfp, &val));
@@ -515,7 +515,7 @@ void test_sf_parser_boolean(void) {
     sf_parser_bytes_init(&sfp, "?1");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
     CU_ASSERT(1 == val.boolean);
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
   }
@@ -525,7 +525,7 @@ void test_sf_parser_boolean(void) {
     sf_parser_bytes_init(&sfp, "?0");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
     CU_ASSERT(0 == val.boolean);
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
   }
@@ -605,7 +605,7 @@ void test_sf_parser_number(void) {
     sf_parser_bytes_init(&sfp, "42");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(42 == val.integer);
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
   }
@@ -615,7 +615,7 @@ void test_sf_parser_number(void) {
     sf_parser_bytes_init(&sfp, "0");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(0 == val.integer);
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
   }
@@ -625,7 +625,7 @@ void test_sf_parser_number(void) {
     sf_parser_bytes_init(&sfp, "-0");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(0 == val.integer);
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
   }
@@ -642,7 +642,7 @@ void test_sf_parser_number(void) {
     sf_parser_bytes_init(&sfp, "-42");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(-42 == val.integer);
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
   }
@@ -652,7 +652,7 @@ void test_sf_parser_number(void) {
     sf_parser_bytes_init(&sfp, "042");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(42 == val.integer);
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
   }
@@ -662,7 +662,7 @@ void test_sf_parser_number(void) {
     sf_parser_bytes_init(&sfp, "-042");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(-42 == val.integer);
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
   }
@@ -672,7 +672,7 @@ void test_sf_parser_number(void) {
     sf_parser_bytes_init(&sfp, "00");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(0 == val.integer);
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
   }
@@ -682,7 +682,7 @@ void test_sf_parser_number(void) {
     sf_parser_bytes_init(&sfp, "2,3");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(2 == val.integer);
     CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, NULL));
   }
@@ -699,7 +699,7 @@ void test_sf_parser_number(void) {
     sf_parser_bytes_init(&sfp, "4-2");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(4 == val.integer);
     CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, NULL));
   }
@@ -716,7 +716,7 @@ void test_sf_parser_number(void) {
     sf_parser_bytes_init(&sfp, "123456789012345");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(123456789012345 == val.integer);
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
   }
@@ -726,7 +726,7 @@ void test_sf_parser_number(void) {
     sf_parser_bytes_init(&sfp, "-123456789012345");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(-123456789012345 == val.integer);
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
   }
@@ -750,7 +750,7 @@ void test_sf_parser_number(void) {
     sf_parser_bytes_init(&sfp, "1.23");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_DECIMAL == val.type);
+    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
     CU_ASSERT(123 == val.decimal.numer);
     CU_ASSERT(100 == val.decimal.denom);
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
@@ -761,7 +761,7 @@ void test_sf_parser_number(void) {
     sf_parser_bytes_init(&sfp, "-1.23");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_DECIMAL == val.type);
+    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
     CU_ASSERT(-123 == val.decimal.numer);
     CU_ASSERT(100 == val.decimal.denom);
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
@@ -779,7 +779,7 @@ void test_sf_parser_number(void) {
     sf_parser_bytes_init(&sfp, "1 .23");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
     CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, NULL));
   }
@@ -796,7 +796,7 @@ void test_sf_parser_number(void) {
     sf_parser_bytes_init(&sfp, "123456789012.1");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_DECIMAL == val.type);
+    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
     CU_ASSERT(1234567890121 == val.decimal.numer);
     CU_ASSERT(10 == val.decimal.denom);
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
@@ -807,7 +807,7 @@ void test_sf_parser_number(void) {
     sf_parser_bytes_init(&sfp, "1.5.4");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_DECIMAL == val.type);
+    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
     CU_ASSERT(15 == val.decimal.numer);
     CU_ASSERT(10 == val.decimal.denom);
     CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, NULL));
@@ -825,7 +825,7 @@ void test_sf_parser_number(void) {
     sf_parser_bytes_init(&sfp, "1.123");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_DECIMAL == val.type);
+    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
     CU_ASSERT(1123 == val.decimal.numer);
     CU_ASSERT(1000 == val.decimal.denom);
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
@@ -836,7 +836,7 @@ void test_sf_parser_number(void) {
     sf_parser_bytes_init(&sfp, "-1.123");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_DECIMAL == val.type);
+    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
     CU_ASSERT(-1123 == val.decimal.numer);
     CU_ASSERT(1000 == val.decimal.denom);
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
@@ -884,7 +884,7 @@ void test_sf_parser_string(void) {
     sf_parser_bytes_init(&sfp, "\"foo bar\"");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_STRING == val.type);
+    CU_ASSERT(SF_TYPE_STRING == val.type);
     CU_ASSERT(str_sf_vec_eq("foo bar", &val.vec));
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
   }
@@ -894,7 +894,7 @@ void test_sf_parser_string(void) {
     sf_parser_bytes_init(&sfp, "\"\"");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_STRING == val.type);
+    CU_ASSERT(SF_TYPE_STRING == val.type);
     CU_ASSERT(str_sf_vec_eq("", &val.vec));
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
   }
@@ -909,7 +909,7 @@ void test_sf_parser_string(void) {
         "foo foo foo foo foo foo foo foo foo foo foo foo foo foo \"");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_STRING == val.type);
+    CU_ASSERT(SF_TYPE_STRING == val.type);
     CU_ASSERT(str_sf_vec_eq(
         "foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo "
         "foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo "
@@ -924,7 +924,7 @@ void test_sf_parser_string(void) {
     sf_parser_bytes_init(&sfp, "\"   \"");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_STRING == val.type);
+    CU_ASSERT(SF_TYPE_STRING == val.type);
     CU_ASSERT(str_sf_vec_eq("   ", &val.vec));
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
   }
@@ -969,7 +969,7 @@ void test_sf_parser_string(void) {
     sf_parser_bytes_init(&sfp, "\"foo \\\"bar\\\" \\\\ baz\"");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_STRING == val.type);
+    CU_ASSERT(SF_TYPE_STRING == val.type);
     CU_ASSERT(str_sf_vec_eq("foo \\\"bar\\\" \\\\ baz", &val.vec));
     CU_ASSERT(val.flags & SF_VALUE_FLAG_ESCAPED_STRING);
 
@@ -1013,7 +1013,7 @@ void test_sf_parser_token(void) {
     sf_parser_bytes_init(&sfp, "a_b-c.d3:f%00/*");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("a_b-c.d3:f%00/*", &val.vec));
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
   }
@@ -1023,7 +1023,7 @@ void test_sf_parser_token(void) {
     sf_parser_bytes_init(&sfp, "fooBar");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("fooBar", &val.vec));
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
   }
@@ -1033,7 +1033,7 @@ void test_sf_parser_token(void) {
     sf_parser_bytes_init(&sfp, "FooBar");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("FooBar", &val.vec));
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
   }
@@ -1043,7 +1043,7 @@ void test_sf_parser_token(void) {
     sf_parser_bytes_init(&sfp, "a_b-c3/*");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("a_b-c3/*", &val.vec));
     CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
   }
@@ -1053,7 +1053,7 @@ void test_sf_parser_token(void) {
     sf_parser_bytes_init(&sfp, "fooBar");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("fooBar", &val.vec));
     CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
   }
@@ -1063,7 +1063,7 @@ void test_sf_parser_token(void) {
     sf_parser_bytes_init(&sfp, "FooBar");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("FooBar", &val.vec));
     CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
   }
@@ -1085,12 +1085,12 @@ void test_sf_parser_dictionary(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("en", &key));
-    CU_ASSERT(SF_VALUE_TYPE_STRING == val.type);
+    CU_ASSERT(SF_TYPE_STRING == val.type);
     CU_ASSERT(str_sf_vec_eq("Applepie", &val.vec));
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("da", &key));
-    CU_ASSERT(SF_VALUE_TYPE_BYTESEQ == val.type);
+    CU_ASSERT(SF_TYPE_BYTESEQ == val.type);
     CU_ASSERT(str_sf_vec_eq("w4ZibGV0w6ZydGUK", &val.vec));
 
     decoded.base = buf;
@@ -1117,7 +1117,7 @@ void test_sf_parser_dictionary(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, NULL));
@@ -1129,14 +1129,14 @@ void test_sf_parser_dictionary(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(2 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
@@ -1150,10 +1150,10 @@ void test_sf_parser_dictionary(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
@@ -1167,7 +1167,7 @@ void test_sf_parser_dictionary(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
 
@@ -1180,12 +1180,12 @@ void test_sf_parser_dictionary(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(2 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
@@ -1197,12 +1197,12 @@ void test_sf_parser_dictionary(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(2 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
@@ -1214,12 +1214,12 @@ void test_sf_parser_dictionary(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(2 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
@@ -1231,12 +1231,12 @@ void test_sf_parser_dictionary(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(2 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
@@ -1248,7 +1248,7 @@ void test_sf_parser_dictionary(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
     CU_ASSERT(1 == val.boolean);
 
     CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_dict(&sfp, &key, &val));
@@ -1260,7 +1260,7 @@ void test_sf_parser_dictionary(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_dict(&sfp, &key, &val));
@@ -1275,17 +1275,17 @@ void test_sf_parser_dictionary(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
     CU_ASSERT(1 == val.boolean);
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("c", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(3 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
@@ -1297,17 +1297,17 @@ void test_sf_parser_dictionary(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
     CU_ASSERT(1 == val.boolean);
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
     CU_ASSERT(1 == val.boolean);
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("c", &key));
-    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
     CU_ASSERT(1 == val.boolean);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
@@ -1319,12 +1319,12 @@ void test_sf_parser_dictionary(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
     CU_ASSERT(1 == val.boolean);
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(2 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
@@ -1336,12 +1336,12 @@ void test_sf_parser_dictionary(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
     CU_ASSERT(1 == val.boolean);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
@@ -1353,24 +1353,24 @@ void test_sf_parser_dictionary(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
     CU_ASSERT(1 == val.boolean);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("foo", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(9 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("c", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(3 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
@@ -1382,24 +1382,24 @@ void test_sf_parser_dictionary(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
     CU_ASSERT(1 == val.boolean);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("foo", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(9 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("c", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(3 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
@@ -1435,17 +1435,17 @@ void test_sf_parser_dictionary(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(2 == val.integer);
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(3 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
@@ -1457,7 +1457,7 @@ void test_sf_parser_dictionary(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_dict(&sfp, &key, &val));
@@ -1469,7 +1469,7 @@ void test_sf_parser_dictionary(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_dict(&sfp, &key, &val));
@@ -1481,12 +1481,12 @@ void test_sf_parser_dictionary(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
     CU_ASSERT(1 == val.boolean);
 
     CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_dict(&sfp, &key, &val));
@@ -1504,11 +1504,11 @@ void test_sf_parser_list(void) {
     sf_parser_bytes_init(&sfp, "1, 42");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(42 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
@@ -1526,11 +1526,11 @@ void test_sf_parser_list(void) {
     sf_parser_bytes_init(&sfp, "  42, 43");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(42 == val.integer);
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(43 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
@@ -1541,7 +1541,7 @@ void test_sf_parser_list(void) {
     sf_parser_bytes_init(&sfp, "42");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(42 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
@@ -1552,11 +1552,11 @@ void test_sf_parser_list(void) {
     sf_parser_bytes_init(&sfp, "1,42");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(42 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
@@ -1567,11 +1567,11 @@ void test_sf_parser_list(void) {
     sf_parser_bytes_init(&sfp, "1 , 42");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(42 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
@@ -1582,11 +1582,11 @@ void test_sf_parser_list(void) {
     sf_parser_bytes_init(&sfp, "1\t,\t42");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(42 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
@@ -1600,11 +1600,11 @@ void test_sf_parser_list(void) {
     sf_parser_bytes_init(&sfp, "1, 42,");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(42 == val.integer);
 
     CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_list(&sfp, &val));
@@ -1615,7 +1615,7 @@ void test_sf_parser_list(void) {
     sf_parser_bytes_init(&sfp, "1,,42");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_list(&sfp, &val));
@@ -1636,27 +1636,27 @@ void test_sf_parser_list_list(void) {
     sf_parser_bytes_init(&sfp, "(1 2), (42 43)");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(2 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(42 == val.integer);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(43 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
@@ -1669,10 +1669,10 @@ void test_sf_parser_list_list(void) {
     sf_parser_bytes_init(&sfp, "(42)");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(42 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
@@ -1685,7 +1685,7 @@ void test_sf_parser_list_list(void) {
     sf_parser_bytes_init(&sfp, "()");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
 
@@ -1697,24 +1697,24 @@ void test_sf_parser_list_list(void) {
     sf_parser_bytes_init(&sfp, "(1),(),(42)");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(42 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
@@ -1727,14 +1727,14 @@ void test_sf_parser_list_list(void) {
     sf_parser_bytes_init(&sfp, "(  1  42  )");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(42 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
@@ -1747,10 +1747,10 @@ void test_sf_parser_list_list(void) {
     sf_parser_bytes_init(&sfp, "(1\t 42)");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_inner_list(&sfp, &val));
@@ -1761,14 +1761,14 @@ void test_sf_parser_list_list(void) {
     sf_parser_bytes_init(&sfp, "(1 42");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(42 == val.integer);
 
     CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_inner_list(&sfp, &val));
@@ -1779,14 +1779,14 @@ void test_sf_parser_list_list(void) {
     sf_parser_bytes_init(&sfp, "(1 2, (42 43)");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(2 == val.integer);
 
     CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_inner_list(&sfp, &val));
@@ -1797,10 +1797,10 @@ void test_sf_parser_list_list(void) {
     sf_parser_bytes_init(&sfp, "(abc\"def\"?0123*dXZ3*xyz)");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("abc", &val.vec));
 
     CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_inner_list(&sfp, &val));
@@ -1811,7 +1811,7 @@ void test_sf_parser_list_list(void) {
     sf_parser_bytes_init(&sfp, "(");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_inner_list(&sfp, &val));
   }
@@ -1832,41 +1832,41 @@ void test_sf_parser_param_dict(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("abc", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(123 == val.integer);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(2 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("def", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(456 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("ghi", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(789 == val.integer);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("q", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(9 == val.integer);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("r", &key));
-    CU_ASSERT(SF_VALUE_TYPE_STRING == val.type);
+    CU_ASSERT(SF_TYPE_STRING == val.type);
     CU_ASSERT(str_sf_vec_eq("+w", &val.vec));
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
@@ -1880,12 +1880,12 @@ void test_sf_parser_param_dict(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("b", &val.vec));
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("q", &key));
-    CU_ASSERT(SF_VALUE_TYPE_DECIMAL == val.type);
+    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
     CU_ASSERT(10 == val.decimal.numer);
     CU_ASSERT(10 == val.decimal.denom);
 
@@ -1900,21 +1900,21 @@ void test_sf_parser_param_dict(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(2 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("q", &key));
-    CU_ASSERT(SF_VALUE_TYPE_DECIMAL == val.type);
+    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
     CU_ASSERT(10 == val.decimal.numer);
     CU_ASSERT(10 == val.decimal.denom);
 
@@ -1929,17 +1929,17 @@ void test_sf_parser_param_dict(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(3 == val.integer);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("c", &key));
-    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
     CU_ASSERT(1 == val.boolean);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("d", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(5 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
@@ -1953,17 +1953,17 @@ void test_sf_parser_param_dict(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(3 == val.integer);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("c", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(5 == val.integer);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("d", &key));
-    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
     CU_ASSERT(1 == val.boolean);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
@@ -1977,24 +1977,24 @@ void test_sf_parser_param_dict(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("b", &val.vec));
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("c", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("d", &key));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("e", &val.vec));
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("f", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(2 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
@@ -2008,12 +2008,12 @@ void test_sf_parser_param_dict(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("b", &val.vec));
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("q", &key));
-    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
     CU_ASSERT(1 == val.boolean);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
@@ -2027,7 +2027,7 @@ void test_sf_parser_param_dict(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("b", &val.vec));
 
     CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_param(&sfp, &key, &val));
@@ -2039,7 +2039,7 @@ void test_sf_parser_param_dict(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("b", &val.vec));
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
@@ -2053,12 +2053,12 @@ void test_sf_parser_param_dict(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("b", &val.vec));
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("q", &key));
-    CU_ASSERT(SF_VALUE_TYPE_DECIMAL == val.type);
+    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
     CU_ASSERT(5 == val.decimal.numer);
     CU_ASSERT(10 == val.decimal.denom);
 
@@ -2073,29 +2073,29 @@ void test_sf_parser_param_dict(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("b", &val.vec));
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("c", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("d", &key));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("e", &val.vec));
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("f", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(2 == val.integer);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("g", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(3 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
@@ -2112,12 +2112,12 @@ void test_sf_parser_param_dict(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("b", &val.vec));
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("q", &key));
-    CU_ASSERT(SF_VALUE_TYPE_DECIMAL == val.type);
+    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
     CU_ASSERT(10 == val.decimal.numer);
     CU_ASSERT(10 == val.decimal.denom);
 
@@ -2132,12 +2132,12 @@ void test_sf_parser_param_dict(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("b", &val.vec));
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("q", &key));
-    CU_ASSERT(SF_VALUE_TYPE_DECIMAL == val.type);
+    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
     CU_ASSERT(10 == val.decimal.numer);
     CU_ASSERT(10 == val.decimal.denom);
 
@@ -2160,38 +2160,38 @@ void test_sf_parser_param_list(void) {
     sf_parser_bytes_init(&sfp, "abc_123;a=1;b=2; cdef_456, ghi;q=9;r=\"+w\"");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("abc_123", &val.vec));
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(2 == val.integer);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("cdef_456", &key));
-    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
     CU_ASSERT(1 == val.boolean);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("ghi", &val.vec));
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("q", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(9 == val.integer);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("r", &key));
-    CU_ASSERT(SF_VALUE_TYPE_STRING == val.type);
+    CU_ASSERT(SF_TYPE_STRING == val.type);
     CU_ASSERT(str_sf_vec_eq("+w", &val.vec));
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
@@ -2204,12 +2204,12 @@ void test_sf_parser_param_list(void) {
     sf_parser_bytes_init(&sfp, "text/html;q=1.0");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("text/html", &val.vec));
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("q", &key));
-    CU_ASSERT(SF_VALUE_TYPE_DECIMAL == val.type);
+    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
     CU_ASSERT(10 == val.decimal.numer);
     CU_ASSERT(10 == val.decimal.denom);
 
@@ -2223,17 +2223,17 @@ void test_sf_parser_param_list(void) {
     sf_parser_bytes_init(&sfp, "text/html;a;q=1.0");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("text/html", &val.vec));
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
     CU_ASSERT(1 == val.boolean);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("q", &key));
-    CU_ASSERT(SF_VALUE_TYPE_DECIMAL == val.type);
+    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
     CU_ASSERT(10 == val.decimal.numer);
     CU_ASSERT(10 == val.decimal.denom);
 
@@ -2247,18 +2247,18 @@ void test_sf_parser_param_list(void) {
     sf_parser_bytes_init(&sfp, "text/html;q=1.0;a");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("text/html", &val.vec));
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("q", &key));
-    CU_ASSERT(SF_VALUE_TYPE_DECIMAL == val.type);
+    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
     CU_ASSERT(10 == val.decimal.numer);
     CU_ASSERT(10 == val.decimal.denom);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
     CU_ASSERT(1 == val.boolean);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
@@ -2271,18 +2271,18 @@ void test_sf_parser_param_list(void) {
     sf_parser_bytes_init(&sfp, "text/html,text/plain;q=0.5");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("text/html", &val.vec));
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("text/plain", &val.vec));
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("q", &key));
-    CU_ASSERT(SF_VALUE_TYPE_DECIMAL == val.type);
+    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
     CU_ASSERT(5 == val.decimal.numer);
     CU_ASSERT(10 == val.decimal.denom);
 
@@ -2296,18 +2296,18 @@ void test_sf_parser_param_list(void) {
     sf_parser_bytes_init(&sfp, "text/html, text/plain;q =0.5");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("text/html", &val.vec));
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("text/plain", &val.vec));
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("q", &key));
-    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
     CU_ASSERT(1 == val.boolean);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
@@ -2320,13 +2320,13 @@ void test_sf_parser_param_list(void) {
     sf_parser_bytes_init(&sfp, "text/html, text/plain;q= 0.5");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("text/html", &val.vec));
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("text/plain", &val.vec));
 
     CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_param(&sfp, &key, &val));
@@ -2337,13 +2337,13 @@ void test_sf_parser_param_list(void) {
     sf_parser_bytes_init(&sfp, "text/html, text/plain ;q=0.5");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("text/html", &val.vec));
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("text/plain", &val.vec));
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
@@ -2356,18 +2356,18 @@ void test_sf_parser_param_list(void) {
     sf_parser_bytes_init(&sfp, "text/html, text/plain; q=0.5");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("text/html", &val.vec));
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("text/plain", &val.vec));
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("q", &key));
-    CU_ASSERT(SF_VALUE_TYPE_DECIMAL == val.type);
+    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
     CU_ASSERT(5 == val.decimal.numer);
     CU_ASSERT(10 == val.decimal.denom);
 
@@ -2382,24 +2382,24 @@ void test_sf_parser_param_list(void) {
                          "text/html  ,  text/plain;  q=0.5;  charset=utf-8");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("text/html", &val.vec));
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("text/plain", &val.vec));
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("q", &key));
-    CU_ASSERT(SF_VALUE_TYPE_DECIMAL == val.type);
+    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
     CU_ASSERT(5 == val.decimal.numer);
     CU_ASSERT(10 == val.decimal.denom);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("charset", &key));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("utf-8", &val.vec));
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
@@ -2415,18 +2415,18 @@ void test_sf_parser_param_list(void) {
     sf_parser_bytes_init(&sfp, "text/html,text/plain;q=0.5,");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("text/html", &val.vec));
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("text/plain", &val.vec));
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("q", &key));
-    CU_ASSERT(SF_VALUE_TYPE_DECIMAL == val.type);
+    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
     CU_ASSERT(5 == val.decimal.numer);
     CU_ASSERT(10 == val.decimal.denom);
 
@@ -2440,7 +2440,7 @@ void test_sf_parser_param_list(void) {
     sf_parser_bytes_init(&sfp, "text/html,,text/plain;q=0.5,");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("text/html", &val.vec));
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
@@ -2462,28 +2462,28 @@ void test_sf_parser_param_list_list(void) {
     sf_parser_bytes_init(&sfp, "(abc_123);a=1;b=2, cdef_456");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("abc_123", &val.vec));
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(2 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("cdef_456", &val.vec));
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
@@ -2496,25 +2496,25 @@ void test_sf_parser_param_list_list(void) {
     sf_parser_bytes_init(&sfp, "(abc_123;a=1;b=2;cdef_456)");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("abc_123", &val.vec));
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(2 == val.integer);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("cdef_456", &key));
-    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
     CU_ASSERT(1 == val.boolean);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
@@ -2529,20 +2529,20 @@ void test_sf_parser_param_list_list(void) {
     sf_parser_bytes_init(&sfp, "(abc_123;a=1;b=2);cdef_456");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("abc_123", &val.vec));
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(2 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
@@ -2551,7 +2551,7 @@ void test_sf_parser_param_list_list(void) {
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("cdef_456", &key));
-    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
     CU_ASSERT(1 == val.boolean);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
@@ -2582,7 +2582,7 @@ void test_sf_parser_number_generated(void) {
       sf_parser_init(&sfp, buf, len);
 
       CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-      CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+      CU_ASSERT(SF_TYPE_INTEGER == val.type);
       CU_ASSERT(integer == val.integer);
     }
   }
@@ -2608,7 +2608,7 @@ void test_sf_parser_number_generated(void) {
         sf_parser_init(&sfp, buf, len + 1 + flen);
 
         CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-        CU_ASSERT(SF_VALUE_TYPE_DECIMAL == val.type);
+        CU_ASSERT(SF_TYPE_DECIMAL == val.type);
         CU_ASSERT(integer == val.decimal.numer);
         CU_ASSERT(denom == val.decimal.denom);
         CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
@@ -2719,18 +2719,18 @@ void test_sf_parser_token_generated(void) {
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
 
     if (is_token_char((uint8_t)i)) {
-      CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+      CU_ASSERT(SF_TYPE_TOKEN == val.type);
       CU_ASSERT(3 == val.vec.len);
       CU_ASSERT(0 == memcmp(buf, val.vec.base, 3));
       CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
     } else {
-      CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+      CU_ASSERT(SF_TYPE_TOKEN == val.type);
       CU_ASSERT(str_sf_vec_eq("a", &val.vec));
 
       if (i == ';') {
         CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
         CU_ASSERT(str_sf_vec_eq("a", &key));
-        CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+        CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
         CU_ASSERT(1 == val.boolean);
         CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
         CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, &val));
@@ -2751,25 +2751,25 @@ void test_sf_parser_token_generated(void) {
 
     if (is_first_token_char((uint8_t)i)) {
       CU_ASSERT(0 == rv);
-      CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+      CU_ASSERT(SF_TYPE_TOKEN == val.type);
       CU_ASSERT(2 == val.vec.len);
       CU_ASSERT(0 == memcmp(buf, val.vec.base, 2));
       CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
     } else if (i == ' ') {
       CU_ASSERT(0 == rv);
-      CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+      CU_ASSERT(SF_TYPE_TOKEN == val.type);
       CU_ASSERT(str_sf_vec_eq("a", &val.vec));
       CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
     } else if ('0' <= i && i <= '9') {
       CU_ASSERT(0 == rv);
-      CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+      CU_ASSERT(SF_TYPE_INTEGER == val.type);
       CU_ASSERT((int64_t)(i - '0') == val.integer);
       CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, NULL));
     } else if (i == '(') {
       CU_ASSERT(0 == rv);
-      CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+      CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
       CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-      CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+      CU_ASSERT(SF_TYPE_TOKEN == val.type);
       CU_ASSERT(str_sf_vec_eq("a", &val.vec));
       CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_inner_list(&sfp, NULL));
     } else {
@@ -2801,7 +2801,7 @@ void test_sf_parser_key_generated(void) {
       CU_ASSERT(0 == rv);
       CU_ASSERT(1 == key.len);
       CU_ASSERT((uint8_t)i == key.base[0]);
-      CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+      CU_ASSERT(SF_TYPE_INTEGER == val.type);
       CU_ASSERT(1 == val.integer);
       CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, NULL, NULL));
     } else {
@@ -2825,31 +2825,31 @@ void test_sf_parser_key_generated(void) {
       CU_ASSERT(0 == rv);
       CU_ASSERT(3 == key.len);
       CU_ASSERT(0 == memcmp(buf, key.base, 3));
-      CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+      CU_ASSERT(SF_TYPE_INTEGER == val.type);
       CU_ASSERT(1 == val.integer);
       CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, NULL, NULL));
     } else if (i == '=') {
       CU_ASSERT(0 == rv);
       CU_ASSERT(str_sf_vec_eq("a", &key));
-      CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+      CU_ASSERT(SF_TYPE_TOKEN == val.type);
       CU_ASSERT(str_sf_vec_eq("a", &val.vec));
       CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_dict(&sfp, NULL, NULL));
     } else {
       CU_ASSERT(0 == rv);
       CU_ASSERT(str_sf_vec_eq("a", &key));
-      CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+      CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
       CU_ASSERT(1 == val.boolean);
 
       if (i == ',') {
         CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
         CU_ASSERT(str_sf_vec_eq("a", &key));
-        CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+        CU_ASSERT(SF_TYPE_INTEGER == val.type);
         CU_ASSERT(1 == val.integer);
         CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, NULL, NULL));
       } else if (i == ';') {
         CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
         CU_ASSERT(str_sf_vec_eq("a", &key));
-        CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+        CU_ASSERT(SF_TYPE_INTEGER == val.type);
         CU_ASSERT(1 == val.integer);
         CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
         CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, NULL, NULL));
@@ -2874,13 +2874,13 @@ void test_sf_parser_key_generated(void) {
       CU_ASSERT(0 == rv);
       CU_ASSERT(2 == key.len);
       CU_ASSERT(0 == memcmp(buf, key.base, 2));
-      CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+      CU_ASSERT(SF_TYPE_INTEGER == val.type);
       CU_ASSERT(1 == val.integer);
       CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, NULL, NULL));
     } else if (i == ' ') {
       CU_ASSERT(0 == rv);
       CU_ASSERT(str_sf_vec_eq("a", &key));
-      CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+      CU_ASSERT(SF_TYPE_INTEGER == val.type);
       CU_ASSERT(1 == val.integer);
       CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, NULL, NULL));
     } else {
@@ -2895,7 +2895,7 @@ void test_sf_parser_key_generated(void) {
     sf_parser_init(&sfp, buf, (size_t)len);
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("foo", &val.vec));
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
@@ -2903,25 +2903,25 @@ void test_sf_parser_key_generated(void) {
     if (is_key_char((uint8_t)i)) {
       CU_ASSERT(3 == key.len);
       CU_ASSERT(0 == memcmp(buf + 5, key.base, 3));
-      CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+      CU_ASSERT(SF_TYPE_INTEGER == val.type);
       CU_ASSERT(1 == val.integer);
       CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
       CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, NULL));
     } else if (i == '=') {
       CU_ASSERT(str_sf_vec_eq("a", &key));
-      CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+      CU_ASSERT(SF_TYPE_TOKEN == val.type);
       CU_ASSERT(str_sf_vec_eq("a", &val.vec));
       CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
       CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_list(&sfp, NULL));
     } else {
       CU_ASSERT(str_sf_vec_eq("a", &key));
-      CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+      CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
       CU_ASSERT(1 == val.boolean);
 
       if (i == ';') {
         CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
         CU_ASSERT(str_sf_vec_eq("a", &key));
-        CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+        CU_ASSERT(SF_TYPE_INTEGER == val.type);
         CU_ASSERT(1 == val.integer);
         CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
         CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, NULL));
@@ -2932,7 +2932,7 @@ void test_sf_parser_key_generated(void) {
 
         if (i == ',') {
           CU_ASSERT(0 == rv);
-          CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+          CU_ASSERT(SF_TYPE_TOKEN == val.type);
           CU_ASSERT(str_sf_vec_eq("a", &val.vec));
           CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_list(&sfp, NULL));
         } else {
@@ -2949,7 +2949,7 @@ void test_sf_parser_key_generated(void) {
     sf_parser_init(&sfp, buf, (size_t)len);
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("foo", &val.vec));
 
     rv = sf_parser_param(&sfp, &key, &val);
@@ -2958,14 +2958,14 @@ void test_sf_parser_key_generated(void) {
       CU_ASSERT(0 == rv);
       CU_ASSERT(2 == key.len);
       CU_ASSERT(0 == memcmp(buf + 5, key.base, 2));
-      CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+      CU_ASSERT(SF_TYPE_INTEGER == val.type);
       CU_ASSERT(1 == val.integer);
       CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
       CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, NULL));
     } else if (i == ' ') {
       CU_ASSERT(0 == rv);
       CU_ASSERT(str_sf_vec_eq("a", &key));
-      CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+      CU_ASSERT(SF_TYPE_INTEGER == val.type);
       CU_ASSERT(1 == val.integer);
       CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
       CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, NULL));
@@ -3006,7 +3006,7 @@ void test_sf_parser_large_generated(void) {
 
       CU_ASSERT((size_t)len == key.len);
       CU_ASSERT(0 == memcmp(sbuf, key.base, (size_t)len));
-      CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+      CU_ASSERT(SF_TYPE_INTEGER == val.type);
       CU_ASSERT(1 == val.integer);
     }
 
@@ -3023,7 +3023,7 @@ void test_sf_parser_large_generated(void) {
     CU_ASSERT(str_sf_vec_eq(
         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
     CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, NULL, NULL));
   }
@@ -3047,7 +3047,7 @@ void test_sf_parser_large_generated(void) {
 
       len = snprintf((char *)sbuf, sizeof(sbuf), "a%d", (int)i);
 
-      CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+      CU_ASSERT(SF_TYPE_TOKEN == val.type);
       CU_ASSERT((size_t)len == val.vec.len);
       CU_ASSERT(0 == memcmp(sbuf, val.vec.base, (size_t)len));
     }
@@ -3071,7 +3071,7 @@ void test_sf_parser_large_generated(void) {
 
     for (i = 0; i < 1024; ++i) {
       CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-      CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+      CU_ASSERT(SF_TYPE_TOKEN == val.type);
       CU_ASSERT(str_sf_vec_eq("foo", &val.vec));
 
       len = snprintf((char *)sbuf, sizeof(sbuf), "a%d", (int)i);
@@ -3079,7 +3079,7 @@ void test_sf_parser_large_generated(void) {
       CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
       CU_ASSERT((size_t)len == key.len);
       CU_ASSERT(0 == memcmp(sbuf, key.base, (size_t)len));
-      CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+      CU_ASSERT(SF_TYPE_INTEGER == val.type);
       CU_ASSERT(1 == val.integer);
       CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
     }
@@ -3106,7 +3106,7 @@ void test_sf_parser_large_generated(void) {
     sf_parser_init(&sfp, buf, (size_t)len);
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("foo", &val.vec));
 
     for (i = 0; i < 1024; ++i) {
@@ -3115,7 +3115,7 @@ void test_sf_parser_large_generated(void) {
       CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
       CU_ASSERT((size_t)len == key.len);
       CU_ASSERT(0 == memcmp(sbuf, key.base, (size_t)len));
-      CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+      CU_ASSERT(SF_TYPE_INTEGER == val.type);
       CU_ASSERT(1 == val.integer);
     }
 
@@ -3132,14 +3132,14 @@ void test_sf_parser_large_generated(void) {
         "1");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("foo", &val.vec));
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq(
         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
@@ -3168,7 +3168,7 @@ void test_sf_parser_large_generated(void) {
         "==============================================\"");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_STRING == val.type);
+    CU_ASSERT(SF_TYPE_STRING == val.type);
     CU_ASSERT(str_sf_vec_eq(
         "======================================================================"
         "======================================================================"
@@ -3254,7 +3254,7 @@ void test_sf_parser_large_generated(void) {
         "\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\"");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_STRING == val.type);
+    CU_ASSERT(SF_TYPE_STRING == val.type);
     CU_ASSERT(val.flags & SF_VALUE_FLAG_ESCAPED_STRING);
 
     unescaped.base = buf;
@@ -3309,7 +3309,7 @@ void test_sf_parser_large_generated(void) {
         "aaaaaaaaaaaaaaaaaaaaaa");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq(
         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -3338,12 +3338,12 @@ void test_sf_parser_examples(void) {
     sf_parser_bytes_init(&sfp, "2; foourl=\"https://foo.example.com/\"");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(2 == val.integer);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("foourl", &key));
-    CU_ASSERT(SF_VALUE_TYPE_STRING == val.type);
+    CU_ASSERT(SF_TYPE_STRING == val.type);
     CU_ASSERT(!(val.flags & SF_VALUE_FLAG_ESCAPED_STRING));
     CU_ASSERT(str_sf_vec_eq("https://foo.example.com/", &val.vec));
 
@@ -3358,17 +3358,17 @@ void test_sf_parser_examples(void) {
                          "\"foo\", \"bar\", \"It was the best of times.\"");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_STRING == val.type);
+    CU_ASSERT(SF_TYPE_STRING == val.type);
     CU_ASSERT(!(val.flags & SF_VALUE_FLAG_ESCAPED_STRING));
     CU_ASSERT(str_sf_vec_eq("foo", &val.vec));
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_STRING == val.type);
+    CU_ASSERT(SF_TYPE_STRING == val.type);
     CU_ASSERT(!(val.flags & SF_VALUE_FLAG_ESCAPED_STRING));
     CU_ASSERT(str_sf_vec_eq("bar", &val.vec));
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_STRING == val.type);
+    CU_ASSERT(SF_TYPE_STRING == val.type);
     CU_ASSERT(!(val.flags & SF_VALUE_FLAG_ESCAPED_STRING));
     CU_ASSERT(str_sf_vec_eq("It was the best of times.", &val.vec));
 
@@ -3381,36 +3381,36 @@ void test_sf_parser_examples(void) {
                          "(\"foo\" \"bar\"), (\"baz\"), (\"bat\" \"one\"), ()");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_STRING == val.type);
+    CU_ASSERT(SF_TYPE_STRING == val.type);
     CU_ASSERT(str_sf_vec_eq("foo", &val.vec));
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_STRING == val.type);
+    CU_ASSERT(SF_TYPE_STRING == val.type);
     CU_ASSERT(str_sf_vec_eq("bar", &val.vec));
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, NULL));
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_STRING == val.type);
+    CU_ASSERT(SF_TYPE_STRING == val.type);
     CU_ASSERT(str_sf_vec_eq("baz", &val.vec));
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, NULL));
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_STRING == val.type);
+    CU_ASSERT(SF_TYPE_STRING == val.type);
     CU_ASSERT(str_sf_vec_eq("bat", &val.vec));
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_STRING == val.type);
+    CU_ASSERT(SF_TYPE_STRING == val.type);
     CU_ASSERT(str_sf_vec_eq("one", &val.vec));
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, NULL));
@@ -3422,20 +3422,20 @@ void test_sf_parser_examples(void) {
                          "(\"foo\"; a=1;b=2);lvl=5, (\"bar\" \"baz\");lvl=1");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_STRING == val.type);
+    CU_ASSERT(SF_TYPE_STRING == val.type);
     CU_ASSERT(str_sf_vec_eq("foo", &val.vec));
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(2 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
@@ -3444,27 +3444,27 @@ void test_sf_parser_examples(void) {
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("lvl", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(5 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_STRING == val.type);
+    CU_ASSERT(SF_TYPE_STRING == val.type);
     CU_ASSERT(str_sf_vec_eq("bar", &val.vec));
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_STRING == val.type);
+    CU_ASSERT(SF_TYPE_STRING == val.type);
     CU_ASSERT(str_sf_vec_eq("baz", &val.vec));
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("lvl", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
@@ -3478,54 +3478,54 @@ void test_sf_parser_examples(void) {
                          "abc;a=1;b=2; cde_456, (ghi;jk=4 l);q=\"9\";r=w");
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("abc", &val.vec));
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(2 == val.integer);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("cde_456", &key));
-    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
     CU_ASSERT(1 == val.boolean);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
 
     CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("ghi", &val.vec));
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("jk", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(4 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("l", &val.vec));
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, NULL));
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("q", &key));
-    CU_ASSERT(SF_VALUE_TYPE_STRING == val.type);
+    CU_ASSERT(SF_TYPE_STRING == val.type);
     CU_ASSERT(str_sf_vec_eq("9", &val.vec));
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("r", &key));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("w", &val.vec));
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
@@ -3538,17 +3538,17 @@ void test_sf_parser_examples(void) {
     sf_parser_bytes_init(&sfp, "1; a; b=?0");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
     CU_ASSERT(1 == val.boolean);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
     CU_ASSERT(0 == val.boolean);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
@@ -3562,12 +3562,12 @@ void test_sf_parser_examples(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("en", &key));
-    CU_ASSERT(SF_VALUE_TYPE_STRING == val.type);
+    CU_ASSERT(SF_TYPE_STRING == val.type);
     CU_ASSERT(str_sf_vec_eq("Applepie", &val.vec));
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("da", &key));
-    CU_ASSERT(SF_VALUE_TYPE_BYTESEQ == val.type);
+    CU_ASSERT(SF_TYPE_BYTESEQ == val.type);
     CU_ASSERT(str_sf_vec_eq("w4ZibGV0w6ZydGU=", &val.vec));
 
     decoded.base = buf;
@@ -3587,22 +3587,22 @@ void test_sf_parser_examples(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
     CU_ASSERT(0 == val.boolean);
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
     CU_ASSERT(1 == val.boolean);
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("c", &key));
-    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
     CU_ASSERT(1 == val.boolean);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("foo", &key));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("bar", &val.vec));
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
@@ -3616,20 +3616,20 @@ void test_sf_parser_examples(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("rating", &key));
-    CU_ASSERT(SF_VALUE_TYPE_DECIMAL == val.type);
+    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
     CU_ASSERT(15 == val.decimal.numer);
     CU_ASSERT(10 == val.decimal.denom);
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("feelings", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("joy", &val.vec));
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("sadness", &val.vec));
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, NULL));
@@ -3643,52 +3643,52 @@ void test_sf_parser_examples(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(2 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, NULL));
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(3 == val.integer);
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("c", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(4 == val.integer);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("aa", &key));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("bb", &val.vec));
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("d", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INNER_LIST == val.type);
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(5 == val.integer);
 
     CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(6 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, NULL));
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("valid", &key));
-    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
     CU_ASSERT(1 == val.boolean);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
@@ -3702,12 +3702,12 @@ void test_sf_parser_examples(void) {
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("foo", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(1 == val.integer);
 
     CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("bar", &key));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(2 == val.integer);
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, NULL, NULL));
@@ -3718,7 +3718,7 @@ void test_sf_parser_examples(void) {
     sf_parser_bytes_init(&sfp, "5");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(5 == val.integer);
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
   }
@@ -3728,12 +3728,12 @@ void test_sf_parser_examples(void) {
     sf_parser_bytes_init(&sfp, "5; foo=bar");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(5 == val.integer);
 
     CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
     CU_ASSERT(str_sf_vec_eq("foo", &key));
-    CU_ASSERT(SF_VALUE_TYPE_TOKEN == val.type);
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
     CU_ASSERT(str_sf_vec_eq("bar", &val.vec));
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
@@ -3746,7 +3746,7 @@ void test_sf_parser_examples(void) {
     sf_parser_bytes_init(&sfp, "42");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_INTEGER == val.type);
+    CU_ASSERT(SF_TYPE_INTEGER == val.type);
     CU_ASSERT(42 == val.integer);
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
   }
@@ -3756,7 +3756,7 @@ void test_sf_parser_examples(void) {
     sf_parser_bytes_init(&sfp, "4.5");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_DECIMAL == val.type);
+    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
     CU_ASSERT(45 == val.decimal.numer);
     CU_ASSERT(10 == val.decimal.denom);
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
@@ -3767,7 +3767,7 @@ void test_sf_parser_examples(void) {
     sf_parser_bytes_init(&sfp, "\"hello world\"");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_STRING == val.type);
+    CU_ASSERT(SF_TYPE_STRING == val.type);
     CU_ASSERT(str_sf_vec_eq("hello world", &val.vec));
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
   }
@@ -3778,7 +3778,7 @@ void test_sf_parser_examples(void) {
                          ":cHJldGVuZCB0aGlzIGlzIGJpbmFyeSBjb250ZW50Lg==:");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_BYTESEQ == val.type);
+    CU_ASSERT(SF_TYPE_BYTESEQ == val.type);
     CU_ASSERT(str_sf_vec_eq("cHJldGVuZCB0aGlzIGlzIGJpbmFyeSBjb250ZW50Lg==",
                             &val.vec));
 
@@ -3794,7 +3794,7 @@ void test_sf_parser_examples(void) {
     sf_parser_bytes_init(&sfp, "?1");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_VALUE_TYPE_BOOLEAN == val.type);
+    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
     CU_ASSERT(1 == val.boolean);
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
   }

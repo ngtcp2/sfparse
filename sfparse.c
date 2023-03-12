@@ -280,7 +280,7 @@ static int parser_number(sf_parser *sfp, sf_value *dest) {
     }
 
     if (dest) {
-      dest->type = SF_VALUE_TYPE_INTEGER;
+      dest->type = SF_TYPE_INTEGER;
       dest->flags = SF_VALUE_FLAG_NONE;
       dest->integer = value * sign;
     }
@@ -319,7 +319,7 @@ static int parser_number(sf_parser *sfp, sf_value *dest) {
   }
 
   if (dest) {
-    dest->type = SF_VALUE_TYPE_DECIMAL;
+    dest->type = SF_TYPE_DECIMAL;
     dest->flags = SF_VALUE_FLAG_NONE;
     dest->decimal.numer = value * sign;
 
@@ -376,7 +376,7 @@ static int parser_string(sf_parser *sfp, sf_value *dest) {
       break;
     case '"':
       if (dest) {
-        dest->type = SF_VALUE_TYPE_STRING;
+        dest->type = SF_TYPE_STRING;
         dest->flags = flags;
         dest->vec.base = (uint8_t *)base;
         dest->vec.len = (size_t)(sfp->pos - base);
@@ -427,7 +427,7 @@ static int parser_token(sf_parser *sfp, sf_value *dest) {
   }
 
   if (dest) {
-    dest->type = SF_VALUE_TYPE_TOKEN;
+    dest->type = SF_TYPE_TOKEN;
     dest->flags = SF_VALUE_FLAG_NONE;
     dest->vec.base = (uint8_t *)base;
     dest->vec.len = (size_t)(sfp->pos - base);
@@ -522,7 +522,7 @@ static int parser_byteseq(sf_parser *sfp, sf_value *dest) {
 
 fin:
   if (dest) {
-    dest->type = SF_VALUE_TYPE_BYTESEQ;
+    dest->type = SF_TYPE_BYTESEQ;
     dest->flags = SF_VALUE_FLAG_NONE;
     dest->vec.base = (uint8_t *)base;
     dest->vec.len = (size_t)(sfp->pos - base);
@@ -561,7 +561,7 @@ static int parser_boolean(sf_parser *sfp, sf_value *dest) {
   ++sfp->pos;
 
   if (dest) {
-    dest->type = SF_VALUE_TYPE_BOOLEAN;
+    dest->type = SF_TYPE_BOOLEAN;
     dest->flags = SF_VALUE_FLAG_NONE;
     dest->boolean = b;
   }
@@ -632,7 +632,7 @@ int sf_parser_param(sf_parser *sfp, sf_vec *dest_key, sf_value *dest_value) {
 
   if (parser_eof(sfp) || *sfp->pos != '=') {
     if (dest_value) {
-      dest_value->type = SF_VALUE_TYPE_BOOLEAN;
+      dest_value->type = SF_TYPE_BOOLEAN;
       dest_value->flags = SF_VALUE_FLAG_NONE;
       dest_value->boolean = 1;
     }
@@ -780,7 +780,7 @@ static int parser_dict_value(sf_parser *sfp, sf_value *dest) {
   if (parser_eof(sfp) || *(sfp->pos) != '=') {
     /* Boolean true */
     if (dest) {
-      dest->type = SF_VALUE_TYPE_BOOLEAN;
+      dest->type = SF_TYPE_BOOLEAN;
       dest->flags = SF_VALUE_FLAG_NONE;
       dest->boolean = 1;
     }
@@ -798,7 +798,7 @@ static int parser_dict_value(sf_parser *sfp, sf_value *dest) {
 
   if (*sfp->pos == '(') {
     if (dest) {
-      dest->type = SF_VALUE_TYPE_INNER_LIST;
+      dest->type = SF_TYPE_INNER_LIST;
       dest->flags = SF_VALUE_FLAG_NONE;
     }
 
@@ -905,7 +905,7 @@ int sf_parser_list(sf_parser *sfp, sf_value *dest) {
 
   if (*sfp->pos == '(') {
     if (dest) {
-      dest->type = SF_VALUE_TYPE_INNER_LIST;
+      dest->type = SF_TYPE_INNER_LIST;
       dest->flags = SF_VALUE_FLAG_NONE;
     }
 
@@ -967,7 +967,7 @@ int sf_parser_item(sf_parser *sfp, sf_value *dest) {
 
   if (*sfp->pos == '(') {
     if (dest) {
-      dest->type = SF_VALUE_TYPE_INNER_LIST;
+      dest->type = SF_TYPE_INNER_LIST;
       dest->flags = SF_VALUE_FLAG_NONE;
     }
 
