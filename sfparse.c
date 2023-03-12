@@ -244,7 +244,6 @@ static int parser_key(sf_parser *sfp, sf_vec *dest) {
 static int parser_number(sf_parser *sfp, sf_value *dest) {
   int sign = 1;
   int64_t value = 0;
-  int type = SF_VALUE_TYPE_INTEGER;
   size_t len = 0;
   size_t fpos = 0;
 
@@ -269,73 +268,78 @@ static int parser_number(sf_parser *sfp, sf_value *dest) {
       value *= 10;
       value += *sfp->pos - '0';
 
-      break;
-    case '.':
-      if (len == 0) {
-        return SF_ERR_PARSE_ERROR;
-      }
-
-      if (type != SF_VALUE_TYPE_INTEGER) {
-        goto fin;
-      }
-
-      if (len > 12) {
-        return SF_ERR_PARSE_ERROR;
-      }
-      fpos = len;
-      type = SF_VALUE_TYPE_DECIMAL;
-
-      break;
-    default:
-      if (len == 0) {
-        return SF_ERR_PARSE_ERROR;
-      }
-
-      goto fin;
+      continue;
     }
+
+    break;
   }
 
-fin:
-  switch (type) {
-  case SF_VALUE_TYPE_INTEGER:
+  if (parser_eof(sfp) || *sfp->pos != '.') {
+    if (len == 0) {
+      return SF_ERR_PARSE_ERROR;
+    }
+
     if (dest) {
-      dest->type = (uint8_t)type;
+      dest->type = SF_VALUE_TYPE_INTEGER;
       dest->flags = SF_VALUE_FLAG_NONE;
       dest->integer = value * sign;
     }
 
     return 0;
-  case SF_VALUE_TYPE_DECIMAL:
-    if (fpos == len || len - fpos > 3) {
-      return SF_ERR_PARSE_ERROR;
-    }
-
-    if (dest) {
-      dest->type = (uint8_t)type;
-      dest->flags = SF_VALUE_FLAG_NONE;
-      dest->decimal.numer = value * sign;
-
-      switch (len - fpos) {
-      case 1:
-        dest->decimal.denom = 10;
-
-        break;
-      case 2:
-        dest->decimal.denom = 100;
-
-        break;
-      case 3:
-        dest->decimal.denom = 1000;
-
-        break;
-      }
-    }
-
-    return 0;
-  default:
-    assert(0);
-    abort();
   }
+
+  /* decimal */
+
+  if (len > 12) {
+    return SF_ERR_PARSE_ERROR;
+  }
+
+  fpos = len;
+
+  ++sfp->pos;
+
+  for (; !parser_eof(sfp); ++sfp->pos) {
+    switch (*sfp->pos) {
+    DIGIT_CASES:
+      if (++len > 15) {
+        return SF_ERR_PARSE_ERROR;
+      }
+
+      value *= 10;
+      value += *sfp->pos - '0';
+
+      continue;
+    }
+
+    break;
+  }
+
+  if (fpos == len || len - fpos > 3) {
+    return SF_ERR_PARSE_ERROR;
+  }
+
+  if (dest) {
+    dest->type = SF_VALUE_TYPE_DECIMAL;
+    dest->flags = SF_VALUE_FLAG_NONE;
+    dest->decimal.numer = value * sign;
+
+    switch (len - fpos) {
+    case 1:
+      dest->decimal.denom = 10;
+
+      break;
+    case 2:
+      dest->decimal.denom = 100;
+
+      break;
+    case 3:
+      dest->decimal.denom = 1000;
+
+      break;
+    }
+  }
+
+  return 0;
 }
 
 static int parser_string(sf_parser *sfp, sf_value *dest) {
