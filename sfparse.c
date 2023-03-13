@@ -274,11 +274,11 @@ static int parser_number(sf_parser *sfp, sf_value *dest) {
     break;
   }
 
-  if (parser_eof(sfp) || *sfp->pos != '.') {
-    if (len == 0) {
-      return SF_ERR_PARSE_ERROR;
-    }
+  if (len == 0) {
+    return SF_ERR_PARSE_ERROR;
+  }
 
+  if (parser_eof(sfp) || *sfp->pos != '.') {
     if (dest) {
       dest->type = SF_TYPE_INTEGER;
       dest->flags = SF_VALUE_FLAG_NONE;

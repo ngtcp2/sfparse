@@ -870,6 +870,22 @@ void test_sf_parser_number(void) {
 
     CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
   }
+
+  /* Additional tests */
+
+  {
+    /* No digits */
+    sf_parser_bytes_init(&sfp, "-a");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+  }
+
+  {
+    /* No digits before '.' */
+    sf_parser_bytes_init(&sfp, "-.1");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+  }
 }
 
 void test_sf_parser_date(void) {
