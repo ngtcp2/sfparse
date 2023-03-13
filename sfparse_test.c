@@ -934,6 +934,17 @@ void test_sf_parser_date(void) {
 
     CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
   }
+
+  /* Additional tests */
+
+  {
+    /* Just '@' */
+    const uint8_t s[] = {'@'};
+
+    sf_parser_init(&sfp, s, sizeof(s));
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+  }
 }
 
 void test_sf_parser_string(void) {

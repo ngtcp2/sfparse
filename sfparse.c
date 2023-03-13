@@ -351,6 +351,10 @@ static int parser_date(sf_parser *sfp, sf_value *dest) {
 
   ++sfp->pos;
 
+  if (parser_eof(sfp)) {
+    return SF_ERR_PARSE_ERROR;
+  }
+
   rv = parser_number(sfp, &val);
   if (rv != 0) {
     return rv;
