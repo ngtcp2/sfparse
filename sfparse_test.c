@@ -581,6 +581,15 @@ void test_sf_parser_byteseq(void) {
 
     sf_parser_bytes_free();
   }
+
+  {
+    /* Just ':' */
+    sf_parser_bytes_init(&sfp, ":");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
 }
 
 void test_sf_parser_boolean(void) {
@@ -688,6 +697,17 @@ void test_sf_parser_boolean(void) {
   {
     /* spelled-out False boolean */
     sf_parser_bytes_init(&sfp, "?False");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+
+  /* Additional tests */
+
+  {
+    /* Just '?' */
+    sf_parser_bytes_init(&sfp, "?");
 
     CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
 
@@ -1294,6 +1314,17 @@ void test_sf_parser_string(void) {
 
     sf_parser_bytes_free();
   }
+
+  /* Additional tests */
+
+  {
+    /* Just '"' */
+    sf_parser_bytes_init(&sfp, "\"");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
 }
 
 void test_sf_parser_token(void) {
@@ -1845,6 +1876,17 @@ void test_sf_parser_dictionary(void) {
 
     sf_parser_bytes_free();
   }
+
+  /* Additional tests */
+
+  {
+    /* Empty value */
+    sf_parser_bytes_init(&sfp, "a=");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_dict(&sfp, &key, &val));
+
+    sf_parser_bytes_free();
+  }
 }
 
 void test_sf_parser_list(void) {
@@ -2207,6 +2249,17 @@ void test_sf_parser_list_list(void) {
 
     sf_parser_bytes_free();
   }
+
+  /* Additional tests */
+
+  {
+    /* Just ')' */
+    sf_parser_bytes_init(&sfp, ")");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_list(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
 }
 
 void test_sf_parser_param_dict(void) {
@@ -2563,6 +2616,22 @@ void test_sf_parser_param_dict(void) {
 
     sf_parser_bytes_free();
   }
+
+  /* Additional tests */
+
+  {
+    /* empty parameter value */
+    sf_parser_bytes_init(&sfp, "a=b;c=");
+
+    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
+    CU_ASSERT(str_sf_vec_eq("a", &key));
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
+    CU_ASSERT(str_sf_vec_eq("b", &val.vec));
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_param(&sfp, &key, &val));
+
+    sf_parser_bytes_free();
+  }
 }
 
 void test_sf_parser_param_list(void) {
@@ -2889,6 +2958,21 @@ void test_sf_parser_param_list(void) {
 
     sf_parser_bytes_free();
   }
+
+  /* Additional tests */
+
+  {
+    /* empty parameter value */
+    sf_parser_bytes_init(&sfp, "a;b=");
+
+    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
+    CU_ASSERT(str_sf_vec_eq("a", &val.vec));
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_param(&sfp, &key, &val));
+
+    sf_parser_bytes_free();
+  }
 }
 
 void test_sf_parser_param_list_list(void) {
@@ -3003,6 +3087,24 @@ void test_sf_parser_param_list_list(void) {
     CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+
+  /* Additional tests */
+
+  {
+    /* empty parameter value */
+    sf_parser_bytes_init(&sfp, "(a;b= 1)");
+
+    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
+    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+
+    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
+    CU_ASSERT(SF_TYPE_TOKEN == val.type);
+    CU_ASSERT(str_sf_vec_eq("a", &val.vec));
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_param(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
