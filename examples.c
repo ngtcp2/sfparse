@@ -520,27 +520,27 @@ static void example_item(void) {
   }
 }
 
-static void example_rfc9218_priority(void) {
-  static const uint8_t s[] = "u=5,i";
+typedef struct rfc9218_priority {
+  int u, i;
+} rfc9218_priority;
+
+static int parse_rfc9218_priority(rfc9218_priority *pri, const uint8_t *data,
+                                  size_t datalen) {
   sf_parser sfp;
   sf_vec key;
   sf_value val;
-  int u = -1;
-  int i = -1;
   int rv;
 
-  printf("# RFC 9218 priority\n");
-
-  sf_parser_init(&sfp, s, sizeof(s) - 1);
+  sf_parser_init(&sfp, data, datalen);
 
   for (;;) {
     rv = sf_parser_dict(&sfp, &key, &val);
     if (rv != 0) {
       if (rv == SF_ERR_PARSE_ERROR) {
-        u = i = -1;
+        return -1;
       }
 
-      break;
+      return 0;
     }
 
     if (key.len != 1) {
@@ -550,28 +550,37 @@ static void example_rfc9218_priority(void) {
     switch (key.base[0]) {
     case 'u':
       if (val.type != SF_TYPE_INTEGER) {
-        break;
+        return -1;
       }
 
       if (val.integer < 0 || 7 < val.integer) {
-        break;
+        return -1;
       }
 
-      u = (int)val.integer;
+      pri->u = (int)val.integer;
 
       break;
     case 'i':
       if (val.type != SF_TYPE_BOOLEAN) {
-        break;
+        return -1;
       }
 
-      i = val.boolean;
+      pri->i = val.boolean;
 
       break;
     }
   }
+}
 
-  printf("u=%d i=%d\n", u, i);
+static void example_rfc9218_priority(void) {
+  static const uint8_t s[] = "u=5,i";
+  rfc9218_priority pri = {0};
+
+  printf("# RFC 9218 priority\n");
+
+  if (parse_rfc9218_priority(&pri, s, sizeof(s) - 1) == 0) {
+    printf("u=%d i=%d\n", pri.u, pri.i);
+  }
 }
 
 int main(void) {
