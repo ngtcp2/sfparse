@@ -342,6 +342,32 @@ static int parser_number(sf_parser *sfp, sf_value *dest) {
   return 0;
 }
 
+static int parser_date(sf_parser *sfp, sf_value *dest) {
+  int rv;
+  sf_value val;
+
+  /* The first byte has already been validated by the caller. */
+  assert('@' == *sfp->pos);
+
+  ++sfp->pos;
+
+  rv = parser_number(sfp, &val);
+  if (rv != 0) {
+    return rv;
+  }
+
+  if (val.type != SF_TYPE_INTEGER) {
+    return SF_ERR_PARSE_ERROR;
+  }
+
+  if (dest) {
+    *dest = val;
+    dest->type = SF_TYPE_DATE;
+  }
+
+  return 0;
+}
+
 static int parser_string(sf_parser *sfp, sf_value *dest) {
   const uint8_t *base;
   uint32_t flags = SF_VALUE_FLAG_NONE;
@@ -576,6 +602,8 @@ static int parser_bare_item(sf_parser *sfp, sf_value *dest) {
   case '-':
   DIGIT_CASES:
     return parser_number(sfp, dest);
+  case '@':
+    return parser_date(sfp, dest);
   case ':':
     return parser_byteseq(sfp, dest);
   case '?':

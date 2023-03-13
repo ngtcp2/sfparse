@@ -81,7 +81,11 @@ typedef enum sf_type {
   /**
    * :enum:`SF_TYPE_INNER_LIST` indicates inner list type.
    */
-  SF_TYPE_INNER_LIST
+  SF_TYPE_INNER_LIST,
+  /**
+   * :enum:`SF_TYPE_DATE` indicates date type.
+   */
+  SF_TYPE_DATE
 } sf_type;
 
 /**
@@ -180,8 +184,9 @@ typedef struct sf_value {
      */
     int boolean;
     /**
-     * :member:`integer` contains integer value if :member:`type` ==
-     * :enum:`sf_type.SF_TYPE_INTEGER`.
+     * :member:`integer` contains integer value if :member:`type` is
+     * either :enum:`sf_type.SF_TYPE_INTEGER` or
+     * :enum:`sf_type.SF_TYPE_DATE`.
      */
     int64_t integer;
     /**

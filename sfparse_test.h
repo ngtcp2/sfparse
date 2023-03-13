@@ -31,6 +31,7 @@ void test_sf_parser_list_skip(void);
 void test_sf_parser_byteseq(void);
 void test_sf_parser_boolean(void);
 void test_sf_parser_number(void);
+void test_sf_parser_date(void);
 void test_sf_parser_string(void);
 void test_sf_parser_token(void);
 void test_sf_parser_dictionary(void);
