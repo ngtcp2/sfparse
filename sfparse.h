@@ -363,11 +363,11 @@ int sf_parser_inner_list(sf_parser *sfp, sf_value *dest);
 /**
  * @function
  *
- * `sf_unescape` copies |src| to |dest| by removing escapes.  |src|
- * should be the item value of type :enum:`sf_type.SF_TYPE_STRING`
- * produced by either `sf_parser_dict`, `sf_parser_list`,
- * `sf_parser_inner_list`, `sf_parser_item`, or `sf_parser_param`,
- * otherwise the behavior is undefined.
+ * `sf_unescape` copies |src| to |dest| by removing escapes (``\``).
+ * |src| should be the pointer to :member:`sf_value.vec` of type
+ * :enum:`sf_type.SF_TYPE_STRING` produced by either `sf_parser_dict`,
+ * `sf_parser_list`, `sf_parser_inner_list`, `sf_parser_item`, or
+ * `sf_parser_param`, otherwise the behavior is undefined.
  *
  * :member:`dest->base <sf_vec.base>` must point to the buffer that
  * has sufficient space to store the unescaped string.
@@ -385,11 +385,11 @@ void sf_unescape(sf_vec *dest, const sf_vec *src);
  * @function
  *
  * `sf_base64decode` decodes Base64 encoded string |src| and writes
- * the result into |dest|.  |src| should be the item value of type
- * :enum:`sf_type.SF_TYPE_BYTESEQ` produced by either
- * `sf_parser_dict`, `sf_parser_list`, `sf_parser_inner_list`,
- * `sf_parser_item`, or `sf_parser_param`, otherwise the behavior is
- * undefined.
+ * the result into |dest|.  |src| should be the pointer to
+ * :member:`sf_value.vec` of type :enum:`sf_type.SF_TYPE_BYTESEQ`
+ * produced by either `sf_parser_dict`, `sf_parser_list`,
+ * `sf_parser_inner_list`, `sf_parser_item`, or `sf_parser_param`,
+ * otherwise the behavior is undefined.
  *
  * :member:`dest->base <sf_vec.base>` must point to the buffer that
  * has sufficient space to store the decoded byte string.
