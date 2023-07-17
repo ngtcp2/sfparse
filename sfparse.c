@@ -487,50 +487,22 @@ static int parser_byteseq(sf_parser *sfp, sf_value *dest) {
       case 1:
         return SF_ERR_PARSE_ERROR;
       case 2:
-        switch (*(sfp->pos - 1)) {
-        case 'A':
-        case 'Q':
-        case 'g':
-        case 'w':
-          break;
-        default:
+        ++sfp->pos;
+
+        if (parser_eof(sfp)) {
           return SF_ERR_PARSE_ERROR;
         }
 
-        ++sfp->pos;
-
-        if (parser_eof(sfp) || *sfp->pos != '=') {
-          return SF_ERR_PARSE_ERROR;
+        if (*sfp->pos == '=') {
+          ++sfp->pos;
         }
 
         break;
       case 3:
-        switch (*(sfp->pos - 1)) {
-        case 'A':
-        case 'E':
-        case 'I':
-        case 'M':
-        case 'Q':
-        case 'U':
-        case 'Y':
-        case 'c':
-        case 'g':
-        case 'k':
-        case 'o':
-        case 's':
-        case 'w':
-        case '0':
-        case '4':
-        case '8':
-          break;
-        default:
-          return SF_ERR_PARSE_ERROR;
-        }
+        ++sfp->pos;
 
         break;
       }
-
-      ++sfp->pos;
 
       if (parser_eof(sfp) || *sfp->pos != ':') {
         return SF_ERR_PARSE_ERROR;
@@ -538,7 +510,7 @@ static int parser_byteseq(sf_parser *sfp, sf_value *dest) {
 
       goto fin;
     case ':':
-      if ((sfp->pos - base) & 0x3) {
+      if (((sfp->pos - base) & 0x3) == 1) {
         return SF_ERR_PARSE_ERROR;
       }
 
@@ -1093,10 +1065,8 @@ void sf_base64decode(sf_vec *dest, const sf_vec *src) {
   uint8_t *o;
   const uint8_t *p, *end;
   uint32_t n;
-  size_t i;
+  size_t i, left;
   int idx;
-
-  assert((src->len & 0x3) == 0);
 
   if (src->len == 0) {
     *dest = *src;
@@ -1106,7 +1076,11 @@ void sf_base64decode(sf_vec *dest, const sf_vec *src) {
 
   o = dest->base;
   p = src->base;
-  end = src->base + src->len;
+  left = src->len & 0x3;
+  if (left == 0 && src->base[src->len - 1] == '=') {
+    left = 4;
+  }
+  end = src->base + src->len - left;
 
   for (; p != end;) {
     n = 0;
@@ -1114,24 +1088,7 @@ void sf_base64decode(sf_vec *dest, const sf_vec *src) {
     for (i = 1; i <= 4; ++i, ++p) {
       idx = index_tbl[*p];
 
-      if (idx == -1) {
-        assert(i > 2);
-
-        if (i == 3) {
-          assert(*p == '=' && *(p + 1) == '=' && p + 2 == end);
-
-          *o++ = (uint8_t)(n >> 16);
-
-          goto fin;
-        }
-
-        assert(*p == '=' && p + 1 == end);
-
-        *o++ = (uint8_t)(n >> 16);
-        *o++ = (n >> 8) & 0xffu;
-
-        goto fin;
-      }
+      assert(idx != -1);
 
       n += (uint32_t)(idx << (24 - i * 6));
     }
@@ -1139,6 +1096,46 @@ void sf_base64decode(sf_vec *dest, const sf_vec *src) {
     *o++ = (uint8_t)(n >> 16);
     *o++ = (n >> 8) & 0xffu;
     *o++ = n & 0xffu;
+  }
+
+  switch (left) {
+  case 0:
+    goto fin;
+  case 1:
+    assert(0);
+    abort();
+  case 3:
+    if (src->base[src->len - 1] == '=') {
+      left = 2;
+    }
+
+    break;
+  case 4:
+    assert('=' == src->base[src->len - 1]);
+
+    if (src->base[src->len - 2] == '=') {
+      left = 2;
+    } else {
+      left = 3;
+    }
+
+    break;
+  }
+
+  switch (left) {
+  case 2:
+    *o = (uint8_t)(index_tbl[*p++] << 2);
+    *o++ |= (uint8_t)(index_tbl[*p++] >> 4);
+
+    break;
+  case 3:
+    n = (uint32_t)(index_tbl[*p++] << 10);
+    n += (uint32_t)(index_tbl[*p++] << 4);
+    n += (uint32_t)(index_tbl[*p++] >> 2);
+    *o++ = (n >> 8) & 0xffu;
+    *o++ = n & 0xffu;
+
+    break;
   }
 
 fin:
