@@ -490,7 +490,16 @@ void test_sf_parser_byteseq(void) {
     /* bad paddding */
     sf_parser_bytes_init(&sfp, ":aGVsbG8:");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
+    CU_ASSERT(SF_TYPE_BYTESEQ == val.type);
+    CU_ASSERT(str_sf_vec_eq("aGVsbG8", &val.vec));
+
+    decoded.base = buf;
+    sf_base64decode(&decoded, &val.vec);
+
+    CU_ASSERT(str_sf_vec_eq("hello", &decoded));
+
+    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -535,7 +544,16 @@ void test_sf_parser_byteseq(void) {
     /* non-zero pad bits */
     sf_parser_bytes_init(&sfp, ":iZ==:");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
+    CU_ASSERT(SF_TYPE_BYTESEQ == val.type);
+    CU_ASSERT(str_sf_vec_eq("iZ==", &val.vec));
+
+    decoded.base = buf;
+    sf_base64decode(&decoded, &val.vec);
+
+    CU_ASSERT(str_sf_vec_eq("\x89", &decoded));
+
+    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -585,6 +603,132 @@ void test_sf_parser_byteseq(void) {
   {
     /* Just ':' */
     sf_parser_bytes_init(&sfp, ":");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* Just single '=' */
+    sf_parser_bytes_init(&sfp, ":=:");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* Two '=' */
+    sf_parser_bytes_init(&sfp, ":==:");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* Three '=' */
+    sf_parser_bytes_init(&sfp, ":===:");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* Four '=' */
+    sf_parser_bytes_init(&sfp, ":====:");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* Single letter never be a base64 encoded string */
+    sf_parser_bytes_init(&sfp, ":K:");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* Omitting all padding and non-zero pad bits */
+    sf_parser_bytes_init(&sfp, ":K7:");
+
+    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
+    CU_ASSERT(SF_TYPE_BYTESEQ == val.type);
+    CU_ASSERT(str_sf_vec_eq("K7", &val.vec));
+
+    decoded.base = buf;
+    sf_base64decode(&decoded, &val.vec);
+
+    CU_ASSERT(str_sf_vec_eq("\x2b", &decoded));
+
+    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* Omitting a single padding and non-zero pad bits */
+    sf_parser_bytes_init(&sfp, ":K7=:");
+
+    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
+    CU_ASSERT(SF_TYPE_BYTESEQ == val.type);
+    CU_ASSERT(str_sf_vec_eq("K7=", &val.vec));
+
+    decoded.base = buf;
+    sf_base64decode(&decoded, &val.vec);
+
+    CU_ASSERT(str_sf_vec_eq("\x2b", &decoded));
+
+    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* Omitting a padding and non-zero pad bits */
+    sf_parser_bytes_init(&sfp, ":K73:");
+
+    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
+    CU_ASSERT(SF_TYPE_BYTESEQ == val.type);
+    CU_ASSERT(str_sf_vec_eq("K73", &val.vec));
+
+    decoded.base = buf;
+    sf_base64decode(&decoded, &val.vec);
+
+    CU_ASSERT(str_sf_vec_eq("\x2b\xbd", &decoded));
+
+    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* Not omitting a padding but non-zero pad bits */
+    sf_parser_bytes_init(&sfp, ":K73=:");
+
+    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
+    CU_ASSERT(SF_TYPE_BYTESEQ == val.type);
+    CU_ASSERT(str_sf_vec_eq("K73=", &val.vec));
+
+    decoded.base = buf;
+    sf_base64decode(&decoded, &val.vec);
+
+    CU_ASSERT(str_sf_vec_eq("\x2b\xbd", &decoded));
+
+    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* Padding in the middle of encoded string */
+    sf_parser_bytes_init(&sfp, ":ab=a:");
 
     CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
 
