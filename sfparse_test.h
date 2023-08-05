@@ -34,6 +34,7 @@ void test_sf_parser_number(void);
 void test_sf_parser_date(void);
 void test_sf_parser_string(void);
 void test_sf_parser_token(void);
+void test_sf_parser_dispstring(void);
 void test_sf_parser_dictionary(void);
 void test_sf_parser_list(void);
 void test_sf_parser_list_list(void);

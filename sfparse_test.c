@@ -1550,6 +1550,191 @@ void test_sf_parser_token(void) {
   }
 }
 
+void test_sf_parser_dispstring(void) {
+  sf_parser sfp;
+  sf_value val;
+  sf_vec decoded;
+  uint8_t buf[64];
+
+  {
+    /* base UTF-8 string */
+    sf_parser_bytes_init(
+        &sfp,
+        "%\"%E3%81%93%e3%82%93%e3%81%aB%e3%81%a1%e3%81%af%e4%b8%96%e7%95%8c\"");
+
+    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
+    CU_ASSERT(SF_TYPE_DISPSTRING == val.type);
+    CU_ASSERT(str_sf_vec_eq(
+        "%E3%81%93%e3%82%93%e3%81%aB%e3%81%a1%e3%81%af%e4%b8%96%e7%95%8c",
+        &val.vec));
+
+    decoded.base = buf;
+    sf_pctdecode(&decoded, &val.vec);
+
+    CU_ASSERT(str_sf_vec_eq("\xe3\x81\x93\xe3\x82\x93\xe3\x81\xab\xe3\x81\xa1"
+                            "\xe3\x81\xaf\xe4\xb8\x96\xe7\x95\x8c",
+                            &decoded));
+
+    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* truncated UTF-8 string */
+    sf_parser_bytes_init(&sfp, "%\"%e3%81%93%e3%82%93%e3%81%ab%e3%81"
+                               "%a1%e3%81%af%e4%b8%96%e7%95\"");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* Just '%' */
+    sf_parser_bytes_init(&sfp, "%");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* just '%"' */
+    sf_parser_bytes_init(&sfp, "%\"");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* empty dispstring */
+    sf_parser_bytes_init(&sfp, "%\"\"");
+
+    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
+    CU_ASSERT(SF_TYPE_DISPSTRING == val.type);
+    CU_ASSERT(str_sf_vec_eq("", &val.vec));
+
+    decoded.base = buf;
+    sf_pctdecode(&decoded, &val.vec);
+
+    CU_ASSERT(str_sf_vec_eq("", &decoded));
+
+    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* base UTF-8 string without closing DQUOTE */
+    sf_parser_bytes_init(
+        &sfp,
+        "%\"%e3%81%93%e3%82%93%e3%81%ab%e3%81%a1%e3%81%af%e4%b8%96%e7%95%8c");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* illegal character */
+    sf_parser_bytes_init(&sfp, "%\""
+                               "\x00"
+                               "\"");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* bad percent encoding (first half) */
+    sf_parser_bytes_init(&sfp, "%\"%qa\"");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* bad percent encoding (second half) */
+    sf_parser_bytes_init(&sfp, "%\"%aq\"");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* bad percent encoding (missing 2 bytes) */
+    sf_parser_bytes_init(&sfp, "%\"%\"");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* bad percent encoding (missing 2nd byte) */
+    sf_parser_bytes_init(&sfp, "%\"%a\"");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* ASCII string */
+    sf_parser_bytes_init(&sfp, "%\"hello world\"");
+
+    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
+    CU_ASSERT(SF_TYPE_DISPSTRING == val.type);
+    CU_ASSERT(str_sf_vec_eq("hello world", &val.vec));
+
+    decoded.base = buf;
+    sf_pctdecode(&decoded, &val.vec);
+
+    CU_ASSERT(str_sf_vec_eq("hello world", &decoded));
+
+    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* ASCII + percent-encoded UTF-8 byte sequence */
+    sf_parser_bytes_init(&sfp,
+                         "%\"This is intended for display to %C3%BCsers.\"");
+
+    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
+    CU_ASSERT(SF_TYPE_DISPSTRING == val.type);
+    CU_ASSERT(
+        str_sf_vec_eq("This is intended for display to %C3%BCsers.", &val.vec));
+
+    decoded.base = buf;
+    sf_pctdecode(&decoded, &val.vec);
+
+    CU_ASSERT(str_sf_vec_eq("This is intended for display to "
+                            "\xc3\xbc"
+                            "sers.",
+                            &decoded));
+
+    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* overlong 2 byte sequence */
+    sf_parser_bytes_init(&sfp, "%\"%c0%af\"");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+}
+
 void test_sf_parser_dictionary(void) {
   sf_parser sfp;
   sf_vec key;
