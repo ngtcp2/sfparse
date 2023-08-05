@@ -1009,7 +1009,7 @@ void sf_unescape(sf_vec *dest, const sf_vec *src) {
   size_t len, slen;
 
   if (src->len == 0) {
-    *dest = *src;
+    dest->len = 0;
 
     return;
   }
@@ -1021,12 +1021,6 @@ void sf_unescape(sf_vec *dest, const sf_vec *src) {
   for (;;) {
     q = memchr(p, '\\', len);
     if (q == NULL) {
-      if (len == src->len) {
-        *dest = *src;
-
-        return;
-      }
-
       memcpy(o, p, len);
       o += len;
 
@@ -1069,7 +1063,7 @@ void sf_base64decode(sf_vec *dest, const sf_vec *src) {
   int idx;
 
   if (src->len == 0) {
-    *dest = *src;
+    dest->len = 0;
 
     return;
   }
