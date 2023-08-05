@@ -372,10 +372,6 @@ int sf_parser_inner_list(sf_parser *sfp, sf_value *dest);
  * :member:`dest->base <sf_vec.base>` must point to the buffer that
  * has sufficient space to store the unescaped string.
  *
- * If there is no escape character in |src|, |*src| is assigned to
- * |*dest|.  This includes the case that :member:`src->len
- * <sf_vec.len>` == 0.
- *
  * This function sets the length of unescaped string to
  * :member:`dest->len <sf_vec.len>`.
  */
@@ -393,9 +389,6 @@ void sf_unescape(sf_vec *dest, const sf_vec *src);
  *
  * :member:`dest->base <sf_vec.base>` must point to the buffer that
  * has sufficient space to store the decoded byte string.
- *
- * If :member:`src->len <sf_vec.len>` == 0, |*src| is assigned to
- * |*dest|.
  *
  * This function sets the length of decoded byte string to
  * :member:`dest->len <sf_vec.len>`.
