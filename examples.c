@@ -84,6 +84,20 @@ static void print_value(const char *prefix, const sf_value *val) {
     printf("%s: (inner list)\n", prefix);
 
     break;
+  case SF_TYPE_DATE:
+    printf("%s: (date) %" PRId64 "\n", prefix, val->integer);
+
+    break;
+  case SF_TYPE_DISPSTRING:
+    buf = malloc(val->vec.len);
+    decoded.base = buf;
+    sf_pctdecode(&decoded, &val->vec);
+
+    printf("%s: (dispstring) %.*s\n", prefix, (int)decoded.len, decoded.base);
+
+    free(buf);
+
+    break;
   default:
     assert(0);
   }
@@ -416,6 +430,43 @@ static void example_item(void) {
     static const uint8_t s[] = ":Zm9v:";
 
     printf("## Read byteseq\n");
+
+    sf_parser_init(&sfp, s, sizeof(s) - 1);
+
+    rv = sf_parser_item(&sfp, &val);
+
+    assert(0 == rv);
+
+    print_value("value", &val);
+
+    rv = sf_parser_item(&sfp, NULL);
+
+    assert(SF_ERR_EOF == rv);
+  }
+
+  {
+    static const uint8_t s[] = "@1659578233";
+
+    printf("## Read date\n");
+
+    sf_parser_init(&sfp, s, sizeof(s) - 1);
+
+    rv = sf_parser_item(&sfp, &val);
+
+    assert(0 == rv);
+
+    print_value("value", &val);
+
+    rv = sf_parser_item(&sfp, NULL);
+
+    assert(SF_ERR_EOF == rv);
+  }
+
+  {
+    static const uint8_t s[] =
+        "%\"This is intended for display to %C3%BCsers.\"";
+
+    printf("## Read dispstring\n");
 
     sf_parser_init(&sfp, s, sizeof(s) - 1);
 
