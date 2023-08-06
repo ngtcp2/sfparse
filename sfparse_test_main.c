@@ -64,6 +64,7 @@ int main(void) {
       !CU_add_test(pSuite, "sf_parser_date", test_sf_parser_date) ||
       !CU_add_test(pSuite, "sf_parser_string", test_sf_parser_string) ||
       !CU_add_test(pSuite, "sf_parser_token", test_sf_parser_token) ||
+      !CU_add_test(pSuite, "sf_parser_dispstring", test_sf_parser_dispstring) ||
       !CU_add_test(pSuite, "sf_parser_dictionary", test_sf_parser_dictionary) ||
       !CU_add_test(pSuite, "sf_parser_list", test_sf_parser_list) ||
       !CU_add_test(pSuite, "sf_parser_list_list", test_sf_parser_list_list) ||
