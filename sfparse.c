@@ -135,6 +135,28 @@
   UCALPHA_CASES:                                                               \
   LCALPHA_CASES
 
+#define TOKEN_CASES                                                            \
+  case '!':                                                                    \
+  case '#':                                                                    \
+  case '$':                                                                    \
+  case '%':                                                                    \
+  case '&':                                                                    \
+  case '\'':                                                                   \
+  case '*':                                                                    \
+  case '+':                                                                    \
+  case '-':                                                                    \
+  case '.':                                                                    \
+  case '/':                                                                    \
+  DIGIT_CASES:                                                                 \
+  case ':':                                                                    \
+  UCALPHA_CASES:                                                               \
+  case '^':                                                                    \
+  case '_':                                                                    \
+  case '`':                                                                    \
+  LCALPHA_CASES:                                                               \
+  case '|':                                                                    \
+  case '~'
+
 #define LCHEXALPHA_CASES                                                       \
   case 'a':                                                                    \
   case 'b':                                                                    \
@@ -612,25 +634,7 @@ static int parser_token(sf_parser *sfp, sf_value *dest) {
 
   for (; !parser_eof(sfp); ++sfp->pos) {
     switch (*sfp->pos) {
-    case '!':
-    case '#':
-    case '$':
-    case '%':
-    case '&':
-    case '\'':
-    case '*':
-    case '+':
-    case '-':
-    case '.':
-    case '^':
-    case '_':
-    case '`':
-    case '|':
-    case '~':
-    case ':':
-    case '/':
-    DIGIT_CASES:
-    ALPHA_CASES:
+    TOKEN_CASES:
       continue;
     }
 
@@ -1379,7 +1383,9 @@ void sf_unescape(sf_vec *dest, const sf_vec *src) {
       memcpy(o, p, len);
       o += len;
 
-      break;
+      dest->len = (size_t)(o - dest->base);
+
+      return;
     }
 
     slen = (size_t)(q - p);
@@ -1390,8 +1396,6 @@ void sf_unescape(sf_vec *dest, const sf_vec *src) {
     *o++ = *p++;
     len -= slen + 2;
   }
-
-  dest->len = (size_t)(o - dest->base);
 }
 
 void sf_base64decode(sf_vec *dest, const sf_vec *src) {
