@@ -135,6 +135,28 @@
   UCALPHA_CASES:                                                               \
   LCALPHA_CASES
 
+#define TOKEN_CASES                                                            \
+  case '!':                                                                    \
+  case '#':                                                                    \
+  case '$':                                                                    \
+  case '%':                                                                    \
+  case '&':                                                                    \
+  case '\'':                                                                   \
+  case '*':                                                                    \
+  case '+':                                                                    \
+  case '-':                                                                    \
+  case '.':                                                                    \
+  case '/':                                                                    \
+  DIGIT_CASES:                                                                 \
+  case ':':                                                                    \
+  UCALPHA_CASES:                                                               \
+  case '^':                                                                    \
+  case '_':                                                                    \
+  case '`':                                                                    \
+  LCALPHA_CASES:                                                               \
+  case '|':                                                                    \
+  case '~'
+
 #define LCHEXALPHA_CASES                                                       \
   case 'a':                                                                    \
   case 'b':                                                                    \
@@ -612,25 +634,7 @@ static int parser_token(sf_parser *sfp, sf_value *dest) {
 
   for (; !parser_eof(sfp); ++sfp->pos) {
     switch (*sfp->pos) {
-    case '!':
-    case '#':
-    case '$':
-    case '%':
-    case '&':
-    case '\'':
-    case '*':
-    case '+':
-    case '-':
-    case '.':
-    case '^':
-    case '_':
-    case '`':
-    case '|':
-    case '~':
-    case ':':
-    case '/':
-    DIGIT_CASES:
-    ALPHA_CASES:
+    TOKEN_CASES:
       continue;
     }
 
