@@ -1379,7 +1379,9 @@ void sf_unescape(sf_vec *dest, const sf_vec *src) {
       memcpy(o, p, len);
       o += len;
 
-      break;
+      dest->len = (size_t)(o - dest->base);
+
+      return;
     }
 
     slen = (size_t)(q - p);
@@ -1390,8 +1392,6 @@ void sf_unescape(sf_vec *dest, const sf_vec *src) {
     *o++ = *p++;
     len -= slen + 2;
   }
-
-  dest->len = (size_t)(o - dest->base);
 }
 
 void sf_base64decode(sf_vec *dest, const sf_vec *src) {
