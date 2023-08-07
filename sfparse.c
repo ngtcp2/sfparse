@@ -916,8 +916,7 @@ static int parser_dispstring(sf_parser *sfp, sf_value *dest) {
 
       return 0;
     default:
-      utf8_decode(&utf8state, *sfp->pos);
-      if (utf8state == UTF8_REJECT) {
+      if (utf8state != UTF8_ACCEPT) {
         return SF_ERR_PARSE_ERROR;
       }
 
