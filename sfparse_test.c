@@ -1560,12 +1560,12 @@ void test_sf_parser_dispstring(void) {
     /* base UTF-8 string */
     sf_parser_bytes_init(
         &sfp,
-        "%\"%E3%81%93%e3%82%93%e3%81%aB%e3%81%a1%e3%81%af%e4%b8%96%e7%95%8c\"");
+        "%\"%e3%81%93%e3%82%93%e3%81%ab%e3%81%a1%e3%81%af%e4%b8%96%e7%95%8c\"");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
     CU_ASSERT(SF_TYPE_DISPSTRING == val.type);
     CU_ASSERT(str_sf_vec_eq(
-        "%E3%81%93%e3%82%93%e3%81%aB%e3%81%a1%e3%81%af%e4%b8%96%e7%95%8c",
+        "%e3%81%93%e3%82%93%e3%81%ab%e3%81%a1%e3%81%af%e4%b8%96%e7%95%8c",
         &val.vec));
 
     decoded.base = buf;
@@ -1705,12 +1705,12 @@ void test_sf_parser_dispstring(void) {
   {
     /* ASCII + percent-encoded UTF-8 byte sequence */
     sf_parser_bytes_init(&sfp,
-                         "%\"This is intended for display to %C3%BCsers.\"");
+                         "%\"This is intended for display to %c3%bcsers.\"");
 
     CU_ASSERT(0 == sf_parser_item(&sfp, &val));
     CU_ASSERT(SF_TYPE_DISPSTRING == val.type);
     CU_ASSERT(
-        str_sf_vec_eq("This is intended for display to %C3%BCsers.", &val.vec));
+        str_sf_vec_eq("This is intended for display to %c3%bcsers.", &val.vec));
 
     decoded.base = buf;
     sf_pctdecode(&decoded, &val.vec);
@@ -1728,6 +1728,16 @@ void test_sf_parser_dispstring(void) {
   {
     /* overlong 2 byte sequence */
     sf_parser_bytes_init(&sfp, "%\"%c0%af\"");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* Uppercase percent-encoded string is invalid */
+    sf_parser_bytes_init(&sfp,
+                         "%\"This is intended for display to %C3%BCsers.\"");
 
     CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
 

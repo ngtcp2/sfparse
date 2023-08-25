@@ -165,14 +165,6 @@
   case 'e':                                                                    \
   case 'f'
 
-#define UCHEXALPHA_CASES                                                       \
-  case 'A':                                                                    \
-  case 'B':                                                                    \
-  case 'C':                                                                    \
-  case 'D':                                                                    \
-  case 'E':                                                                    \
-  case 'F'
-
 #define X00_1F_CASES                                                           \
   case 0x00:                                                                   \
   case 0x01:                                                                   \
@@ -764,10 +756,6 @@ static int pctdecode(uint8_t *pc, const uint8_t **ppos) {
     c = (uint8_t)((b - '0') << 4);
 
     break;
-  UCHEXALPHA_CASES:
-    c = (uint8_t)((b - 'A' + 10) << 4);
-
-    break;
   LCHEXALPHA_CASES:
     c = (uint8_t)((b - 'a' + 10) << 4);
 
@@ -781,10 +769,6 @@ static int pctdecode(uint8_t *pc, const uint8_t **ppos) {
   switch (b) {
   DIGIT_CASES:
     c |= (uint8_t)(b - '0');
-
-    break;
-  UCHEXALPHA_CASES:
-    c |= (uint8_t)(b - 'A' + 10);
 
     break;
   LCHEXALPHA_CASES:
