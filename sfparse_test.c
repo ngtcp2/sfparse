@@ -1556,6 +1556,154 @@ void test_sf_parser_dispstring(void) {
   sf_vec decoded;
   uint8_t buf[64];
 
+  /* https://github.com/httpwg/structured-field-tests/blob/main/display-string.json */
+
+  {
+    /* basic display string (ascii content) */
+    sf_parser_bytes_init(&sfp, "%\"foo bar\"");
+
+    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
+    CU_ASSERT(SF_TYPE_DISPSTRING == val.type);
+    CU_ASSERT(str_sf_vec_eq("foo bar", &val.vec));
+
+    decoded.base = buf;
+    sf_pctdecode(&decoded, &val.vec);
+
+    CU_ASSERT(str_sf_vec_eq("foo bar", &decoded));
+
+    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* non-ascii display string (uppercase escaping) */
+    sf_parser_bytes_init(&sfp, "%\"f%C3%BC%C3%BC\"");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* non-ascii display string (lowercase escaping) */
+    sf_parser_bytes_init(&sfp, "%\"f%c3%bc%c3%bc\"");
+
+    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
+    CU_ASSERT(SF_TYPE_DISPSTRING == val.type);
+    CU_ASSERT(str_sf_vec_eq("f%c3%bc%c3%bc", &val.vec));
+
+    decoded.base = buf;
+    sf_pctdecode(&decoded, &val.vec);
+
+    CU_ASSERT(str_sf_vec_eq("füü", &decoded));
+
+    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* tab in display string */
+    sf_parser_bytes_init(&sfp, "%\"\t\"");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* newline in display string */
+    sf_parser_bytes_init(&sfp, "%\"\n\"");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* single quoted display string */
+    sf_parser_bytes_init(&sfp, "%'foo'");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* unbalanced display string */
+    sf_parser_bytes_init(&sfp, "%\"foo");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* display string quoting */
+    sf_parser_bytes_init(&sfp, "%\"foo %22bar%22 \\ baz\"");
+
+    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
+    CU_ASSERT(SF_TYPE_DISPSTRING == val.type);
+    CU_ASSERT(str_sf_vec_eq("foo %22bar%22 \\ baz", &val.vec));
+
+    decoded.base = buf;
+    sf_pctdecode(&decoded, &val.vec);
+
+    CU_ASSERT(str_sf_vec_eq("foo \"bar\" \\ baz", &decoded));
+
+    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* bad display string escaping */
+    sf_parser_bytes_init(&sfp, "%\"foo %a");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* bad display string utf-8 (invalid 2-byte seq) */
+    sf_parser_bytes_init(&sfp, "%\"%c3%28\"");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* bad display string utf-8 (invalid sequence id) */
+    sf_parser_bytes_init(&sfp, "%\"%a0%a1\"");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* bad display string utf-8 (invalid 3-byte seq) */
+    sf_parser_bytes_init(&sfp, "%\"%e2%28%a1\"");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* bad display string utf-8 (invalid 4-byte seq) */
+    sf_parser_bytes_init(&sfp, "%\"%f0%28%8c%28\"");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+
+  /* Additional tests */
+
   {
     /* base UTF-8 string */
     sf_parser_bytes_init(
