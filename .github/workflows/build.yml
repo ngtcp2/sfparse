@@ -14,7 +14,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Linux setup
       if: runner.os == 'Linux'
       run: |
@@ -81,7 +81,7 @@ jobs:
       HOST: ${{ matrix.host }}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Linux setup
       run: |
         sudo dpkg --add-architecture i386
