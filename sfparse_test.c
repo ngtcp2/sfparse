@@ -1554,9 +1554,10 @@ void test_sf_parser_dispstring(void) {
   sf_parser sfp;
   sf_value val;
   sf_vec decoded;
-  uint8_t buf[64];
+  uint8_t buf[128];
 
-  /* https://github.com/httpwg/structured-field-tests/blob/main/display-string.json */
+  /* https://github.com/httpwg/structured-field-tests/blob/main/display-string.json
+   */
 
   {
     /* basic display string (ascii content) */
@@ -1570,6 +1571,33 @@ void test_sf_parser_dispstring(void) {
     sf_pctdecode(&decoded, &val.vec);
 
     CU_ASSERT(str_sf_vec_eq("foo bar", &decoded));
+
+    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* all printable ascii */
+    sf_parser_bytes_init(&sfp, "%\" "
+                               "!%22#$%25&'()*+,-./"
+                               "0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]"
+                               "^_`abcdefghijklmnopqrstuvwxyz{|}~\"");
+
+    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
+    CU_ASSERT(SF_TYPE_DISPSTRING == val.type);
+    CU_ASSERT(str_sf_vec_eq(" !%22#$%25&'()*+,-./"
+                            "0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]"
+                            "^_`abcdefghijklmnopqrstuvwxyz{|}~",
+                            &val.vec));
+
+    decoded.base = buf;
+    sf_pctdecode(&decoded, &val.vec);
+
+    CU_ASSERT(str_sf_vec_eq(" !\"#$%&'()*+,-./"
+                            "0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`"
+                            "abcdefghijklmnopqrstuvwxyz{|}~",
+                            &decoded));
 
     CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
 
@@ -1624,6 +1652,24 @@ void test_sf_parser_dispstring(void) {
   {
     /* single quoted display string */
     sf_parser_bytes_init(&sfp, "%'foo'");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* unquoted display string */
+    sf_parser_bytes_init(&sfp, "%foo");
+
+    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* display string missing initial quote */
+    sf_parser_bytes_init(&sfp, "%foo\"");
 
     CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
 
@@ -1698,6 +1744,24 @@ void test_sf_parser_dispstring(void) {
     sf_parser_bytes_init(&sfp, "%\"%f0%28%8c%28\"");
 
     CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* BOM in display string */
+    sf_parser_bytes_init(&sfp, "%\"BOM: %ef%bb%bf\"");
+
+    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
+    CU_ASSERT(SF_TYPE_DISPSTRING == val.type);
+    CU_ASSERT(str_sf_vec_eq("BOM: %ef%bb%bf", &val.vec));
+
+    decoded.base = buf;
+    sf_pctdecode(&decoded, &val.vec);
+
+    CU_ASSERT(str_sf_vec_eq("BOM: \xef\xbb\xbf", &decoded));
+
+    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
