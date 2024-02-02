@@ -3,6 +3,7 @@
 *.lo
 *.m4
 *.o
+.dirstamp
 .deps/
 .libs/
 INSTALL
