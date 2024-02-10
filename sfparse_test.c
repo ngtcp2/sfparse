@@ -29,9 +29,37 @@
 #include <assert.h>
 #include <string.h>
 
-#include <CUnit/CUnit.h>
-
 #include "sfparse.h"
+
+static const MunitTest tests[] = {
+    munit_void_test(test_sf_parser_item_skip),
+    munit_void_test(test_sf_parser_dict_skip),
+    munit_void_test(test_sf_parser_list_skip),
+    munit_void_test(test_sf_parser_byteseq),
+    munit_void_test(test_sf_parser_boolean),
+    munit_void_test(test_sf_parser_number),
+    munit_void_test(test_sf_parser_date),
+    munit_void_test(test_sf_parser_string),
+    munit_void_test(test_sf_parser_token),
+    munit_void_test(test_sf_parser_dispstring),
+    munit_void_test(test_sf_parser_dictionary),
+    munit_void_test(test_sf_parser_list),
+    munit_void_test(test_sf_parser_list_list),
+    munit_void_test(test_sf_parser_param_dict),
+    munit_void_test(test_sf_parser_param_list),
+    munit_void_test(test_sf_parser_param_list_list),
+    munit_void_test(test_sf_parser_number_generated),
+    munit_void_test(test_sf_parser_string_generated),
+    munit_void_test(test_sf_parser_token_generated),
+    munit_void_test(test_sf_parser_key_generated),
+    munit_void_test(test_sf_parser_large_generated),
+    munit_void_test(test_sf_parser_examples),
+    munit_test_end(),
+};
+
+const MunitSuite sfparse_suite = {
+    "/sfparse", tests, NULL, 1, MUNIT_SUITE_OPTION_NONE,
+};
 
 #define sf_parser_bytes_init(SFP, S)                                           \
   {                                                                            \
@@ -53,6 +81,14 @@ static int str_sf_vec_eq(const char *s, const sf_vec *v) {
   return strlen(s) == v->len &&
          (v->len == 0 || 0 == memcmp(s, v->base, v->len));
 }
+
+#define assert_str_sf_vec_eq(S, V)                                             \
+  do {                                                                         \
+    assert_size(strlen(S), ==, (V)->len);                                      \
+    if ((V)->len) {                                                            \
+      assert_memory_equal((V)->len, (S), (V)->base);                           \
+    }                                                                          \
+  } while (0);
 
 static int is_first_token_char(const uint8_t c) {
   return ('A' <= c && c <= 'Z') || ('a' <= c && c <= 'z') || c == '*';
@@ -84,10 +120,10 @@ void test_sf_parser_item_skip(void) {
     /* skip empty parameter */
     sf_parser_bytes_init(&sfp, "a");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("a", &val.vec));
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("a", &val.vec);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -96,10 +132,10 @@ void test_sf_parser_item_skip(void) {
     /* skip non-empty parameter */
     sf_parser_bytes_init(&sfp, "a;f=1000000009;g=1000000007");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("a", &val.vec));
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("a", &val.vec);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -108,10 +144,10 @@ void test_sf_parser_item_skip(void) {
     /* skip boolean parameter */
     sf_parser_bytes_init(&sfp, "a;f");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("a", &val.vec));
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("a", &val.vec);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -120,9 +156,9 @@ void test_sf_parser_item_skip(void) {
     /* skip inner list with empty parameter */
     sf_parser_bytes_init(&sfp, "(a)");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -131,9 +167,9 @@ void test_sf_parser_item_skip(void) {
     /* skip inner list with non-empty parameter */
     sf_parser_bytes_init(&sfp, "(a);f=1000000009;g=1000000007");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -142,9 +178,9 @@ void test_sf_parser_item_skip(void) {
     /* skip inner list with boolean parameter */
     sf_parser_bytes_init(&sfp, "(a);f");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -153,17 +189,17 @@ void test_sf_parser_item_skip(void) {
     /* skip inner list but read parameter */
     sf_parser_bytes_init(&sfp, "(a);f");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("f", &key));
-    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-    CU_ASSERT(1 == val.boolean);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("f", &key);
+    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_true(val.boolean);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -172,15 +208,15 @@ void test_sf_parser_item_skip(void) {
     /* skip inner list item parameter */
     sf_parser_bytes_init(&sfp, "(1;foo=100 2;bar)");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
     sf_parser_bytes_free();
   }
 }
@@ -194,9 +230,9 @@ void test_sf_parser_dict_skip(void) {
     /* skip empty parameter */
     sf_parser_bytes_init(&sfp, "a=3");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -205,9 +241,9 @@ void test_sf_parser_dict_skip(void) {
     /* skip non-empty parameter */
     sf_parser_bytes_init(&sfp, "a=3;f=999;g=1.23");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -216,9 +252,9 @@ void test_sf_parser_dict_skip(void) {
     /* skip boolean parameter */
     sf_parser_bytes_init(&sfp, "a=3;f");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -227,15 +263,15 @@ void test_sf_parser_dict_skip(void) {
     /* skip inner list */
     sf_parser_bytes_init(&sfp, "a=(1 2 3) , b=3");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(3 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("b", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(3, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -244,15 +280,15 @@ void test_sf_parser_dict_skip(void) {
     /* skip inner list with parameter */
     sf_parser_bytes_init(&sfp, "a=(1 2 3);f=a;g=b , b=3");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(3 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("b", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(3, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -261,15 +297,15 @@ void test_sf_parser_dict_skip(void) {
     /* skip inner list with boolean parameter */
     sf_parser_bytes_init(&sfp, "a=(1 2 3);f;g , b=3");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(3 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("b", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(3, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -278,27 +314,27 @@ void test_sf_parser_dict_skip(void) {
     /* skip inner list but read parameter */
     sf_parser_bytes_init(&sfp, "a=(1 2 3);f;g , b=3");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("f", &key));
-    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-    CU_ASSERT(1 == val.boolean);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("f", &key);
+    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_true(val.boolean);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("g", &key));
-    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-    CU_ASSERT(1 == val.boolean);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("g", &key);
+    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_true(val.boolean);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(3 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("b", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(3, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -307,15 +343,15 @@ void test_sf_parser_dict_skip(void) {
     /* skip inner list item parameter */
     sf_parser_bytes_init(&sfp, "a=(1;foo=100 2;bar)");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, NULL, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, NULL, NULL));
 
     sf_parser_bytes_free();
   }
@@ -330,9 +366,9 @@ void test_sf_parser_list_skip(void) {
     /* skip empty parameter */
     sf_parser_bytes_init(&sfp, "a");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -341,9 +377,9 @@ void test_sf_parser_list_skip(void) {
     /* skip non-empty parameter */
     sf_parser_bytes_init(&sfp, "a;fff=1;ggg=9");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -352,14 +388,14 @@ void test_sf_parser_list_skip(void) {
     /* skip inner list */
     sf_parser_bytes_init(&sfp, "(1 2 3) , 333");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(333 == val.integer);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(333, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -368,14 +404,14 @@ void test_sf_parser_list_skip(void) {
     /* skip inner list with parameter */
     sf_parser_bytes_init(&sfp, "(1 2 3);f=a;g=b , 333");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(333 == val.integer);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(333, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -384,14 +420,14 @@ void test_sf_parser_list_skip(void) {
     /* skip inner list with boolean parameter */
     sf_parser_bytes_init(&sfp, "(1 2 3);f;g , 333");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(333 == val.integer);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(333, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -400,26 +436,26 @@ void test_sf_parser_list_skip(void) {
     /* skip inner list but read parameter */
     sf_parser_bytes_init(&sfp, "(1 2 3);f;g , 333");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("f", &key));
-    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-    CU_ASSERT(1 == val.boolean);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("f", &key);
+    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_true(val.boolean);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("g", &key));
-    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-    CU_ASSERT(1 == val.boolean);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("g", &key);
+    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_true(val.boolean);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(333 == val.integer);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(333, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -428,15 +464,15 @@ void test_sf_parser_list_skip(void) {
     /* skip inner list item parameter */
     sf_parser_bytes_init(&sfp, "(1;foo=100 2;bar)");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -454,16 +490,16 @@ void test_sf_parser_byteseq(void) {
     /* basic binary */
     sf_parser_bytes_init(&sfp, ":aGVsbG8=:");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_BYTESEQ == val.type);
-    CU_ASSERT(str_sf_vec_eq("aGVsbG8=", &val.vec));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_BYTESEQ, ==, val.type);
+    assert_str_sf_vec_eq("aGVsbG8=", &val.vec);
 
     decoded.base = buf;
     sf_base64decode(&decoded, &val.vec);
 
-    CU_ASSERT(str_sf_vec_eq("hello", &decoded));
+    assert_str_sf_vec_eq("hello", &decoded);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -472,16 +508,16 @@ void test_sf_parser_byteseq(void) {
     /* empty binary */
     sf_parser_bytes_init(&sfp, "::");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_BYTESEQ == val.type);
-    CU_ASSERT(str_sf_vec_eq("", &val.vec));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_BYTESEQ, ==, val.type);
+    assert_str_sf_vec_eq("", &val.vec);
 
     decoded.base = buf;
     sf_base64decode(&decoded, &val.vec);
 
-    CU_ASSERT(str_sf_vec_eq("", &decoded));
+    assert_str_sf_vec_eq("", &decoded);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -490,16 +526,16 @@ void test_sf_parser_byteseq(void) {
     /* bad paddding */
     sf_parser_bytes_init(&sfp, ":aGVsbG8:");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_BYTESEQ == val.type);
-    CU_ASSERT(str_sf_vec_eq("aGVsbG8", &val.vec));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_BYTESEQ, ==, val.type);
+    assert_str_sf_vec_eq("aGVsbG8", &val.vec);
 
     decoded.base = buf;
     sf_base64decode(&decoded, &val.vec);
 
-    CU_ASSERT(str_sf_vec_eq("hello", &decoded));
+    assert_str_sf_vec_eq("hello", &decoded);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -508,7 +544,7 @@ void test_sf_parser_byteseq(void) {
     /* bad end delimiter */
     sf_parser_bytes_init(&sfp, ":aGVsbG8=");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -517,7 +553,7 @@ void test_sf_parser_byteseq(void) {
     /* extra whitespace */
     sf_parser_bytes_init(&sfp, ":aGVsb G8=:");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -526,7 +562,7 @@ void test_sf_parser_byteseq(void) {
     /* extra chars */
     sf_parser_bytes_init(&sfp, ":aGVsbG!8=:");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -535,7 +571,7 @@ void test_sf_parser_byteseq(void) {
     /* suffix chars */
     sf_parser_bytes_init(&sfp, ":aGVsbG8=!:");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -544,16 +580,16 @@ void test_sf_parser_byteseq(void) {
     /* non-zero pad bits */
     sf_parser_bytes_init(&sfp, ":iZ==:");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_BYTESEQ == val.type);
-    CU_ASSERT(str_sf_vec_eq("iZ==", &val.vec));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_BYTESEQ, ==, val.type);
+    assert_str_sf_vec_eq("iZ==", &val.vec);
 
     decoded.base = buf;
     sf_base64decode(&decoded, &val.vec);
 
-    CU_ASSERT(str_sf_vec_eq("\x89", &decoded));
+    assert_str_sf_vec_eq("\x89", &decoded);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -562,16 +598,16 @@ void test_sf_parser_byteseq(void) {
     /* non-ASCII binary */
     sf_parser_bytes_init(&sfp, ":/+Ah:");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_BYTESEQ == val.type);
-    CU_ASSERT(str_sf_vec_eq("/+Ah", &val.vec));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_BYTESEQ, ==, val.type);
+    assert_str_sf_vec_eq("/+Ah", &val.vec);
 
     decoded.base = buf;
     sf_base64decode(&decoded, &val.vec);
 
-    CU_ASSERT(str_sf_vec_eq("\xff\xe0!", &decoded));
+    assert_str_sf_vec_eq("\xff\xe0!", &decoded);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -580,7 +616,7 @@ void test_sf_parser_byteseq(void) {
     /* base64url binary */
     sf_parser_bytes_init(&sfp, ":_-Ah:");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -591,11 +627,11 @@ void test_sf_parser_byteseq(void) {
     /* missing closing DQUOTE */
     sf_parser_bytes_init(&sfp, "z,:1jk=");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("z", &val.vec));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("z", &val.vec);
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -604,7 +640,7 @@ void test_sf_parser_byteseq(void) {
     /* Just ':' */
     sf_parser_bytes_init(&sfp, ":");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -613,7 +649,7 @@ void test_sf_parser_byteseq(void) {
     /* Just single '=' */
     sf_parser_bytes_init(&sfp, ":=:");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -622,7 +658,7 @@ void test_sf_parser_byteseq(void) {
     /* Two '=' */
     sf_parser_bytes_init(&sfp, ":==:");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -631,7 +667,7 @@ void test_sf_parser_byteseq(void) {
     /* Three '=' */
     sf_parser_bytes_init(&sfp, ":===:");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -640,7 +676,7 @@ void test_sf_parser_byteseq(void) {
     /* Four '=' */
     sf_parser_bytes_init(&sfp, ":====:");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -649,7 +685,7 @@ void test_sf_parser_byteseq(void) {
     /* Single letter never be a base64 encoded string */
     sf_parser_bytes_init(&sfp, ":K:");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -658,16 +694,16 @@ void test_sf_parser_byteseq(void) {
     /* Omitting all padding and non-zero pad bits */
     sf_parser_bytes_init(&sfp, ":K7:");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_BYTESEQ == val.type);
-    CU_ASSERT(str_sf_vec_eq("K7", &val.vec));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_BYTESEQ, ==, val.type);
+    assert_str_sf_vec_eq("K7", &val.vec);
 
     decoded.base = buf;
     sf_base64decode(&decoded, &val.vec);
 
-    CU_ASSERT(str_sf_vec_eq("\x2b", &decoded));
+    assert_str_sf_vec_eq("\x2b", &decoded);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -676,16 +712,16 @@ void test_sf_parser_byteseq(void) {
     /* Omitting a single padding and non-zero pad bits */
     sf_parser_bytes_init(&sfp, ":K7=:");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_BYTESEQ == val.type);
-    CU_ASSERT(str_sf_vec_eq("K7=", &val.vec));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_BYTESEQ, ==, val.type);
+    assert_str_sf_vec_eq("K7=", &val.vec);
 
     decoded.base = buf;
     sf_base64decode(&decoded, &val.vec);
 
-    CU_ASSERT(str_sf_vec_eq("\x2b", &decoded));
+    assert_str_sf_vec_eq("\x2b", &decoded);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -694,16 +730,16 @@ void test_sf_parser_byteseq(void) {
     /* Omitting a padding and non-zero pad bits */
     sf_parser_bytes_init(&sfp, ":K73:");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_BYTESEQ == val.type);
-    CU_ASSERT(str_sf_vec_eq("K73", &val.vec));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_BYTESEQ, ==, val.type);
+    assert_str_sf_vec_eq("K73", &val.vec);
 
     decoded.base = buf;
     sf_base64decode(&decoded, &val.vec);
 
-    CU_ASSERT(str_sf_vec_eq("\x2b\xbd", &decoded));
+    assert_str_sf_vec_eq("\x2b\xbd", &decoded);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -712,16 +748,16 @@ void test_sf_parser_byteseq(void) {
     /* Not omitting a padding but non-zero pad bits */
     sf_parser_bytes_init(&sfp, ":K73=:");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_BYTESEQ == val.type);
-    CU_ASSERT(str_sf_vec_eq("K73=", &val.vec));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_BYTESEQ, ==, val.type);
+    assert_str_sf_vec_eq("K73=", &val.vec);
 
     decoded.base = buf;
     sf_base64decode(&decoded, &val.vec);
 
-    CU_ASSERT(str_sf_vec_eq("\x2b\xbd", &decoded));
+    assert_str_sf_vec_eq("\x2b\xbd", &decoded);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -730,7 +766,7 @@ void test_sf_parser_byteseq(void) {
     /* Padding in the middle of encoded string */
     sf_parser_bytes_init(&sfp, ":ab=a:");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -746,10 +782,10 @@ void test_sf_parser_boolean(void) {
     /* basic true boolean */
     sf_parser_bytes_init(&sfp, "?1");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-    CU_ASSERT(1 == val.boolean);
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_true(val.boolean);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -758,10 +794,10 @@ void test_sf_parser_boolean(void) {
     /* basic false boolean */
     sf_parser_bytes_init(&sfp, "?0");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-    CU_ASSERT(0 == val.boolean);
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_false(val.boolean);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -770,7 +806,7 @@ void test_sf_parser_boolean(void) {
     /* unknown boolean */
     sf_parser_bytes_init(&sfp, "?Q");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -779,7 +815,7 @@ void test_sf_parser_boolean(void) {
     /* whitespace boolean */
     sf_parser_bytes_init(&sfp, "? 1");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -788,7 +824,7 @@ void test_sf_parser_boolean(void) {
     /* negative zero boolean */
     sf_parser_bytes_init(&sfp, "?-0");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -797,7 +833,7 @@ void test_sf_parser_boolean(void) {
     /* T boolean */
     sf_parser_bytes_init(&sfp, "?T");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -806,7 +842,7 @@ void test_sf_parser_boolean(void) {
     /* F boolean */
     sf_parser_bytes_init(&sfp, "?F");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -815,7 +851,7 @@ void test_sf_parser_boolean(void) {
     /* t boolean */
     sf_parser_bytes_init(&sfp, "?t");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -824,7 +860,7 @@ void test_sf_parser_boolean(void) {
     /* f boolean */
     sf_parser_bytes_init(&sfp, "?f");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -833,7 +869,7 @@ void test_sf_parser_boolean(void) {
     /* spelled-out True boolean */
     sf_parser_bytes_init(&sfp, "?True");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -842,7 +878,7 @@ void test_sf_parser_boolean(void) {
     /* spelled-out False boolean */
     sf_parser_bytes_init(&sfp, "?False");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -853,7 +889,7 @@ void test_sf_parser_boolean(void) {
     /* Just '?' */
     sf_parser_bytes_init(&sfp, "?");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -869,10 +905,10 @@ void test_sf_parser_number(void) {
     /* basic integer */
     sf_parser_bytes_init(&sfp, "42");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(42 == val.integer);
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(42, ==, val.integer);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -881,10 +917,10 @@ void test_sf_parser_number(void) {
     /* zero integer */
     sf_parser_bytes_init(&sfp, "0");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(0 == val.integer);
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(0, ==, val.integer);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -893,10 +929,10 @@ void test_sf_parser_number(void) {
     /* negative zero */
     sf_parser_bytes_init(&sfp, "-0");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(0 == val.integer);
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(0, ==, val.integer);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -905,7 +941,7 @@ void test_sf_parser_number(void) {
     /* double negative zero */
     sf_parser_bytes_init(&sfp, "--0");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -914,10 +950,10 @@ void test_sf_parser_number(void) {
     /* negative integer */
     sf_parser_bytes_init(&sfp, "-42");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(-42 == val.integer);
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(-42, ==, val.integer);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -926,10 +962,10 @@ void test_sf_parser_number(void) {
     /* leading 0 integer" */
     sf_parser_bytes_init(&sfp, "042");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(42 == val.integer);
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(42, ==, val.integer);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -938,10 +974,10 @@ void test_sf_parser_number(void) {
     /* leading 0 negative integer */
     sf_parser_bytes_init(&sfp, "-042");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(-42 == val.integer);
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(-42, ==, val.integer);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -950,10 +986,10 @@ void test_sf_parser_number(void) {
     /* leading 0 zero */
     sf_parser_bytes_init(&sfp, "00");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(0 == val.integer);
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(0, ==, val.integer);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -962,10 +998,10 @@ void test_sf_parser_number(void) {
     /* comma */
     sf_parser_bytes_init(&sfp, "2,3");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(2 == val.integer);
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(2, ==, val.integer);
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -974,7 +1010,7 @@ void test_sf_parser_number(void) {
     /* negative non-DIGIT first character */
     sf_parser_bytes_init(&sfp, "-a23");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -983,10 +1019,10 @@ void test_sf_parser_number(void) {
     /* sign out of place */
     sf_parser_bytes_init(&sfp, "4-2");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(4 == val.integer);
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(4, ==, val.integer);
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -995,7 +1031,7 @@ void test_sf_parser_number(void) {
     /* whitespace after sign */
     sf_parser_bytes_init(&sfp, "- 42");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1004,10 +1040,10 @@ void test_sf_parser_number(void) {
     /* long integer */
     sf_parser_bytes_init(&sfp, "123456789012345");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(123456789012345 == val.integer);
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(123456789012345, ==, val.integer);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -1016,10 +1052,10 @@ void test_sf_parser_number(void) {
     /* long negative integer */
     sf_parser_bytes_init(&sfp, "-123456789012345");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(-123456789012345 == val.integer);
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(-123456789012345, ==, val.integer);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -1028,7 +1064,7 @@ void test_sf_parser_number(void) {
     /* too long integer */
     sf_parser_bytes_init(&sfp, "1234567890123456");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1037,7 +1073,7 @@ void test_sf_parser_number(void) {
     /* negative too long integer */
     sf_parser_bytes_init(&sfp, "-1234567890123456");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1046,11 +1082,11 @@ void test_sf_parser_number(void) {
     /* simple decimal */
     sf_parser_bytes_init(&sfp, "1.23");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
-    CU_ASSERT(123 == val.decimal.numer);
-    CU_ASSERT(100 == val.decimal.denom);
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int64(123, ==, val.decimal.numer);
+    assert_int64(100, ==, val.decimal.denom);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -1059,11 +1095,11 @@ void test_sf_parser_number(void) {
     /* negative decimal */
     sf_parser_bytes_init(&sfp, "-1.23");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
-    CU_ASSERT(-123 == val.decimal.numer);
-    CU_ASSERT(100 == val.decimal.denom);
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int64(-123, ==, val.decimal.numer);
+    assert_int64(100, ==, val.decimal.denom);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -1072,7 +1108,7 @@ void test_sf_parser_number(void) {
     /* decimal, whitespace after decimal */
     sf_parser_bytes_init(&sfp, "1. 23");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1081,10 +1117,10 @@ void test_sf_parser_number(void) {
     /* decimal, whitespace before decimal" */
     sf_parser_bytes_init(&sfp, "1 .23");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -1093,7 +1129,7 @@ void test_sf_parser_number(void) {
     /* negative decimal, whitespace after sign */
     sf_parser_bytes_init(&sfp, "- 1.23");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1102,11 +1138,11 @@ void test_sf_parser_number(void) {
     /* tricky precision decimal */
     sf_parser_bytes_init(&sfp, "123456789012.1");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
-    CU_ASSERT(1234567890121 == val.decimal.numer);
-    CU_ASSERT(10 == val.decimal.denom);
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int64(1234567890121, ==, val.decimal.numer);
+    assert_int64(10, ==, val.decimal.denom);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -1115,11 +1151,11 @@ void test_sf_parser_number(void) {
     /* double decimal decimal */
     sf_parser_bytes_init(&sfp, "1.5.4");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
-    CU_ASSERT(15 == val.decimal.numer);
-    CU_ASSERT(10 == val.decimal.denom);
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int64(15, ==, val.decimal.numer);
+    assert_int64(10, ==, val.decimal.denom);
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -1128,7 +1164,7 @@ void test_sf_parser_number(void) {
     /* adjacent double decimal decimal */
     sf_parser_bytes_init(&sfp, "1..4");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1137,11 +1173,11 @@ void test_sf_parser_number(void) {
     /* decimal with three fractional digits */
     sf_parser_bytes_init(&sfp, "1.123");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
-    CU_ASSERT(1123 == val.decimal.numer);
-    CU_ASSERT(1000 == val.decimal.denom);
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int64(1123, ==, val.decimal.numer);
+    assert_int64(1000, ==, val.decimal.denom);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -1150,11 +1186,11 @@ void test_sf_parser_number(void) {
     /* negative decimal with three fractional digits */
     sf_parser_bytes_init(&sfp, "-1.123");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
-    CU_ASSERT(-1123 == val.decimal.numer);
-    CU_ASSERT(1000 == val.decimal.denom);
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int64(-1123, ==, val.decimal.numer);
+    assert_int64(1000, ==, val.decimal.denom);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -1163,7 +1199,7 @@ void test_sf_parser_number(void) {
     /* decimal with four fractional digits */
     sf_parser_bytes_init(&sfp, "1.1234");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1172,7 +1208,7 @@ void test_sf_parser_number(void) {
     /* negative decimal with four fractional digits */
     sf_parser_bytes_init(&sfp, "-1.1234");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1181,7 +1217,7 @@ void test_sf_parser_number(void) {
     /* decimal with thirteen integer digits */
     sf_parser_bytes_init(&sfp, "1234567890123.0");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1190,7 +1226,7 @@ void test_sf_parser_number(void) {
     /* negative decimal with thirteen integer digits */
     sf_parser_bytes_init(&sfp, "-1234567890123.0");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1201,7 +1237,7 @@ void test_sf_parser_number(void) {
     /* No digits */
     sf_parser_bytes_init(&sfp, "-a");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1210,7 +1246,7 @@ void test_sf_parser_number(void) {
     /* No digits before '.' */
     sf_parser_bytes_init(&sfp, "-.1");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1226,10 +1262,10 @@ void test_sf_parser_date(void) {
     /* date - 1970-01-01 00:00:00 */
     sf_parser_bytes_init(&sfp, "@0");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_DATE == val.type);
-    CU_ASSERT(0 == val.integer);
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_DATE, ==, val.type);
+    assert_int64(0, ==, val.integer);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -1238,10 +1274,10 @@ void test_sf_parser_date(void) {
     /* date - 2022-08-04 01:57:13 */
     sf_parser_bytes_init(&sfp, "@1659578233");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_DATE == val.type);
-    CU_ASSERT(1659578233 == val.integer);
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_DATE, ==, val.type);
+    assert_int64(1659578233, ==, val.integer);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -1250,10 +1286,10 @@ void test_sf_parser_date(void) {
     /* date - 1917-05-30 22:02:47 */
     sf_parser_bytes_init(&sfp, "@-1659578233");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_DATE == val.type);
-    CU_ASSERT(-1659578233 == val.integer);
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_DATE, ==, val.type);
+    assert_int64(-1659578233, ==, val.integer);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -1262,10 +1298,10 @@ void test_sf_parser_date(void) {
     /* date - 2^31 */
     sf_parser_bytes_init(&sfp, "@2147483648");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_DATE == val.type);
-    CU_ASSERT(2147483648 == val.integer);
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_DATE, ==, val.type);
+    assert_int64(2147483648, ==, val.integer);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -1274,10 +1310,10 @@ void test_sf_parser_date(void) {
     /* date - 2^32 */
     sf_parser_bytes_init(&sfp, "@4294967296");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_DATE == val.type);
-    CU_ASSERT(4294967296 == val.integer);
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_DATE, ==, val.type);
+    assert_int64(4294967296, ==, val.integer);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -1286,7 +1322,7 @@ void test_sf_parser_date(void) {
     /* date - decimal */
     sf_parser_bytes_init(&sfp, "@1659578233.12");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1297,7 +1333,7 @@ void test_sf_parser_date(void) {
     /* Just '@' */
     sf_parser_bytes_init(&sfp, "@");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1315,10 +1351,10 @@ void test_sf_parser_string(void) {
     /* basic string */
     sf_parser_bytes_init(&sfp, "\"foo bar\"");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_STRING == val.type);
-    CU_ASSERT(str_sf_vec_eq("foo bar", &val.vec));
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
+    assert_str_sf_vec_eq("foo bar", &val.vec);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -1327,10 +1363,10 @@ void test_sf_parser_string(void) {
     /* empty string */
     sf_parser_bytes_init(&sfp, "\"\"");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_STRING == val.type);
-    CU_ASSERT(str_sf_vec_eq("", &val.vec));
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
+    assert_str_sf_vec_eq("", &val.vec);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -1344,15 +1380,15 @@ void test_sf_parser_string(void) {
         "foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo "
         "foo foo foo foo foo foo foo foo foo foo foo foo foo foo \"");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_STRING == val.type);
-    CU_ASSERT(str_sf_vec_eq(
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
+    assert_str_sf_vec_eq(
         "foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo "
         "foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo "
         "foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo "
         "foo foo foo foo foo foo foo foo foo foo foo foo foo foo ",
-        &val.vec));
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+        &val.vec);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -1361,10 +1397,10 @@ void test_sf_parser_string(void) {
     /* whitespace string */
     sf_parser_bytes_init(&sfp, "\"   \"");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_STRING == val.type);
-    CU_ASSERT(str_sf_vec_eq("   ", &val.vec));
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
+    assert_str_sf_vec_eq("   ", &val.vec);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -1373,7 +1409,7 @@ void test_sf_parser_string(void) {
     /* non-ascii string */
     sf_parser_bytes_init(&sfp, "\"füü\"");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1382,7 +1418,7 @@ void test_sf_parser_string(void) {
     /* tab in string" */
     sf_parser_bytes_init(&sfp, "\"\\t\"");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1391,7 +1427,7 @@ void test_sf_parser_string(void) {
     /* newline in string */
     sf_parser_bytes_init(&sfp, "\" \\n \"");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1400,7 +1436,7 @@ void test_sf_parser_string(void) {
     /* single quoted string */
     sf_parser_bytes_init(&sfp, "'foo'");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1409,7 +1445,7 @@ void test_sf_parser_string(void) {
     /* unbalanced string */
     sf_parser_bytes_init(&sfp, "\"foo");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1418,16 +1454,16 @@ void test_sf_parser_string(void) {
     /* string quoting */
     sf_parser_bytes_init(&sfp, "\"foo \\\"bar\\\" \\\\ baz\"");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_STRING == val.type);
-    CU_ASSERT(str_sf_vec_eq("foo \\\"bar\\\" \\\\ baz", &val.vec));
-    CU_ASSERT(val.flags & SF_VALUE_FLAG_ESCAPED_STRING);
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
+    assert_str_sf_vec_eq("foo \\\"bar\\\" \\\\ baz", &val.vec);
+    assert_true(val.flags & SF_VALUE_FLAG_ESCAPED_STRING);
 
     unescaped.base = buf;
     sf_unescape(&unescaped, &val.vec);
 
-    CU_ASSERT(str_sf_vec_eq("foo \"bar\" \\ baz", &unescaped));
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_str_sf_vec_eq("foo \"bar\" \\ baz", &unescaped);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -1436,7 +1472,7 @@ void test_sf_parser_string(void) {
     /* bad string quoting */
     sf_parser_bytes_init(&sfp, "\"foo \\,\"");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1445,7 +1481,7 @@ void test_sf_parser_string(void) {
     /* ending string quote */
     sf_parser_bytes_init(&sfp, "\"foo \\\"");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1454,7 +1490,7 @@ void test_sf_parser_string(void) {
     /* abruptly ending string quote */
     sf_parser_bytes_init(&sfp, "\"foo \\");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1465,7 +1501,7 @@ void test_sf_parser_string(void) {
     /* Just '"' */
     sf_parser_bytes_init(&sfp, "\"");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1481,10 +1517,10 @@ void test_sf_parser_token(void) {
     /* basic token - item */
     sf_parser_bytes_init(&sfp, "a_b-c.d3:f%00/*");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("a_b-c.d3:f%00/*", &val.vec));
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("a_b-c.d3:f%00/*", &val.vec);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -1493,10 +1529,10 @@ void test_sf_parser_token(void) {
     /* token with capitals - item */
     sf_parser_bytes_init(&sfp, "fooBar");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("fooBar", &val.vec));
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("fooBar", &val.vec);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -1505,10 +1541,10 @@ void test_sf_parser_token(void) {
     /* token starting with capitals - item */
     sf_parser_bytes_init(&sfp, "FooBar");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("FooBar", &val.vec));
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("FooBar", &val.vec);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -1517,10 +1553,10 @@ void test_sf_parser_token(void) {
     /* basic token - list */
     sf_parser_bytes_init(&sfp, "a_b-c3/*");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("a_b-c3/*", &val.vec));
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("a_b-c3/*", &val.vec);
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1529,10 +1565,10 @@ void test_sf_parser_token(void) {
     /* token with capitals - list */
     sf_parser_bytes_init(&sfp, "fooBar");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("fooBar", &val.vec));
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("fooBar", &val.vec);
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1541,10 +1577,10 @@ void test_sf_parser_token(void) {
     /* token starting with capitals - list */
     sf_parser_bytes_init(&sfp, "FooBar");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("FooBar", &val.vec));
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("FooBar", &val.vec);
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1563,16 +1599,16 @@ void test_sf_parser_dispstring(void) {
     /* basic display string (ascii content) */
     sf_parser_bytes_init(&sfp, "%\"foo bar\"");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_DISPSTRING == val.type);
-    CU_ASSERT(str_sf_vec_eq("foo bar", &val.vec));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_DISPSTRING, ==, val.type);
+    assert_str_sf_vec_eq("foo bar", &val.vec);
 
     decoded.base = buf;
     sf_pctdecode(&decoded, &val.vec);
 
-    CU_ASSERT(str_sf_vec_eq("foo bar", &decoded));
+    assert_str_sf_vec_eq("foo bar", &decoded);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -1584,22 +1620,23 @@ void test_sf_parser_dispstring(void) {
                                "0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]"
                                "^_`abcdefghijklmnopqrstuvwxyz{|}~\"");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_DISPSTRING == val.type);
-    CU_ASSERT(str_sf_vec_eq(" !%22#$%25&'()*+,-./"
-                            "0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]"
-                            "^_`abcdefghijklmnopqrstuvwxyz{|}~",
-                            &val.vec));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_DISPSTRING, ==, val.type);
+    assert_str_sf_vec_eq(" !%22#$%25&'()*+,-./"
+                         "0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]"
+                         "^_`abcdefghijklmnopqrstuvwxyz{|}~",
+                         &val.vec);
 
     decoded.base = buf;
     sf_pctdecode(&decoded, &val.vec);
 
-    CU_ASSERT(str_sf_vec_eq(" !\"#$%&'()*+,-./"
-                            "0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`"
-                            "abcdefghijklmnopqrstuvwxyz{|}~",
-                            &decoded));
+    assert_true(
+        str_sf_vec_eq(" !\"#$%&'()*+,-./"
+                      "0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`"
+                      "abcdefghijklmnopqrstuvwxyz{|}~",
+                      &decoded));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -1608,7 +1645,7 @@ void test_sf_parser_dispstring(void) {
     /* non-ascii display string (uppercase escaping) */
     sf_parser_bytes_init(&sfp, "%\"f%C3%BC%C3%BC\"");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1617,16 +1654,16 @@ void test_sf_parser_dispstring(void) {
     /* non-ascii display string (lowercase escaping) */
     sf_parser_bytes_init(&sfp, "%\"f%c3%bc%c3%bc\"");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_DISPSTRING == val.type);
-    CU_ASSERT(str_sf_vec_eq("f%c3%bc%c3%bc", &val.vec));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_DISPSTRING, ==, val.type);
+    assert_str_sf_vec_eq("f%c3%bc%c3%bc", &val.vec);
 
     decoded.base = buf;
     sf_pctdecode(&decoded, &val.vec);
 
-    CU_ASSERT(str_sf_vec_eq("füü", &decoded));
+    assert_str_sf_vec_eq("füü", &decoded);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -1635,7 +1672,7 @@ void test_sf_parser_dispstring(void) {
     /* tab in display string */
     sf_parser_bytes_init(&sfp, "%\"\t\"");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1644,7 +1681,7 @@ void test_sf_parser_dispstring(void) {
     /* newline in display string */
     sf_parser_bytes_init(&sfp, "%\"\n\"");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1653,7 +1690,7 @@ void test_sf_parser_dispstring(void) {
     /* single quoted display string */
     sf_parser_bytes_init(&sfp, "%'foo'");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1662,7 +1699,7 @@ void test_sf_parser_dispstring(void) {
     /* unquoted display string */
     sf_parser_bytes_init(&sfp, "%foo");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1671,7 +1708,7 @@ void test_sf_parser_dispstring(void) {
     /* display string missing initial quote */
     sf_parser_bytes_init(&sfp, "%foo\"");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1680,7 +1717,7 @@ void test_sf_parser_dispstring(void) {
     /* unbalanced display string */
     sf_parser_bytes_init(&sfp, "%\"foo");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1689,16 +1726,16 @@ void test_sf_parser_dispstring(void) {
     /* display string quoting */
     sf_parser_bytes_init(&sfp, "%\"foo %22bar%22 \\ baz\"");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_DISPSTRING == val.type);
-    CU_ASSERT(str_sf_vec_eq("foo %22bar%22 \\ baz", &val.vec));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_DISPSTRING, ==, val.type);
+    assert_str_sf_vec_eq("foo %22bar%22 \\ baz", &val.vec);
 
     decoded.base = buf;
     sf_pctdecode(&decoded, &val.vec);
 
-    CU_ASSERT(str_sf_vec_eq("foo \"bar\" \\ baz", &decoded));
+    assert_str_sf_vec_eq("foo \"bar\" \\ baz", &decoded);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -1707,7 +1744,7 @@ void test_sf_parser_dispstring(void) {
     /* bad display string escaping */
     sf_parser_bytes_init(&sfp, "%\"foo %a");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1716,7 +1753,7 @@ void test_sf_parser_dispstring(void) {
     /* bad display string utf-8 (invalid 2-byte seq) */
     sf_parser_bytes_init(&sfp, "%\"%c3%28\"");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1725,7 +1762,7 @@ void test_sf_parser_dispstring(void) {
     /* bad display string utf-8 (invalid sequence id) */
     sf_parser_bytes_init(&sfp, "%\"%a0%a1\"");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1734,7 +1771,7 @@ void test_sf_parser_dispstring(void) {
     /* bad display string utf-8 (invalid 3-byte seq) */
     sf_parser_bytes_init(&sfp, "%\"%e2%28%a1\"");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1743,7 +1780,7 @@ void test_sf_parser_dispstring(void) {
     /* bad display string utf-8 (invalid 4-byte seq) */
     sf_parser_bytes_init(&sfp, "%\"%f0%28%8c%28\"");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1752,16 +1789,16 @@ void test_sf_parser_dispstring(void) {
     /* BOM in display string */
     sf_parser_bytes_init(&sfp, "%\"BOM: %ef%bb%bf\"");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_DISPSTRING == val.type);
-    CU_ASSERT(str_sf_vec_eq("BOM: %ef%bb%bf", &val.vec));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_DISPSTRING, ==, val.type);
+    assert_str_sf_vec_eq("BOM: %ef%bb%bf", &val.vec);
 
     decoded.base = buf;
     sf_pctdecode(&decoded, &val.vec);
 
-    CU_ASSERT(str_sf_vec_eq("BOM: \xef\xbb\xbf", &decoded));
+    assert_str_sf_vec_eq("BOM: \xef\xbb\xbf", &decoded);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -1774,20 +1811,20 @@ void test_sf_parser_dispstring(void) {
         &sfp,
         "%\"%e3%81%93%e3%82%93%e3%81%ab%e3%81%a1%e3%81%af%e4%b8%96%e7%95%8c\"");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_DISPSTRING == val.type);
-    CU_ASSERT(str_sf_vec_eq(
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_DISPSTRING, ==, val.type);
+    assert_str_sf_vec_eq(
         "%e3%81%93%e3%82%93%e3%81%ab%e3%81%a1%e3%81%af%e4%b8%96%e7%95%8c",
-        &val.vec));
+        &val.vec);
 
     decoded.base = buf;
     sf_pctdecode(&decoded, &val.vec);
 
-    CU_ASSERT(str_sf_vec_eq("\xe3\x81\x93\xe3\x82\x93\xe3\x81\xab\xe3\x81\xa1"
-                            "\xe3\x81\xaf\xe4\xb8\x96\xe7\x95\x8c",
-                            &decoded));
+    assert_str_sf_vec_eq("\xe3\x81\x93\xe3\x82\x93\xe3\x81\xab\xe3\x81\xa1"
+                         "\xe3\x81\xaf\xe4\xb8\x96\xe7\x95\x8c",
+                         &decoded);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -1797,7 +1834,7 @@ void test_sf_parser_dispstring(void) {
     sf_parser_bytes_init(&sfp, "%\"%e3%81%93%e3%82%93%e3%81%ab%e3%81"
                                "%a1%e3%81%af%e4%b8%96%e7%95\"");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1806,7 +1843,7 @@ void test_sf_parser_dispstring(void) {
     /* Just '%' */
     sf_parser_bytes_init(&sfp, "%");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1815,7 +1852,7 @@ void test_sf_parser_dispstring(void) {
     /* just '%"' */
     sf_parser_bytes_init(&sfp, "%\"");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1824,16 +1861,16 @@ void test_sf_parser_dispstring(void) {
     /* empty dispstring */
     sf_parser_bytes_init(&sfp, "%\"\"");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_DISPSTRING == val.type);
-    CU_ASSERT(str_sf_vec_eq("", &val.vec));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_DISPSTRING, ==, val.type);
+    assert_str_sf_vec_eq("", &val.vec);
 
     decoded.base = buf;
     sf_pctdecode(&decoded, &val.vec);
 
-    CU_ASSERT(str_sf_vec_eq("", &decoded));
+    assert_str_sf_vec_eq("", &decoded);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -1844,7 +1881,7 @@ void test_sf_parser_dispstring(void) {
         &sfp,
         "%\"%e3%81%93%e3%82%93%e3%81%ab%e3%81%a1%e3%81%af%e4%b8%96%e7%95%8c");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1855,7 +1892,7 @@ void test_sf_parser_dispstring(void) {
                                "\x00"
                                "\"");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1864,7 +1901,7 @@ void test_sf_parser_dispstring(void) {
     /* bad percent encoding (first half) */
     sf_parser_bytes_init(&sfp, "%\"%qa\"");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1873,7 +1910,7 @@ void test_sf_parser_dispstring(void) {
     /* bad percent encoding (second half) */
     sf_parser_bytes_init(&sfp, "%\"%aq\"");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1882,7 +1919,7 @@ void test_sf_parser_dispstring(void) {
     /* bad percent encoding (missing 2 bytes) */
     sf_parser_bytes_init(&sfp, "%\"%\"");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1891,7 +1928,7 @@ void test_sf_parser_dispstring(void) {
     /* bad percent encoding (missing 2nd byte) */
     sf_parser_bytes_init(&sfp, "%\"%a\"");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1900,16 +1937,16 @@ void test_sf_parser_dispstring(void) {
     /* ASCII string */
     sf_parser_bytes_init(&sfp, "%\"hello world\"");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_DISPSTRING == val.type);
-    CU_ASSERT(str_sf_vec_eq("hello world", &val.vec));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_DISPSTRING, ==, val.type);
+    assert_str_sf_vec_eq("hello world", &val.vec);
 
     decoded.base = buf;
     sf_pctdecode(&decoded, &val.vec);
 
-    CU_ASSERT(str_sf_vec_eq("hello world", &decoded));
+    assert_str_sf_vec_eq("hello world", &decoded);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -1919,20 +1956,20 @@ void test_sf_parser_dispstring(void) {
     sf_parser_bytes_init(&sfp,
                          "%\"This is intended for display to %c3%bcsers.\"");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_DISPSTRING == val.type);
-    CU_ASSERT(
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_DISPSTRING, ==, val.type);
+    assert_true(
         str_sf_vec_eq("This is intended for display to %c3%bcsers.", &val.vec));
 
     decoded.base = buf;
     sf_pctdecode(&decoded, &val.vec);
 
-    CU_ASSERT(str_sf_vec_eq("This is intended for display to "
-                            "\xc3\xbc"
-                            "sers.",
-                            &decoded));
+    assert_str_sf_vec_eq("This is intended for display to "
+                         "\xc3\xbc"
+                         "sers.",
+                         &decoded);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -1941,7 +1978,7 @@ void test_sf_parser_dispstring(void) {
     /* overlong 2 byte sequence */
     sf_parser_bytes_init(&sfp, "%\"%c0%af\"");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1951,7 +1988,7 @@ void test_sf_parser_dispstring(void) {
     sf_parser_bytes_init(&sfp,
                          "%\"This is intended for display to %C3%BCsers.\"");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -1971,25 +2008,25 @@ void test_sf_parser_dictionary(void) {
     /* basic dictionary */
     sf_parser_bytes_init(&sfp, "en=\"Applepie\", da=:w4ZibGV0w6ZydGUK:");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("en", &key));
-    CU_ASSERT(SF_TYPE_STRING == val.type);
-    CU_ASSERT(str_sf_vec_eq("Applepie", &val.vec));
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("en", &key);
+    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
+    assert_str_sf_vec_eq("Applepie", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("da", &key));
-    CU_ASSERT(SF_TYPE_BYTESEQ == val.type);
-    CU_ASSERT(str_sf_vec_eq("w4ZibGV0w6ZydGUK", &val.vec));
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("da", &key);
+    assert_enum(sf_type, SF_TYPE_BYTESEQ, ==, val.type);
+    assert_str_sf_vec_eq("w4ZibGV0w6ZydGUK", &val.vec);
 
     decoded.base = buf;
     sf_base64decode(&decoded, &val.vec);
 
-    CU_ASSERT(str_sf_vec_eq("\xc3\x86"
-                            "blet\xc3\xa6"
-                            "rte\n",
-                            &decoded));
+    assert_str_sf_vec_eq("\xc3\x86"
+                         "blet\xc3\xa6"
+                         "rte\n",
+                         &decoded);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, NULL));
 
     sf_parser_bytes_free();
   }
@@ -1998,7 +2035,7 @@ void test_sf_parser_dictionary(void) {
     /* empty dictionary */
     sf_parser_bytes_init(&sfp, "");
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -2007,12 +2044,12 @@ void test_sf_parser_dictionary(void) {
     /* single item dictionary */
     sf_parser_bytes_init(&sfp, "a=1");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, NULL));
 
     sf_parser_bytes_free();
   }
@@ -2021,21 +2058,21 @@ void test_sf_parser_dictionary(void) {
     /* list item dictionary */
     sf_parser_bytes_init(&sfp, "a=(1 2)");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(2 == val.integer);
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(2, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -2044,17 +2081,17 @@ void test_sf_parser_dictionary(void) {
     /* single list item dictionary */
     sf_parser_bytes_init(&sfp, "a=(1)");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -2063,13 +2100,13 @@ void test_sf_parser_dictionary(void) {
     /* empty list item dictionary */
     sf_parser_bytes_init(&sfp, "a=()");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -2078,17 +2115,17 @@ void test_sf_parser_dictionary(void) {
     /* no whitespace dictionary */
     sf_parser_bytes_init(&sfp, "a=1,b=2");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(2 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("b", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(2, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -2097,17 +2134,17 @@ void test_sf_parser_dictionary(void) {
     /* extra whitespace dictionary */
     sf_parser_bytes_init(&sfp, "a=1 ,  b=2");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(2 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("b", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(2, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -2116,17 +2153,17 @@ void test_sf_parser_dictionary(void) {
     /* tab separated dictionary */
     sf_parser_bytes_init(&sfp, "a=1\t,\tb=2");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(2 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("b", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(2, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -2135,17 +2172,17 @@ void test_sf_parser_dictionary(void) {
     /* leading whitespace dictionary */
     sf_parser_bytes_init(&sfp, "     a=1 ,  b=2");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(2 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("b", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(2, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -2154,12 +2191,12 @@ void test_sf_parser_dictionary(void) {
     /* whitespace before = dictionary */
     sf_parser_bytes_init(&sfp, "a =1, b=2");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-    CU_ASSERT(1 == val.boolean);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_true(val.boolean);
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -2168,12 +2205,12 @@ void test_sf_parser_dictionary(void) {
     /* whitespace after = dictionary */
     sf_parser_bytes_init(&sfp, "a=1, b= 2");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -2185,22 +2222,22 @@ void test_sf_parser_dictionary(void) {
     /* missing value dictionary */
     sf_parser_bytes_init(&sfp, "a=1, b, c=3");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-    CU_ASSERT(1 == val.boolean);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("b", &key);
+    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_true(val.boolean);
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("c", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(3 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("c", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(3, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -2209,22 +2246,22 @@ void test_sf_parser_dictionary(void) {
     /* all missing value dictionary */
     sf_parser_bytes_init(&sfp, "a, b, c");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-    CU_ASSERT(1 == val.boolean);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_true(val.boolean);
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-    CU_ASSERT(1 == val.boolean);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("b", &key);
+    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_true(val.boolean);
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("c", &key));
-    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-    CU_ASSERT(1 == val.boolean);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("c", &key);
+    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_true(val.boolean);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -2233,17 +2270,17 @@ void test_sf_parser_dictionary(void) {
     /* start missing value dictionary */
     sf_parser_bytes_init(&sfp, "a, b=2");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-    CU_ASSERT(1 == val.boolean);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_true(val.boolean);
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(2 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("b", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(2, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -2252,17 +2289,17 @@ void test_sf_parser_dictionary(void) {
     /* end missing value dictionary */
     sf_parser_bytes_init(&sfp, "a=1, b");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-    CU_ASSERT(1 == val.boolean);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("b", &key);
+    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_true(val.boolean);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -2271,29 +2308,29 @@ void test_sf_parser_dictionary(void) {
     /* missing value with params dictionary */
     sf_parser_bytes_init(&sfp, "a=1, b;foo=9, c=3");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-    CU_ASSERT(1 == val.boolean);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("b", &key);
+    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_true(val.boolean);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("foo", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(9 == val.integer);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("foo", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(9, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("c", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(3 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("c", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(3, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -2302,29 +2339,29 @@ void test_sf_parser_dictionary(void) {
     /* explicit true value with params dictionary */
     sf_parser_bytes_init(&sfp, "a=1, b=?1;foo=9, c=3");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-    CU_ASSERT(1 == val.boolean);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("b", &key);
+    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_true(val.boolean);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("foo", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(9 == val.integer);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("foo", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(9, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("c", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(3 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("c", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(3, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -2333,13 +2370,13 @@ void test_sf_parser_dictionary(void) {
     /* trailing comma dictionary */
     sf_parser_bytes_init(&sfp, "a=1, b=2,");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("b", &key));
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("b", &key);
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -2348,10 +2385,10 @@ void test_sf_parser_dictionary(void) {
     /* empty item dictionary */
     sf_parser_bytes_init(&sfp, "a=1,,b=2,");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -2361,22 +2398,22 @@ void test_sf_parser_dictionary(void) {
     /* sf_parser does no effort to find duplicates. */
     sf_parser_bytes_init(&sfp, "a=1,b=2,a=3");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(2 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("b", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(2, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(3 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(3, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -2385,12 +2422,12 @@ void test_sf_parser_dictionary(void) {
     /* numeric key dictionary */
     sf_parser_bytes_init(&sfp, "a=1,1b=2,a=1");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -2399,12 +2436,12 @@ void test_sf_parser_dictionary(void) {
     /* uppercase key dictionary */
     sf_parser_bytes_init(&sfp, "a=1,B=2,a=1");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -2413,17 +2450,17 @@ void test_sf_parser_dictionary(void) {
     /* bad key dictionary */
     sf_parser_bytes_init(&sfp, "a=1,b!=2,a=1");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-    CU_ASSERT(1 == val.boolean);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("b", &key);
+    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_true(val.boolean);
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -2434,7 +2471,7 @@ void test_sf_parser_dictionary(void) {
     /* Empty value */
     sf_parser_bytes_init(&sfp, "a=");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -2450,15 +2487,15 @@ void test_sf_parser_list(void) {
     /* basic list */
     sf_parser_bytes_init(&sfp, "1, 42");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(42 == val.integer);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(42, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -2467,7 +2504,7 @@ void test_sf_parser_list(void) {
     /* empty list" */
     sf_parser_bytes_init(&sfp, "");
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -2476,15 +2513,15 @@ void test_sf_parser_list(void) {
     /* leading SP list */
     sf_parser_bytes_init(&sfp, "  42, 43");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(42 == val.integer);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(42, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(43 == val.integer);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(43, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -2493,11 +2530,11 @@ void test_sf_parser_list(void) {
     /* single item list */
     sf_parser_bytes_init(&sfp, "42");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(42 == val.integer);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(42, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -2506,15 +2543,15 @@ void test_sf_parser_list(void) {
     /* no whitespace list */
     sf_parser_bytes_init(&sfp, "1,42");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(42 == val.integer);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(42, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -2523,15 +2560,15 @@ void test_sf_parser_list(void) {
     /* extra whitespace list */
     sf_parser_bytes_init(&sfp, "1 , 42");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(42 == val.integer);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(42, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -2540,15 +2577,15 @@ void test_sf_parser_list(void) {
     /* tab separated list */
     sf_parser_bytes_init(&sfp, "1\t,\t42");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(42 == val.integer);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(42, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -2560,15 +2597,15 @@ void test_sf_parser_list(void) {
     /* trailing comma list */
     sf_parser_bytes_init(&sfp, "1, 42,");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(42 == val.integer);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(42, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -2577,11 +2614,11 @@ void test_sf_parser_list(void) {
     /* empty item list */
     sf_parser_bytes_init(&sfp, "1,,42");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -2600,33 +2637,33 @@ void test_sf_parser_list_list(void) {
     /* basic list of lists */
     sf_parser_bytes_init(&sfp, "(1 2), (42 43)");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(2 == val.integer);
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(2, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(42 == val.integer);
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(42, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(43 == val.integer);
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(43, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -2635,16 +2672,16 @@ void test_sf_parser_list_list(void) {
     /* single item list of lists */
     sf_parser_bytes_init(&sfp, "(42)");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(42 == val.integer);
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(42, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -2653,12 +2690,12 @@ void test_sf_parser_list_list(void) {
     /* empty item list of lists" */
     sf_parser_bytes_init(&sfp, "()");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -2667,30 +2704,30 @@ void test_sf_parser_list_list(void) {
     /* empty middle item list of lists */
     sf_parser_bytes_init(&sfp, "(1),(),(42)");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(42 == val.integer);
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(42, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -2699,20 +2736,20 @@ void test_sf_parser_list_list(void) {
     /* extra whitespace list of lists */
     sf_parser_bytes_init(&sfp, "(  1  42  )");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(42 == val.integer);
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(42, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -2721,14 +2758,14 @@ void test_sf_parser_list_list(void) {
     /* wrong whitespace list of lists */
     sf_parser_bytes_init(&sfp, "(1\t 42)");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_inner_list(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_inner_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -2737,18 +2774,18 @@ void test_sf_parser_list_list(void) {
     /* no trailing parenthesis list of lists */
     sf_parser_bytes_init(&sfp, "(1 42");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(42 == val.integer);
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(42, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_inner_list(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_inner_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -2757,18 +2794,18 @@ void test_sf_parser_list_list(void) {
     /* no trailing parenthesis middle list of lists */
     sf_parser_bytes_init(&sfp, "(1 2, (42 43)");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(2 == val.integer);
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(2, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_inner_list(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_inner_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -2777,14 +2814,14 @@ void test_sf_parser_list_list(void) {
     /* no spaces in inner-list */
     sf_parser_bytes_init(&sfp, "(abc\"def\"?0123*dXZ3*xyz)");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("abc", &val.vec));
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("abc", &val.vec);
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_inner_list(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_inner_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -2793,10 +2830,10 @@ void test_sf_parser_list_list(void) {
     /* no closing parenthesis */
     sf_parser_bytes_init(&sfp, "(");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_inner_list(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_inner_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -2807,7 +2844,7 @@ void test_sf_parser_list_list(void) {
     /* Just ')' */
     sf_parser_bytes_init(&sfp, ")");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -2826,48 +2863,48 @@ void test_sf_parser_param_dict(void) {
     sf_parser_bytes_init(&sfp,
                          "abc=123;a=1;b=2, def=456, ghi=789;q=9;r=\"+w\"");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("abc", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(123 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("abc", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(123, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(2 == val.integer);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("b", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(2, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("def", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(456 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("def", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(456, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("ghi", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(789 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("ghi", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(789, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("q", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(9 == val.integer);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("q", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(9, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("r", &key));
-    CU_ASSERT(SF_TYPE_STRING == val.type);
-    CU_ASSERT(str_sf_vec_eq("+w", &val.vec));
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("r", &key);
+    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
+    assert_str_sf_vec_eq("+w", &val.vec);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -2876,20 +2913,20 @@ void test_sf_parser_param_dict(void) {
     /* single item parameterised dict */
     sf_parser_bytes_init(&sfp, "a=b; q=1.0");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("b", &val.vec));
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("b", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("q", &key));
-    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
-    CU_ASSERT(10 == val.decimal.numer);
-    CU_ASSERT(10 == val.decimal.denom);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("q", &key);
+    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int64(10, ==, val.decimal.numer);
+    assert_int64(10, ==, val.decimal.denom);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -2898,29 +2935,29 @@ void test_sf_parser_param_dict(void) {
     /* list item parameterised dictionary */
     sf_parser_bytes_init(&sfp, "a=(1 2); q=1.0");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(2 == val.integer);
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(2, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("q", &key));
-    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
-    CU_ASSERT(10 == val.decimal.numer);
-    CU_ASSERT(10 == val.decimal.denom);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("q", &key);
+    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int64(10, ==, val.decimal.numer);
+    assert_int64(10, ==, val.decimal.denom);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -2929,24 +2966,24 @@ void test_sf_parser_param_dict(void) {
     /* missing parameter value parameterised dict */
     sf_parser_bytes_init(&sfp, "a=3;c;d=5");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(3 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(3, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("c", &key));
-    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-    CU_ASSERT(1 == val.boolean);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("c", &key);
+    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_true(val.boolean);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("d", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(5 == val.integer);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("d", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(5, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -2955,24 +2992,24 @@ void test_sf_parser_param_dict(void) {
     /* terminal missing parameter value parameterised dict */
     sf_parser_bytes_init(&sfp, "a=3;c=5;d");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(3 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(3, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("c", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(5 == val.integer);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("c", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(5, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("d", &key));
-    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-    CU_ASSERT(1 == val.boolean);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("d", &key);
+    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_true(val.boolean);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -2981,31 +3018,31 @@ void test_sf_parser_param_dict(void) {
     /* no whitespace parameterised dict */
     sf_parser_bytes_init(&sfp, "a=b;c=1,d=e;f=2");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("b", &val.vec));
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("b", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("c", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("c", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("d", &key));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("e", &val.vec));
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("d", &key);
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("e", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("f", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(2 == val.integer);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("f", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(2, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -3014,19 +3051,19 @@ void test_sf_parser_param_dict(void) {
     /* whitespace before = parameterised dict */
     sf_parser_bytes_init(&sfp, "a=b;q =0.5");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("b", &val.vec));
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("b", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("q", &key));
-    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-    CU_ASSERT(1 == val.boolean);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("q", &key);
+    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_true(val.boolean);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -3035,12 +3072,12 @@ void test_sf_parser_param_dict(void) {
     /* whitespace after = parameterised dict */
     sf_parser_bytes_init(&sfp, "a=b;q= 0.5");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("b", &val.vec));
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("b", &val.vec);
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_param(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -3049,14 +3086,14 @@ void test_sf_parser_param_dict(void) {
     /* whitespace before ; parameterised dict */
     sf_parser_bytes_init(&sfp, "a=b ;q=0.5");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("b", &val.vec));
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("b", &val.vec);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -3065,20 +3102,20 @@ void test_sf_parser_param_dict(void) {
     /* whitespace after ; parameterised dict */
     sf_parser_bytes_init(&sfp, "a=b; q=0.5");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("b", &val.vec));
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("b", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("q", &key));
-    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
-    CU_ASSERT(5 == val.decimal.numer);
-    CU_ASSERT(10 == val.decimal.denom);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("q", &key);
+    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int64(5, ==, val.decimal.numer);
+    assert_int64(10, ==, val.decimal.denom);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -3087,36 +3124,36 @@ void test_sf_parser_param_dict(void) {
     /* extra whitespace parameterised dict */
     sf_parser_bytes_init(&sfp, "a=b;  c=1  ,  d=e; f=2; g=3");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("b", &val.vec));
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("b", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("c", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("c", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("d", &key));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("e", &val.vec));
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("d", &key);
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("e", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("f", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(2 == val.integer);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("f", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(2, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("g", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(3 == val.integer);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("g", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(3, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -3128,20 +3165,20 @@ void test_sf_parser_param_dict(void) {
     /* trailing comma parameterised list */
     sf_parser_bytes_init(&sfp, "a=b; q=1.0,");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("b", &val.vec));
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("b", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("q", &key));
-    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
-    CU_ASSERT(10 == val.decimal.numer);
-    CU_ASSERT(10 == val.decimal.denom);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("q", &key);
+    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int64(10, ==, val.decimal.numer);
+    assert_int64(10, ==, val.decimal.denom);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -3150,20 +3187,20 @@ void test_sf_parser_param_dict(void) {
     /* empty item parameterised list */
     sf_parser_bytes_init(&sfp, "a=b; q=1.0,,c=d");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("b", &val.vec));
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("b", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("q", &key));
-    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
-    CU_ASSERT(10 == val.decimal.numer);
-    CU_ASSERT(10 == val.decimal.denom);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("q", &key);
+    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int64(10, ==, val.decimal.numer);
+    assert_int64(10, ==, val.decimal.denom);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_dict(&sfp, &key, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_dict(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -3174,12 +3211,12 @@ void test_sf_parser_param_dict(void) {
     /* empty parameter value */
     sf_parser_bytes_init(&sfp, "a=b;c=");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("b", &val.vec));
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("b", &val.vec);
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_param(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -3197,44 +3234,44 @@ void test_sf_parser_param_list(void) {
     /* basic parameterised list */
     sf_parser_bytes_init(&sfp, "abc_123;a=1;b=2; cdef_456, ghi;q=9;r=\"+w\"");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("abc_123", &val.vec));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("abc_123", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(2 == val.integer);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("b", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(2, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("cdef_456", &key));
-    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-    CU_ASSERT(1 == val.boolean);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("cdef_456", &key);
+    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_true(val.boolean);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("ghi", &val.vec));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("ghi", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("q", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(9 == val.integer);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("q", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(9, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("r", &key));
-    CU_ASSERT(SF_TYPE_STRING == val.type);
-    CU_ASSERT(str_sf_vec_eq("+w", &val.vec));
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("r", &key);
+    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
+    assert_str_sf_vec_eq("+w", &val.vec);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -3243,19 +3280,19 @@ void test_sf_parser_param_list(void) {
     /* single item parameterised list */
     sf_parser_bytes_init(&sfp, "text/html;q=1.0");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("text/html", &val.vec));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("text/html", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("q", &key));
-    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
-    CU_ASSERT(10 == val.decimal.numer);
-    CU_ASSERT(10 == val.decimal.denom);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("q", &key);
+    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int64(10, ==, val.decimal.numer);
+    assert_int64(10, ==, val.decimal.denom);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -3264,24 +3301,24 @@ void test_sf_parser_param_list(void) {
     /* missing parameter value parameterised list */
     sf_parser_bytes_init(&sfp, "text/html;a;q=1.0");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("text/html", &val.vec));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("text/html", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-    CU_ASSERT(1 == val.boolean);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_true(val.boolean);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("q", &key));
-    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
-    CU_ASSERT(10 == val.decimal.numer);
-    CU_ASSERT(10 == val.decimal.denom);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("q", &key);
+    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int64(10, ==, val.decimal.numer);
+    assert_int64(10, ==, val.decimal.denom);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -3290,24 +3327,24 @@ void test_sf_parser_param_list(void) {
     /* missing terminal parameter value parameterised list */
     sf_parser_bytes_init(&sfp, "text/html;q=1.0;a");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("text/html", &val.vec));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("text/html", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("q", &key));
-    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
-    CU_ASSERT(10 == val.decimal.numer);
-    CU_ASSERT(10 == val.decimal.denom);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("q", &key);
+    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int64(10, ==, val.decimal.numer);
+    assert_int64(10, ==, val.decimal.denom);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-    CU_ASSERT(1 == val.boolean);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_true(val.boolean);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -3316,25 +3353,25 @@ void test_sf_parser_param_list(void) {
     /* no whitespace parameterised list */
     sf_parser_bytes_init(&sfp, "text/html,text/plain;q=0.5");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("text/html", &val.vec));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("text/html", &val.vec);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("text/plain", &val.vec));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("text/plain", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("q", &key));
-    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
-    CU_ASSERT(5 == val.decimal.numer);
-    CU_ASSERT(10 == val.decimal.denom);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("q", &key);
+    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int64(5, ==, val.decimal.numer);
+    assert_int64(10, ==, val.decimal.denom);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -3343,24 +3380,24 @@ void test_sf_parser_param_list(void) {
     /* whitespace before = parameterised list */
     sf_parser_bytes_init(&sfp, "text/html, text/plain;q =0.5");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("text/html", &val.vec));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("text/html", &val.vec);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("text/plain", &val.vec));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("text/plain", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("q", &key));
-    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-    CU_ASSERT(1 == val.boolean);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("q", &key);
+    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_true(val.boolean);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -3369,17 +3406,17 @@ void test_sf_parser_param_list(void) {
     /* whitespace after = parameterised list */
     sf_parser_bytes_init(&sfp, "text/html, text/plain;q= 0.5");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("text/html", &val.vec));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("text/html", &val.vec);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("text/plain", &val.vec));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("text/plain", &val.vec);
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_param(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -3388,19 +3425,19 @@ void test_sf_parser_param_list(void) {
     /* whitespace before ; parameterised list */
     sf_parser_bytes_init(&sfp, "text/html, text/plain ;q=0.5");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("text/html", &val.vec));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("text/html", &val.vec);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("text/plain", &val.vec));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("text/plain", &val.vec);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -3409,25 +3446,25 @@ void test_sf_parser_param_list(void) {
     /* whitespace after ; parameterised list */
     sf_parser_bytes_init(&sfp, "text/html, text/plain; q=0.5");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("text/html", &val.vec));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("text/html", &val.vec);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("text/plain", &val.vec));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("text/plain", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("q", &key));
-    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
-    CU_ASSERT(5 == val.decimal.numer);
-    CU_ASSERT(10 == val.decimal.denom);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("q", &key);
+    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int64(5, ==, val.decimal.numer);
+    assert_int64(10, ==, val.decimal.denom);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -3437,30 +3474,30 @@ void test_sf_parser_param_list(void) {
     sf_parser_bytes_init(&sfp,
                          "text/html  ,  text/plain;  q=0.5;  charset=utf-8");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("text/html", &val.vec));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("text/html", &val.vec);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("text/plain", &val.vec));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("text/plain", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("q", &key));
-    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
-    CU_ASSERT(5 == val.decimal.numer);
-    CU_ASSERT(10 == val.decimal.denom);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("q", &key);
+    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int64(5, ==, val.decimal.numer);
+    assert_int64(10, ==, val.decimal.denom);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("charset", &key));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("utf-8", &val.vec));
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("charset", &key);
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("utf-8", &val.vec);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -3472,25 +3509,25 @@ void test_sf_parser_param_list(void) {
     /* trailing comma parameterised list */
     sf_parser_bytes_init(&sfp, "text/html,text/plain;q=0.5,");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("text/html", &val.vec));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("text/html", &val.vec);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("text/plain", &val.vec));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("text/plain", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("q", &key));
-    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
-    CU_ASSERT(5 == val.decimal.numer);
-    CU_ASSERT(10 == val.decimal.denom);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("q", &key);
+    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int64(5, ==, val.decimal.numer);
+    assert_int64(10, ==, val.decimal.denom);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -3499,13 +3536,13 @@ void test_sf_parser_param_list(void) {
     /* empty item parameterised list */
     sf_parser_bytes_init(&sfp, "text/html,,text/plain;q=0.5,");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("text/html", &val.vec));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("text/html", &val.vec);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -3516,11 +3553,11 @@ void test_sf_parser_param_list(void) {
     /* empty parameter value */
     sf_parser_bytes_init(&sfp, "a;b=");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("a", &val.vec));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("a", &val.vec);
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_param(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -3538,34 +3575,34 @@ void test_sf_parser_param_list_list(void) {
     /* parameterised inner list */
     sf_parser_bytes_init(&sfp, "(abc_123);a=1;b=2, cdef_456");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("abc_123", &val.vec));
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("abc_123", &val.vec);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(2 == val.integer);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("b", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(2, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("cdef_456", &val.vec));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("cdef_456", &val.vec);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -3574,33 +3611,33 @@ void test_sf_parser_param_list_list(void) {
     /* parameterised inner list item */
     sf_parser_bytes_init(&sfp, "(abc_123;a=1;b=2;cdef_456)");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("abc_123", &val.vec));
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("abc_123", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(2 == val.integer);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("b", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(2, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("cdef_456", &key));
-    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-    CU_ASSERT(1 == val.boolean);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("cdef_456", &key);
+    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_true(val.boolean);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -3609,35 +3646,35 @@ void test_sf_parser_param_list_list(void) {
     /* parameterised inner list with parameterised item */
     sf_parser_bytes_init(&sfp, "(abc_123;a=1;b=2);cdef_456");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("abc_123", &val.vec));
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("abc_123", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(2 == val.integer);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("b", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(2, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("cdef_456", &key));
-    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-    CU_ASSERT(1 == val.boolean);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("cdef_456", &key);
+    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_true(val.boolean);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -3648,14 +3685,14 @@ void test_sf_parser_param_list_list(void) {
     /* empty parameter value */
     sf_parser_bytes_init(&sfp, "(a;b= 1)");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("a", &val.vec));
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("a", &val.vec);
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_param(&sfp, &key, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_param(&sfp, &key, &val));
 
     sf_parser_bytes_free();
   }
@@ -3682,9 +3719,9 @@ void test_sf_parser_number_generated(void) {
 
       sf_parser_bytes_len_init(&sfp, buf, len);
 
-      CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-      CU_ASSERT(SF_TYPE_INTEGER == val.type);
-      CU_ASSERT(integer == val.integer);
+      assert_int(0, ==, sf_parser_item(&sfp, &val));
+      assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+      assert_int64(integer, ==, val.integer);
 
       sf_parser_bytes_free();
     }
@@ -3710,11 +3747,11 @@ void test_sf_parser_number_generated(void) {
 
         sf_parser_bytes_len_init(&sfp, buf, len + 1 + flen);
 
-        CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-        CU_ASSERT(SF_TYPE_DECIMAL == val.type);
-        CU_ASSERT(integer == val.decimal.numer);
-        CU_ASSERT(denom == val.decimal.denom);
-        CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+        assert_int(0, ==, sf_parser_item(&sfp, &val));
+        assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+        assert_int64(integer, ==, val.decimal.numer);
+        assert_int64(denom, ==, val.decimal.denom);
+        assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
         sf_parser_bytes_free();
       }
@@ -3725,7 +3762,7 @@ void test_sf_parser_number_generated(void) {
     /* too many digit 0 decimal */
     sf_parser_bytes_init(&sfp, "000000000000000.0");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -3734,7 +3771,7 @@ void test_sf_parser_number_generated(void) {
     /* too many fractional digits 0 decimal */
     sf_parser_bytes_init(&sfp, "000000000000.0000");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -3743,7 +3780,7 @@ void test_sf_parser_number_generated(void) {
     /* too many digit 9 decimal */
     sf_parser_bytes_init(&sfp, "999999999999999.9");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -3752,7 +3789,7 @@ void test_sf_parser_number_generated(void) {
     /* too many fractional digits 9 decimal */
     sf_parser_bytes_init(&sfp, "999999999999.9999");
 
-    CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, &val));
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
     sf_parser_bytes_free();
   }
@@ -3779,17 +3816,17 @@ void test_sf_parser_string_generated(void) {
 
     if (i == 0x20 || i == 0x21 || (0x23 <= i && i <= 0x5b) ||
         (0x5d <= i && i <= 0x7e) || i == 0x22) {
-      CU_ASSERT(0 == rv);
+      assert_int(0, ==, rv);
 
       rv = sf_parser_item(&sfp, NULL);
 
       if (i == 0x22) {
-        CU_ASSERT(SF_ERR_PARSE_ERROR == rv);
+        assert_int(SF_ERR_PARSE_ERROR, ==, rv);
       } else {
-        CU_ASSERT(SF_ERR_EOF == rv);
+        assert_int(SF_ERR_EOF, ==, rv);
       }
     } else {
-      CU_ASSERT(SF_ERR_PARSE_ERROR == rv);
+      assert_int(SF_ERR_PARSE_ERROR, ==, rv);
     }
 
     sf_parser_bytes_free();
@@ -3807,10 +3844,10 @@ void test_sf_parser_string_generated(void) {
     rv = sf_parser_item(&sfp, &val);
 
     if (i == '\\' || i == '"') {
-      CU_ASSERT(0 == rv);
-      CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+      assert_int(0, ==, rv);
+      assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
     } else {
-      CU_ASSERT(SF_ERR_PARSE_ERROR == rv);
+      assert_int(SF_ERR_PARSE_ERROR, ==, rv);
     }
 
     sf_parser_bytes_free();
@@ -3833,26 +3870,26 @@ void test_sf_parser_token_generated(void) {
 
     sf_parser_bytes_len_init(&sfp, buf, 3);
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
 
     if (is_token_char((uint8_t)i)) {
-      CU_ASSERT(SF_TYPE_TOKEN == val.type);
-      CU_ASSERT(3 == val.vec.len);
-      CU_ASSERT(0 == memcmp(buf, val.vec.base, 3));
-      CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+      assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+      assert_size(3, ==, val.vec.len);
+      assert_memory_equal(3, buf, val.vec.base);
+      assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
     } else {
-      CU_ASSERT(SF_TYPE_TOKEN == val.type);
-      CU_ASSERT(str_sf_vec_eq("a", &val.vec));
+      assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+      assert_str_sf_vec_eq("a", &val.vec);
 
       if (i == ';') {
-        CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-        CU_ASSERT(str_sf_vec_eq("a", &key));
-        CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-        CU_ASSERT(1 == val.boolean);
-        CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, &key, &val));
-        CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, &val));
+        assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+        assert_str_sf_vec_eq("a", &key);
+        assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+        assert_true(val.boolean);
+        assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+        assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, &val));
       } else {
-        CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, NULL));
+        assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, NULL));
       }
     }
 
@@ -3869,30 +3906,30 @@ void test_sf_parser_token_generated(void) {
     rv = sf_parser_item(&sfp, &val);
 
     if (is_first_token_char((uint8_t)i)) {
-      CU_ASSERT(0 == rv);
-      CU_ASSERT(SF_TYPE_TOKEN == val.type);
-      CU_ASSERT(2 == val.vec.len);
-      CU_ASSERT(0 == memcmp(buf, val.vec.base, 2));
-      CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+      assert_int(0, ==, rv);
+      assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+      assert_size(2, ==, val.vec.len);
+      assert_memory_equal(2, buf, val.vec.base);
+      assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
     } else if (i == ' ') {
-      CU_ASSERT(0 == rv);
-      CU_ASSERT(SF_TYPE_TOKEN == val.type);
-      CU_ASSERT(str_sf_vec_eq("a", &val.vec));
-      CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+      assert_int(0, ==, rv);
+      assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+      assert_str_sf_vec_eq("a", &val.vec);
+      assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
     } else if ('0' <= i && i <= '9') {
-      CU_ASSERT(0 == rv);
-      CU_ASSERT(SF_TYPE_INTEGER == val.type);
-      CU_ASSERT((int64_t)(i - '0') == val.integer);
-      CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_item(&sfp, NULL));
+      assert_int(0, ==, rv);
+      assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+      assert_int64((int64_t)(i - '0'), ==, val.integer);
+      assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, NULL));
     } else if (i == '(') {
-      CU_ASSERT(0 == rv);
-      CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
-      CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-      CU_ASSERT(SF_TYPE_TOKEN == val.type);
-      CU_ASSERT(str_sf_vec_eq("a", &val.vec));
-      CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_inner_list(&sfp, NULL));
+      assert_int(0, ==, rv);
+      assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+      assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+      assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+      assert_str_sf_vec_eq("a", &val.vec);
+      assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_inner_list(&sfp, NULL));
     } else {
-      CU_ASSERT(SF_ERR_PARSE_ERROR == rv);
+      assert_int(SF_ERR_PARSE_ERROR, ==, rv);
     }
 
     sf_parser_bytes_free();
@@ -3919,14 +3956,14 @@ void test_sf_parser_key_generated(void) {
     rv = sf_parser_dict(&sfp, &key, &val);
 
     if (('a' <= i && i <= 'z') || i == '*') {
-      CU_ASSERT(0 == rv);
-      CU_ASSERT(1 == key.len);
-      CU_ASSERT((uint8_t)i == key.base[0]);
-      CU_ASSERT(SF_TYPE_INTEGER == val.type);
-      CU_ASSERT(1 == val.integer);
-      CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, NULL, NULL));
+      assert_int(0, ==, rv);
+      assert_size(1, ==, key.len);
+      assert_uint8((uint8_t)i, ==, key.base[0]);
+      assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+      assert_int64(1, ==, val.integer);
+      assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, NULL, NULL));
     } else {
-      CU_ASSERT(SF_ERR_PARSE_ERROR == rv);
+      assert_int(SF_ERR_PARSE_ERROR, ==, rv);
     }
 
     sf_parser_bytes_free();
@@ -3945,39 +3982,39 @@ void test_sf_parser_key_generated(void) {
     rv = sf_parser_dict(&sfp, &key, &val);
 
     if (is_key_char((uint8_t)i)) {
-      CU_ASSERT(0 == rv);
-      CU_ASSERT(3 == key.len);
-      CU_ASSERT(0 == memcmp(buf, key.base, 3));
-      CU_ASSERT(SF_TYPE_INTEGER == val.type);
-      CU_ASSERT(1 == val.integer);
-      CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, NULL, NULL));
+      assert_int(0, ==, rv);
+      assert_size(3, ==, key.len);
+      assert_memory_equal(3, buf, key.base);
+      assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+      assert_int64(1, ==, val.integer);
+      assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, NULL, NULL));
     } else if (i == '=') {
-      CU_ASSERT(0 == rv);
-      CU_ASSERT(str_sf_vec_eq("a", &key));
-      CU_ASSERT(SF_TYPE_TOKEN == val.type);
-      CU_ASSERT(str_sf_vec_eq("a", &val.vec));
-      CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_dict(&sfp, NULL, NULL));
+      assert_int(0, ==, rv);
+      assert_str_sf_vec_eq("a", &key);
+      assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+      assert_str_sf_vec_eq("a", &val.vec);
+      assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_dict(&sfp, NULL, NULL));
     } else {
-      CU_ASSERT(0 == rv);
-      CU_ASSERT(str_sf_vec_eq("a", &key));
-      CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-      CU_ASSERT(1 == val.boolean);
+      assert_int(0, ==, rv);
+      assert_str_sf_vec_eq("a", &key);
+      assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+      assert_true(val.boolean);
 
       if (i == ',') {
-        CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-        CU_ASSERT(str_sf_vec_eq("a", &key));
-        CU_ASSERT(SF_TYPE_INTEGER == val.type);
-        CU_ASSERT(1 == val.integer);
-        CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, NULL, NULL));
+        assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+        assert_str_sf_vec_eq("a", &key);
+        assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+        assert_int64(1, ==, val.integer);
+        assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, NULL, NULL));
       } else if (i == ';') {
-        CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-        CU_ASSERT(str_sf_vec_eq("a", &key));
-        CU_ASSERT(SF_TYPE_INTEGER == val.type);
-        CU_ASSERT(1 == val.integer);
-        CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
-        CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, NULL, NULL));
+        assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+        assert_str_sf_vec_eq("a", &key);
+        assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+        assert_int64(1, ==, val.integer);
+        assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
+        assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, NULL, NULL));
       } else {
-        CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_dict(&sfp, NULL, NULL));
+        assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_dict(&sfp, NULL, NULL));
       }
     }
 
@@ -3996,20 +4033,20 @@ void test_sf_parser_key_generated(void) {
     rv = sf_parser_dict(&sfp, &key, &val);
 
     if (is_first_key_char((uint8_t)i)) {
-      CU_ASSERT(0 == rv);
-      CU_ASSERT(2 == key.len);
-      CU_ASSERT(0 == memcmp(buf, key.base, 2));
-      CU_ASSERT(SF_TYPE_INTEGER == val.type);
-      CU_ASSERT(1 == val.integer);
-      CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, NULL, NULL));
+      assert_int(0, ==, rv);
+      assert_size(2, ==, key.len);
+      assert_memory_equal(2, buf, key.base);
+      assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+      assert_int64(1, ==, val.integer);
+      assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, NULL, NULL));
     } else if (i == ' ') {
-      CU_ASSERT(0 == rv);
-      CU_ASSERT(str_sf_vec_eq("a", &key));
-      CU_ASSERT(SF_TYPE_INTEGER == val.type);
-      CU_ASSERT(1 == val.integer);
-      CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, NULL, NULL));
+      assert_int(0, ==, rv);
+      assert_str_sf_vec_eq("a", &key);
+      assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+      assert_int64(1, ==, val.integer);
+      assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, NULL, NULL));
     } else {
-      CU_ASSERT(SF_ERR_PARSE_ERROR == rv);
+      assert_int(SF_ERR_PARSE_ERROR, ==, rv);
     }
 
     sf_parser_bytes_free();
@@ -4021,49 +4058,49 @@ void test_sf_parser_key_generated(void) {
 
     sf_parser_bytes_len_init(&sfp, buf, (size_t)len);
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("foo", &val.vec));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("foo", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
 
     if (is_key_char((uint8_t)i)) {
-      CU_ASSERT(3 == key.len);
-      CU_ASSERT(0 == memcmp(buf + 5, key.base, 3));
-      CU_ASSERT(SF_TYPE_INTEGER == val.type);
-      CU_ASSERT(1 == val.integer);
-      CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
-      CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, NULL));
+      assert_size(3, ==, key.len);
+      assert_memory_equal(3, buf + 5, key.base);
+      assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+      assert_int64(1, ==, val.integer);
+      assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
+      assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, NULL));
     } else if (i == '=') {
-      CU_ASSERT(str_sf_vec_eq("a", &key));
-      CU_ASSERT(SF_TYPE_TOKEN == val.type);
-      CU_ASSERT(str_sf_vec_eq("a", &val.vec));
-      CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
-      CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_list(&sfp, NULL));
+      assert_str_sf_vec_eq("a", &key);
+      assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+      assert_str_sf_vec_eq("a", &val.vec);
+      assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
+      assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_list(&sfp, NULL));
     } else {
-      CU_ASSERT(str_sf_vec_eq("a", &key));
-      CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-      CU_ASSERT(1 == val.boolean);
+      assert_str_sf_vec_eq("a", &key);
+      assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+      assert_true(val.boolean);
 
       if (i == ';') {
-        CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-        CU_ASSERT(str_sf_vec_eq("a", &key));
-        CU_ASSERT(SF_TYPE_INTEGER == val.type);
-        CU_ASSERT(1 == val.integer);
-        CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
-        CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, NULL));
+        assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+        assert_str_sf_vec_eq("a", &key);
+        assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+        assert_int64(1, ==, val.integer);
+        assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
+        assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, NULL));
       } else {
-        CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
+        assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
 
         rv = sf_parser_list(&sfp, &val);
 
         if (i == ',') {
-          CU_ASSERT(0 == rv);
-          CU_ASSERT(SF_TYPE_TOKEN == val.type);
-          CU_ASSERT(str_sf_vec_eq("a", &val.vec));
-          CU_ASSERT(SF_ERR_PARSE_ERROR == sf_parser_list(&sfp, NULL));
+          assert_int(0, ==, rv);
+          assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+          assert_str_sf_vec_eq("a", &val.vec);
+          assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_list(&sfp, NULL));
         } else {
-          CU_ASSERT(SF_ERR_PARSE_ERROR == rv);
+          assert_int(SF_ERR_PARSE_ERROR, ==, rv);
         }
       }
     }
@@ -4077,29 +4114,29 @@ void test_sf_parser_key_generated(void) {
 
     sf_parser_bytes_len_init(&sfp, buf, (size_t)len);
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("foo", &val.vec));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("foo", &val.vec);
 
     rv = sf_parser_param(&sfp, &key, &val);
 
     if (is_first_key_char((uint8_t)i)) {
-      CU_ASSERT(0 == rv);
-      CU_ASSERT(2 == key.len);
-      CU_ASSERT(0 == memcmp(buf + 5, key.base, 2));
-      CU_ASSERT(SF_TYPE_INTEGER == val.type);
-      CU_ASSERT(1 == val.integer);
-      CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
-      CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, NULL));
+      assert_int(0, ==, rv);
+      assert_size(2, ==, key.len);
+      assert_memory_equal(2, buf + 5, key.base);
+      assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+      assert_int64(1, ==, val.integer);
+      assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
+      assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, NULL));
     } else if (i == ' ') {
-      CU_ASSERT(0 == rv);
-      CU_ASSERT(str_sf_vec_eq("a", &key));
-      CU_ASSERT(SF_TYPE_INTEGER == val.type);
-      CU_ASSERT(1 == val.integer);
-      CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
-      CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, NULL));
+      assert_int(0, ==, rv);
+      assert_str_sf_vec_eq("a", &key);
+      assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+      assert_int64(1, ==, val.integer);
+      assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
+      assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, NULL));
     } else {
-      CU_ASSERT(SF_ERR_PARSE_ERROR == rv);
+      assert_int(SF_ERR_PARSE_ERROR, ==, rv);
     }
 
     sf_parser_bytes_free();
@@ -4131,17 +4168,17 @@ void test_sf_parser_large_generated(void) {
     sf_parser_bytes_len_init(&sfp, buf, (size_t)len);
 
     for (i = 0; i < 1024; ++i) {
-      CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
+      assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
 
       len = snprintf((char *)sbuf, sizeof(sbuf), "a%d", (int)i);
 
-      CU_ASSERT((size_t)len == key.len);
-      CU_ASSERT(0 == memcmp(sbuf, key.base, (size_t)len));
-      CU_ASSERT(SF_TYPE_INTEGER == val.type);
-      CU_ASSERT(1 == val.integer);
+      assert_size((size_t)len, ==, key.len);
+      assert_memory_equal((size_t)len, sbuf, key.base);
+      assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+      assert_int64(1, ==, val.integer);
     }
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, NULL, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, NULL, NULL));
 
     sf_parser_bytes_free();
   }
@@ -4152,13 +4189,13 @@ void test_sf_parser_large_generated(void) {
         &sfp,
         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa=1");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq(
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq(
         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, NULL, NULL));
+        &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, NULL, NULL));
 
     sf_parser_bytes_free();
   }
@@ -4178,16 +4215,16 @@ void test_sf_parser_large_generated(void) {
     sf_parser_bytes_len_init(&sfp, buf, (size_t)len);
 
     for (i = 0; i < 1024; ++i) {
-      CU_ASSERT(0 == sf_parser_list(&sfp, &val));
+      assert_int(0, ==, sf_parser_list(&sfp, &val));
 
       len = snprintf((char *)sbuf, sizeof(sbuf), "a%d", (int)i);
 
-      CU_ASSERT(SF_TYPE_TOKEN == val.type);
-      CU_ASSERT((size_t)len == val.vec.len);
-      CU_ASSERT(0 == memcmp(sbuf, val.vec.base, (size_t)len));
+      assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+      assert_size((size_t)len, ==, val.vec.len);
+      assert_memory_equal((size_t)len, sbuf, val.vec.base);
     }
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -4207,21 +4244,21 @@ void test_sf_parser_large_generated(void) {
     sf_parser_bytes_len_init(&sfp, buf, (size_t)len);
 
     for (i = 0; i < 1024; ++i) {
-      CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-      CU_ASSERT(SF_TYPE_TOKEN == val.type);
-      CU_ASSERT(str_sf_vec_eq("foo", &val.vec));
+      assert_int(0, ==, sf_parser_list(&sfp, &val));
+      assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+      assert_str_sf_vec_eq("foo", &val.vec);
 
       len = snprintf((char *)sbuf, sizeof(sbuf), "a%d", (int)i);
 
-      CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-      CU_ASSERT((size_t)len == key.len);
-      CU_ASSERT(0 == memcmp(sbuf, key.base, (size_t)len));
-      CU_ASSERT(SF_TYPE_INTEGER == val.type);
-      CU_ASSERT(1 == val.integer);
-      CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
+      assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+      assert_size((size_t)len, ==, key.len);
+      assert_memory_equal((size_t)len, sbuf, key.base);
+      assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+      assert_int64(1, ==, val.integer);
+      assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
     }
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -4244,23 +4281,23 @@ void test_sf_parser_large_generated(void) {
 
     sf_parser_bytes_len_init(&sfp, buf, (size_t)len);
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("foo", &val.vec));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("foo", &val.vec);
 
     for (i = 0; i < 1024; ++i) {
       len = snprintf((char *)sbuf, sizeof(sbuf), "a%d", (int)i);
 
-      CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-      CU_ASSERT((size_t)len == key.len);
-      CU_ASSERT(0 == memcmp(sbuf, key.base, (size_t)len));
-      CU_ASSERT(SF_TYPE_INTEGER == val.type);
-      CU_ASSERT(1 == val.integer);
+      assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+      assert_size((size_t)len, ==, key.len);
+      assert_memory_equal((size_t)len, sbuf, key.base);
+      assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+      assert_int64(1, ==, val.integer);
     }
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -4272,20 +4309,20 @@ void test_sf_parser_large_generated(void) {
         "foo;aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa="
         "1");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("foo", &val.vec));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("foo", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq(
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq(
         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+        &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -4310,9 +4347,9 @@ void test_sf_parser_large_generated(void) {
         "======================================================================"
         "==============================================\"");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_STRING == val.type);
-    CU_ASSERT(str_sf_vec_eq(
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
+    assert_str_sf_vec_eq(
         "======================================================================"
         "======================================================================"
         "======================================================================"
@@ -4328,8 +4365,8 @@ void test_sf_parser_large_generated(void) {
         "======================================================================"
         "======================================================================"
         "============================================",
-        &val.vec));
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+        &val.vec);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -4398,14 +4435,14 @@ void test_sf_parser_large_generated(void) {
         "\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\"
         "\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\"");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_STRING == val.type);
-    CU_ASSERT(val.flags & SF_VALUE_FLAG_ESCAPED_STRING);
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
+    assert_true(val.flags & SF_VALUE_FLAG_ESCAPED_STRING);
 
     unescaped.base = buf;
     sf_unescape(&unescaped, &val.vec);
 
-    CU_ASSERT(str_sf_vec_eq(
+    assert_str_sf_vec_eq(
         "\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\""
         "\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\""
         "\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\""
@@ -4436,8 +4473,8 @@ void test_sf_parser_large_generated(void) {
         "\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\""
         "\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\""
         "\"\"\"\"\"\"\"\"\"",
-        &unescaped));
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+        &unescaped);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -4455,9 +4492,9 @@ void test_sf_parser_large_generated(void) {
         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         "aaaaaaaaaaaaaaaaaaaaaa");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq(
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq(
         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -4466,8 +4503,8 @@ void test_sf_parser_large_generated(void) {
         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         "aaaaaaaaaaaaaaaaaaaaaa",
-        &val.vec));
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+        &val.vec);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -4486,19 +4523,19 @@ void test_sf_parser_examples(void) {
     /* Foo-Example */
     sf_parser_bytes_init(&sfp, "2; foourl=\"https://foo.example.com/\"");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(2 == val.integer);
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(2, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("foourl", &key));
-    CU_ASSERT(SF_TYPE_STRING == val.type);
-    CU_ASSERT(!(val.flags & SF_VALUE_FLAG_ESCAPED_STRING));
-    CU_ASSERT(str_sf_vec_eq("https://foo.example.com/", &val.vec));
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("foourl", &key);
+    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
+    assert_false(val.flags & SF_VALUE_FLAG_ESCAPED_STRING);
+    assert_str_sf_vec_eq("https://foo.example.com/", &val.vec);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -4508,22 +4545,22 @@ void test_sf_parser_examples(void) {
     sf_parser_bytes_init(&sfp,
                          "\"foo\", \"bar\", \"It was the best of times.\"");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_STRING == val.type);
-    CU_ASSERT(!(val.flags & SF_VALUE_FLAG_ESCAPED_STRING));
-    CU_ASSERT(str_sf_vec_eq("foo", &val.vec));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
+    assert_false(val.flags & SF_VALUE_FLAG_ESCAPED_STRING);
+    assert_str_sf_vec_eq("foo", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_STRING == val.type);
-    CU_ASSERT(!(val.flags & SF_VALUE_FLAG_ESCAPED_STRING));
-    CU_ASSERT(str_sf_vec_eq("bar", &val.vec));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
+    assert_false(val.flags & SF_VALUE_FLAG_ESCAPED_STRING);
+    assert_str_sf_vec_eq("bar", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_STRING == val.type);
-    CU_ASSERT(!(val.flags & SF_VALUE_FLAG_ESCAPED_STRING));
-    CU_ASSERT(str_sf_vec_eq("It was the best of times.", &val.vec));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
+    assert_false(val.flags & SF_VALUE_FLAG_ESCAPED_STRING);
+    assert_str_sf_vec_eq("It was the best of times.", &val.vec);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -4533,40 +4570,40 @@ void test_sf_parser_examples(void) {
     sf_parser_bytes_init(&sfp,
                          "(\"foo\" \"bar\"), (\"baz\"), (\"bat\" \"one\"), ()");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_STRING == val.type);
-    CU_ASSERT(str_sf_vec_eq("foo", &val.vec));
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
+    assert_str_sf_vec_eq("foo", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_STRING == val.type);
-    CU_ASSERT(str_sf_vec_eq("bar", &val.vec));
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
+    assert_str_sf_vec_eq("bar", &val.vec);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, NULL));
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_STRING == val.type);
-    CU_ASSERT(str_sf_vec_eq("baz", &val.vec));
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
+    assert_str_sf_vec_eq("baz", &val.vec);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, NULL));
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_STRING == val.type);
-    CU_ASSERT(str_sf_vec_eq("bat", &val.vec));
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
+    assert_str_sf_vec_eq("bat", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_STRING == val.type);
-    CU_ASSERT(str_sf_vec_eq("one", &val.vec));
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
+    assert_str_sf_vec_eq("one", &val.vec);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -4576,55 +4613,55 @@ void test_sf_parser_examples(void) {
     sf_parser_bytes_init(&sfp,
                          "(\"foo\"; a=1;b=2);lvl=5, (\"bar\" \"baz\");lvl=1");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_STRING == val.type);
-    CU_ASSERT(str_sf_vec_eq("foo", &val.vec));
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
+    assert_str_sf_vec_eq("foo", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(2 == val.integer);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("b", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(2, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, NULL));
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("lvl", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(5 == val.integer);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("lvl", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(5, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_STRING == val.type);
-    CU_ASSERT(str_sf_vec_eq("bar", &val.vec));
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
+    assert_str_sf_vec_eq("bar", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_STRING == val.type);
-    CU_ASSERT(str_sf_vec_eq("baz", &val.vec));
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
+    assert_str_sf_vec_eq("baz", &val.vec);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, &val));
+    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("lvl", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("lvl", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -4634,60 +4671,60 @@ void test_sf_parser_examples(void) {
     sf_parser_bytes_init(&sfp,
                          "abc;a=1;b=2; cde_456, (ghi;jk=4 l);q=\"9\";r=w");
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("abc", &val.vec));
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("abc", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(2 == val.integer);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("b", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(2, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("cde_456", &key));
-    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-    CU_ASSERT(1 == val.boolean);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("cde_456", &key);
+    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_true(val.boolean);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
 
-    CU_ASSERT(0 == sf_parser_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("ghi", &val.vec));
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("ghi", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("jk", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(4 == val.integer);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("jk", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(4, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("l", &val.vec));
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("l", &val.vec);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, NULL));
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("q", &key));
-    CU_ASSERT(SF_TYPE_STRING == val.type);
-    CU_ASSERT(str_sf_vec_eq("9", &val.vec));
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("q", &key);
+    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
+    assert_str_sf_vec_eq("9", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("r", &key));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("w", &val.vec));
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("r", &key);
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("w", &val.vec);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_list(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -4696,23 +4733,23 @@ void test_sf_parser_examples(void) {
     /* Example-IntHeader */
     sf_parser_bytes_init(&sfp, "1; a; b=?0");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-    CU_ASSERT(1 == val.boolean);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_true(val.boolean);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-    CU_ASSERT(0 == val.boolean);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("b", &key);
+    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_false(val.boolean);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -4721,25 +4758,25 @@ void test_sf_parser_examples(void) {
     /* Example-DictHeader */
     sf_parser_bytes_init(&sfp, "en=\"Applepie\", da=:w4ZibGV0w6ZydGU=:");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("en", &key));
-    CU_ASSERT(SF_TYPE_STRING == val.type);
-    CU_ASSERT(str_sf_vec_eq("Applepie", &val.vec));
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("en", &key);
+    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
+    assert_str_sf_vec_eq("Applepie", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("da", &key));
-    CU_ASSERT(SF_TYPE_BYTESEQ == val.type);
-    CU_ASSERT(str_sf_vec_eq("w4ZibGV0w6ZydGU=", &val.vec));
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("da", &key);
+    assert_enum(sf_type, SF_TYPE_BYTESEQ, ==, val.type);
+    assert_str_sf_vec_eq("w4ZibGV0w6ZydGU=", &val.vec);
 
     decoded.base = buf;
     sf_base64decode(&decoded, &val.vec);
 
-    CU_ASSERT(str_sf_vec_eq("\xc3\x86"
-                            "blet\xc3\xa6"
-                            "rte",
-                            &decoded));
+    assert_str_sf_vec_eq("\xc3\x86"
+                         "blet\xc3\xa6"
+                         "rte",
+                         &decoded);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, NULL, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, NULL, NULL));
 
     sf_parser_bytes_free();
   }
@@ -4748,29 +4785,29 @@ void test_sf_parser_examples(void) {
     /* Example-DictHeader (boolean values) */
     sf_parser_bytes_init(&sfp, "a=?0, b, c; foo=bar");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-    CU_ASSERT(0 == val.boolean);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_false(val.boolean);
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-    CU_ASSERT(1 == val.boolean);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("b", &key);
+    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_true(val.boolean);
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("c", &key));
-    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-    CU_ASSERT(1 == val.boolean);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("c", &key);
+    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_true(val.boolean);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("foo", &key));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("bar", &val.vec));
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("foo", &key);
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("bar", &val.vec);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, NULL, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, NULL, NULL));
 
     sf_parser_bytes_free();
   }
@@ -4779,27 +4816,27 @@ void test_sf_parser_examples(void) {
     /* Example-DictListHeader */
     sf_parser_bytes_init(&sfp, "rating=1.5, feelings=(joy sadness)");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("rating", &key));
-    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
-    CU_ASSERT(15 == val.decimal.numer);
-    CU_ASSERT(10 == val.decimal.denom);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("rating", &key);
+    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int64(15, ==, val.decimal.numer);
+    assert_int64(10, ==, val.decimal.denom);
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("feelings", &key));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("feelings", &key);
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("joy", &val.vec));
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("joy", &val.vec);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("sadness", &val.vec));
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("sadness", &val.vec);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, NULL));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, NULL, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, NULL, NULL));
 
     sf_parser_bytes_free();
   }
@@ -4808,59 +4845,59 @@ void test_sf_parser_examples(void) {
     /* Example-MixDict */
     sf_parser_bytes_init(&sfp, "a=(1 2), b=3, c=4;aa=bb, d=(5 6);valid");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("a", &key));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("a", &key);
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(2 == val.integer);
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(2, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, NULL));
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("b", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(3 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("b", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(3, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("c", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(4 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("c", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(4, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("aa", &key));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("bb", &val.vec));
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("aa", &key);
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("bb", &val.vec);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("d", &key));
-    CU_ASSERT(SF_TYPE_INNER_LIST == val.type);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("d", &key);
+    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(5 == val.integer);
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(5, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_inner_list(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(6 == val.integer);
+    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(6, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_inner_list(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, NULL));
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("valid", &key));
-    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-    CU_ASSERT(1 == val.boolean);
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("valid", &key);
+    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_true(val.boolean);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, NULL, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, NULL, NULL));
 
     sf_parser_bytes_free();
   }
@@ -4869,17 +4906,17 @@ void test_sf_parser_examples(void) {
     /* Example-Hdr (dictionary on one line) */
     sf_parser_bytes_init(&sfp, "foo=1, bar=2");
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("foo", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(1 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("foo", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(1, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_dict(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("bar", &key));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(2 == val.integer);
+    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_str_sf_vec_eq("bar", &key);
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(2, ==, val.integer);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_dict(&sfp, NULL, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, NULL, NULL));
 
     sf_parser_bytes_free();
   }
@@ -4888,10 +4925,10 @@ void test_sf_parser_examples(void) {
     /* Example-IntItemHeader */
     sf_parser_bytes_init(&sfp, "5");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(5 == val.integer);
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(5, ==, val.integer);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -4900,18 +4937,18 @@ void test_sf_parser_examples(void) {
     /* Example-IntItemHeader (params) */
     sf_parser_bytes_init(&sfp, "5; foo=bar");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(5 == val.integer);
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(5, ==, val.integer);
 
-    CU_ASSERT(0 == sf_parser_param(&sfp, &key, &val));
-    CU_ASSERT(str_sf_vec_eq("foo", &key));
-    CU_ASSERT(SF_TYPE_TOKEN == val.type);
-    CU_ASSERT(str_sf_vec_eq("bar", &val.vec));
+    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_str_sf_vec_eq("foo", &key);
+    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+    assert_str_sf_vec_eq("bar", &val.vec);
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_param(&sfp, NULL, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
 
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -4920,10 +4957,10 @@ void test_sf_parser_examples(void) {
     /* Example-IntegerHeader */
     sf_parser_bytes_init(&sfp, "42");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_INTEGER == val.type);
-    CU_ASSERT(42 == val.integer);
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int64(42, ==, val.integer);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -4932,11 +4969,11 @@ void test_sf_parser_examples(void) {
     /* Example-FloatHeader */
     sf_parser_bytes_init(&sfp, "4.5");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_DECIMAL == val.type);
-    CU_ASSERT(45 == val.decimal.numer);
-    CU_ASSERT(10 == val.decimal.denom);
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int64(45, ==, val.decimal.numer);
+    assert_int64(10, ==, val.decimal.denom);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -4945,10 +4982,10 @@ void test_sf_parser_examples(void) {
     /* Example-StringHeader */
     sf_parser_bytes_init(&sfp, "\"hello world\"");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_STRING == val.type);
-    CU_ASSERT(str_sf_vec_eq("hello world", &val.vec));
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
+    assert_str_sf_vec_eq("hello world", &val.vec);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -4958,16 +4995,16 @@ void test_sf_parser_examples(void) {
     sf_parser_bytes_init(&sfp,
                          ":cHJldGVuZCB0aGlzIGlzIGJpbmFyeSBjb250ZW50Lg==:");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_BYTESEQ == val.type);
-    CU_ASSERT(str_sf_vec_eq("cHJldGVuZCB0aGlzIGlzIGJpbmFyeSBjb250ZW50Lg==",
-                            &val.vec));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_BYTESEQ, ==, val.type);
+    assert_str_sf_vec_eq("cHJldGVuZCB0aGlzIGlzIGJpbmFyeSBjb250ZW50Lg==",
+                         &val.vec);
 
     decoded.base = buf;
     sf_base64decode(&decoded, &val.vec);
 
-    CU_ASSERT(str_sf_vec_eq("pretend this is binary content.", &decoded));
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_str_sf_vec_eq("pretend this is binary content.", &decoded);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }
@@ -4976,10 +5013,10 @@ void test_sf_parser_examples(void) {
     /* Example-BoolHdr */
     sf_parser_bytes_init(&sfp, "?1");
 
-    CU_ASSERT(0 == sf_parser_item(&sfp, &val));
-    CU_ASSERT(SF_TYPE_BOOLEAN == val.type);
-    CU_ASSERT(1 == val.boolean);
-    CU_ASSERT(SF_ERR_EOF == sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_true(val.boolean);
+    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
 
     sf_parser_bytes_free();
   }

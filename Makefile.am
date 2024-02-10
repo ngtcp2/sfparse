@@ -24,6 +24,8 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 SUBDIRS = doc
 
+EXTRA_DIST = munit/COPYING
+
 ACLOCAL_AMFLAGS = -I m4
 
 # Format source files using clang-format.  Don't format source files
@@ -35,7 +37,7 @@ clang-format:
 	$${CLANGFORMAT} -i *.{c,h} fuzz/*.cc
 
 AM_CFLAGS = $(WARNCFLAGS)
-AM_CPPFLAGS = -I$(srcdir)
+AM_CPPFLAGS = -I$(srcdir) -I$(srcdir)/munit
 
 lib_LTLIBRARIES = libsfparse.la
 
@@ -50,16 +52,13 @@ noinst_PROGRAMS = examples
 examples_SOURCES = examples.c
 examples_LDADD = $(top_builddir)/libsfparse.la
 
-if HAVE_CUNIT
-
 check_PROGRAMS = test
 
-test_SOURCES = sfparse_test_main.c sfparse_test.c sfparse_test.h
+test_SOURCES = sfparse_test_main.c sfparse_test.c sfparse_test.h \
+	munit/munit.c munit/munit.h
 
-test_CFLAGS = $(WARNCFLAGS) -I$(top_srcdir) @CUNIT_CFLAGS@
-test_LDADD = $(top_builddir)/.libs/sfparse.o @CUNIT_LIBS@
+test_CFLAGS = $(WARNCFLAGS) -I$(top_srcdir)
+test_LDADD = $(top_builddir)/.libs/sfparse.o
 test_LDFLAGS = -static
 
 TESTS = test
-
-endif # HAVE_CUNIT
