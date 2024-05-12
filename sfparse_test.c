@@ -1768,6 +1768,15 @@ void test_sf_parser_dispstring(void) {
   }
 
   {
+    /* bad display string utf-8 (invalid hex) */
+    sf_parser_bytes_init(&sfp, "%\"%g0%1w\"");
+
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+
+  {
     /* bad display string utf-8 (invalid 3-byte seq) */
     sf_parser_bytes_init(&sfp, "%\"%e2%28%a1\"");
 
