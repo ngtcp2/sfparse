@@ -72,7 +72,7 @@ jobs:
     - name: Configure autotools
       run: |
         git submodule update --init --depth 1
-        autoreconf -i && ./configure
+        autoreconf -i && ./configure --disable-dependency-tracking
     - name: Build sfparse with distcheck
       run: |
         make distcheck DISTCHECK_CONFIGURE_FLAGS="--enable-werror"
@@ -105,7 +105,7 @@ jobs:
       run: |
         git submodule update --init --depth 1
         autoreconf -i && \
-        ./configure --enable-werror \
+        ./configure --disable-dependency-tracking --enable-werror \
           --host="$HOST" LIBS="-pthread"
     - name: Build sfparse
       run: |
