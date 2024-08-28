@@ -36,11 +36,11 @@
 
 int main(int argc, char *argv[]) {
   const MunitSuite suites[] = {
-      sfparse_suite,
-      {NULL, NULL, NULL, 0, MUNIT_SUITE_OPTION_NONE},
+    sfparse_suite,
+    {NULL, NULL, NULL, 0, MUNIT_SUITE_OPTION_NONE},
   };
   const MunitSuite suite = {
-      "", NULL, suites, 1, MUNIT_SUITE_OPTION_NONE,
+    "", NULL, suites, 1, MUNIT_SUITE_OPTION_NONE,
   };
 
   return munit_suite_main(&suite, NULL, argc, argv);
