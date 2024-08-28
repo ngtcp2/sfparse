@@ -464,7 +464,7 @@ static void example_item(void) {
 
   {
     static const uint8_t s[] =
-        "%\"This is intended for display to %C3%BCsers.\"";
+      "%\"This is intended for display to %C3%BCsers.\"";
 
     printf("## Read dispstring\n");
 
