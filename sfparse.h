@@ -31,20 +31,20 @@
    libcurl) */
 #if (defined(_WIN32) || defined(__WIN32__)) && !defined(WIN32)
 #  define WIN32
-#endif
+#endif /* (defined(_WIN32) || defined(__WIN32__)) && !defined(WIN32) */
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif /* defined(__cplusplus) */
 
 #if defined(_MSC_VER) && (_MSC_VER < 1800)
 /* MSVC < 2013 does not have inttypes.h because it is not C99
    compliant.  See compiler macros and version number in
    https://sourceforge.net/p/predef/wiki/Compilers/ */
 #  include <stdint.h>
-#else /* !defined(_MSC_VER) || (_MSC_VER >= 1800) */
+#else /* !(defined(_MSC_VER) && (_MSC_VER < 1800)) */
 #  include <inttypes.h>
-#endif /* !defined(_MSC_VER) || (_MSC_VER >= 1800) */
+#endif /* !(defined(_MSC_VER) && (_MSC_VER < 1800)) */
 #include <sys/types.h>
 #include <stddef.h>
 
@@ -423,6 +423,6 @@ void sf_pctdecode(sf_vec *dest, const sf_vec *src);
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* defined(__cplusplus) */
 
-#endif /* SFPARSE_H */
+#endif /* !defined(SFPARSE_H) */

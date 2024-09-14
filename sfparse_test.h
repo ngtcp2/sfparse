@@ -54,4 +54,4 @@ munit_void_test_decl(test_sf_parser_key_generated);
 munit_void_test_decl(test_sf_parser_large_generated);
 munit_void_test_decl(test_sf_parser_examples);
 
-#endif /* SFPARSE_TEST_H */
+#endif /* !defined(SFPARSE_TEST_H) */
