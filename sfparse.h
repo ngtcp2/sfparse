@@ -243,8 +243,8 @@ typedef struct sf_parser {
 /**
  * @function
  *
- * `sf_parser_init` initializes |sfp| with the given buffer pointed by
- * |data| of length |datalen|.
+ * `sf_parser_init` initializes |sfp| with the given data encoded in
+ * Structured Field Values pointed by |data| of length |datalen|.
  */
 void sf_parser_init(sf_parser *sfp, const uint8_t *data, size_t datalen);
 
@@ -378,7 +378,9 @@ int sf_parser_inner_list(sf_parser *sfp, sf_value *dest);
  * `sf_parser_param`, otherwise the behavior is undefined.
  *
  * :member:`dest->base <sf_vec.base>` must point to the buffer that
- * has sufficient space to store the unescaped string.
+ * has sufficient space to store the unescaped string.  The memory
+ * areas pointed by :member:`dest->base <sf_vec.base>` and
+ * :member:`src->base <sf_vec.base>` must not overlap.
  *
  * This function sets the length of unescaped string to
  * :member:`dest->len <sf_vec.len>`.
@@ -414,7 +416,9 @@ void sf_base64decode(sf_vec *dest, const sf_vec *src);
  * otherwise the behavior is undefined.
  *
  * :member:`dest->base <sf_vec.base>` must point to the buffer that
- * has sufficient space to store the decoded byte string.
+ * has sufficient space to store the decoded byte string.  The memory
+ * areas pointed by :member:`dest->base <sf_vec.base>` and
+ * :member:`src->base <sf_vec.base>` must not overlap.
  *
  * This function sets the length of decoded byte string to
  * :member:`dest->len <sf_vec.len>`.
