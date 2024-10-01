@@ -1,10 +1,9 @@
 sfparse - Structured Field Values parser
 ========================================
 
-sfparse is a Structured Field Values parser written in C.
-
-- `RFC 8941 <https://www.rfc-editor.org/rfc/rfc8941.html>`_
-- `draft-ietf-httpbis-sfbis <https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-sfbis>`_
+sfparse is a `RFC 9651
+<https://datatracker.ietf.org/doc/html/rfc9651>`_ Structured Field
+Values parser written in C.
 
 `Online documentation <https://nghttp2.org/sfparse/>`_ is available.
 
