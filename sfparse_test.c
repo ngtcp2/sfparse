@@ -52,6 +52,7 @@ static const MunitTest tests[] = {
   munit_void_test(test_sf_parser_string_generated),
   munit_void_test(test_sf_parser_token_generated),
   munit_void_test(test_sf_parser_key_generated),
+  munit_void_test(test_sf_parser_byteseq_generated),
   munit_void_test(test_sf_parser_large_generated),
   munit_void_test(test_sf_parser_examples),
   munit_test_end(),
@@ -765,6 +766,16 @@ void test_sf_parser_byteseq(void) {
   {
     /* Padding in the middle of encoded string */
     sf_parser_bytes_init(&sfp, ":ab=a:");
+
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* long binary with extra chars */
+    sf_parser_bytes_init(&sfp,
+                         ":cHJldGVuZCB0aGlzIGlzIGJpbmFyeSBjb250ZW50Lg!==:");
 
     assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
@@ -1500,6 +1511,20 @@ void test_sf_parser_string(void) {
   {
     /* Just '"' */
     sf_parser_bytes_init(&sfp, "\"");
+
+    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+
+    sf_parser_bytes_free();
+  }
+
+  {
+    /* long string with invalid char */
+    sf_parser_bytes_init(
+      &sfp,
+      "\"foo foo foo foo foo foo foo foo \x7f foo foo foo foo foo foo foo foo "
+      "foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo "
+      "foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo "
+      "foo foo foo foo foo foo foo foo foo foo foo foo foo foo \"");
 
     assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
 
@@ -3808,10 +3833,12 @@ void test_sf_parser_string_generated(void) {
   sf_parser sfp;
   sf_value val;
   size_t i;
-  uint8_t buf[16];
+  uint8_t buf[64];
   int rv;
 
   /* 0x?? in string */
+  memset(buf, ' ', sizeof(buf));
+
   for (i = 0; i < 256; ++i) {
     buf[0] = '"';
     buf[1] = ' ';
@@ -3819,7 +3846,7 @@ void test_sf_parser_string_generated(void) {
     buf[3] = ' ';
     buf[4] = '"';
 
-    sf_parser_bytes_len_init(&sfp, buf, 5);
+    sf_parser_bytes_len_init(&sfp, buf, sizeof(buf));
 
     rv = sf_parser_item(&sfp, &val);
 
@@ -3842,13 +3869,15 @@ void test_sf_parser_string_generated(void) {
   }
 
   /* Escaped 0x?? in string */
+  memset(buf, ' ', sizeof(buf));
+
   for (i = 0; i < 256; ++i) {
     buf[0] = '"';
     buf[1] = '\\';
     buf[2] = (uint8_t)i;
     buf[3] = '"';
 
-    sf_parser_bytes_len_init(&sfp, buf, 4);
+    sf_parser_bytes_len_init(&sfp, buf, sizeof(buf));
 
     rv = sf_parser_item(&sfp, &val);
 
@@ -3868,16 +3897,18 @@ void test_sf_parser_token_generated(void) {
   sf_vec key;
   sf_value val;
   size_t i;
-  uint8_t buf[16];
+  uint8_t buf[64];
   int rv;
 
   /* 0x?? in token */
+  memset(buf, ' ', sizeof(buf));
+
   for (i = 0; i < 256; ++i) {
     buf[0] = 'a';
     buf[1] = (uint8_t)i;
     buf[2] = 'a';
 
-    sf_parser_bytes_len_init(&sfp, buf, 3);
+    sf_parser_bytes_len_init(&sfp, buf, sizeof(buf));
 
     assert_int(0, ==, sf_parser_item(&sfp, &val));
 
@@ -3906,11 +3937,13 @@ void test_sf_parser_token_generated(void) {
   }
 
   /* 0x?? starting a token */
+  memset(buf, ' ', sizeof(buf));
+
   for (i = 0; i < 256; ++i) {
     buf[0] = (uint8_t)i;
     buf[1] = 'a';
 
-    sf_parser_bytes_len_init(&sfp, buf, 2);
+    sf_parser_bytes_len_init(&sfp, buf, sizeof(buf));
 
     rv = sf_parser_item(&sfp, &val);
 
@@ -3950,17 +3983,19 @@ void test_sf_parser_key_generated(void) {
   sf_vec key;
   sf_value val;
   size_t i;
-  uint8_t buf[16];
+  uint8_t buf[64];
   int rv;
   int len;
 
   /* 0x?? as a single-character dictionary key */
+  memset(buf, ' ', sizeof(buf));
+
   for (i = 0; i < 256; ++i) {
     buf[0] = (uint8_t)i;
     buf[1] = '=';
     buf[2] = '1';
 
-    sf_parser_bytes_len_init(&sfp, buf, 3);
+    sf_parser_bytes_len_init(&sfp, buf, sizeof(buf));
 
     rv = sf_parser_dict(&sfp, &key, &val);
 
@@ -3979,6 +4014,8 @@ void test_sf_parser_key_generated(void) {
   }
 
   /* 0x?? in dictionary key */
+  memset(buf, ' ', sizeof(buf));
+
   for (i = 0; i < 256; ++i) {
     buf[0] = 'a';
     buf[1] = (uint8_t)i;
@@ -3986,7 +4023,7 @@ void test_sf_parser_key_generated(void) {
     buf[3] = '=';
     buf[4] = '1';
 
-    sf_parser_bytes_len_init(&sfp, buf, 5);
+    sf_parser_bytes_len_init(&sfp, buf, sizeof(buf));
 
     rv = sf_parser_dict(&sfp, &key, &val);
 
@@ -4031,13 +4068,15 @@ void test_sf_parser_key_generated(void) {
   }
 
   /* 0x?? starting a dictionary key */
+  memset(buf, ' ', sizeof(buf));
+
   for (i = 0; i < 256; ++i) {
     buf[0] = (uint8_t)i;
     buf[1] = 'a';
     buf[2] = '=';
     buf[3] = '1';
 
-    sf_parser_bytes_len_init(&sfp, buf, 4);
+    sf_parser_bytes_len_init(&sfp, buf, sizeof(buf));
 
     rv = sf_parser_dict(&sfp, &key, &val);
 
@@ -4062,10 +4101,13 @@ void test_sf_parser_key_generated(void) {
   }
 
   /* 0x?? in parameterised list key */
+  memset(buf, ' ', sizeof(buf));
+
   for (i = 0; i < 256; ++i) {
     len = snprintf((char *)buf, sizeof(buf), "foo; a%ca=1", (char)i);
+    buf[len] = ' ';
 
-    sf_parser_bytes_len_init(&sfp, buf, (size_t)len);
+    sf_parser_bytes_len_init(&sfp, buf, sizeof(buf));
 
     assert_int(0, ==, sf_parser_list(&sfp, &val));
     assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
@@ -4118,10 +4160,13 @@ void test_sf_parser_key_generated(void) {
   }
 
   /* 0x?? starting a parameterised list key */
+  memset(buf, ' ', sizeof(buf));
+
   for (i = 0; i < 256; ++i) {
     len = snprintf((char *)buf, sizeof(buf), "foo; %ca=1", (char)i);
+    buf[len] = ' ';
 
-    sf_parser_bytes_len_init(&sfp, buf, (size_t)len);
+    sf_parser_bytes_len_init(&sfp, buf, sizeof(buf));
 
     assert_int(0, ==, sf_parser_list(&sfp, &val));
     assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
@@ -4144,6 +4189,43 @@ void test_sf_parser_key_generated(void) {
       assert_int64(1, ==, val.integer);
       assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
       assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, NULL));
+    } else {
+      assert_int(SF_ERR_PARSE_ERROR, ==, rv);
+    }
+
+    sf_parser_bytes_free();
+  }
+}
+
+void test_sf_parser_byteseq_generated(void) {
+  sf_parser sfp;
+  sf_value val;
+  size_t i;
+  uint8_t buf[64];
+  int rv;
+
+  /* 0x?? in byteseq */
+  memset(buf, ' ', sizeof(buf));
+
+  for (i = 0; i < 256; ++i) {
+    buf[0] = ':';
+    buf[1] = '/';
+    buf[2] = (uint8_t)i;
+    buf[3] = 'A';
+    buf[4] = 'h';
+    buf[5] = ':';
+
+    sf_parser_bytes_len_init(&sfp, buf, sizeof(buf));
+
+    rv = sf_parser_item(&sfp, &val);
+
+    if (i == '+' || i == '/' || ('0' <= i && i <= '9') ||
+        ('A' <= i && i <= 'Z') || ('a' <= i && i <= 'z')) {
+      assert_int(0, ==, rv);
+
+      rv = sf_parser_item(&sfp, NULL);
+
+      assert_int(SF_ERR_EOF, ==, rv);
     } else {
       assert_int(SF_ERR_PARSE_ERROR, ==, rv);
     }
