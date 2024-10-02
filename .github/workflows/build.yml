@@ -63,7 +63,7 @@ jobs:
         asanflags="-fsanitize=address,undefined -fno-sanitize-recover=undefined"
 
         LDFLAGS="$LDFLAGS $asanflags"
-        CFLAGS="$CFLAGS $asanflags -g3"
+        CFLAGS="$CFLAGS $asanflags -g3 -mavx2"
         CXXFLAGS="$CXXFLAGS $asanflags -g3"
 
         echo 'LDFLAGS='"$LDFLAGS" >> $GITHUB_ENV
