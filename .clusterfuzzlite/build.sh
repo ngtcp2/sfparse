@@ -1,7 +1,7 @@
 #!/bin/bash -eu
 
 autoreconf -i
-./configure --disable-dependency-tracking
+./configure --disable-dependency-tracking CFLAGS="-g -O2 -mavx2"
 make -j$(nproc)
 
 $CXX $CXXFLAGS -std=c++17 -I. \
