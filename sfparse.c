@@ -30,6 +30,10 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#ifdef __AVX2__
+#  include <immintrin.h>
+#endif /* __AVX2__ */
+
 #define SF_STATE_DICT 0x08u
 #define SF_STATE_LIST 0x10u
 #define SF_STATE_ITEM 0x18u
@@ -380,6 +384,23 @@ static int is_ws(uint8_t c) {
   }
 }
 
+#ifdef __AVX2__
+#  ifdef _MSC_VER
+#    include <intrin.h>
+
+static int ctz(unsigned int v) {
+  unsigned long n;
+
+  /* Assume that v is not 0. */
+  _BitScanForward(&n, v);
+
+  return (int)n;
+}
+#  else /* !_MSC_VER */
+#    define ctz __builtin_ctz
+#  endif /* !_MSC_VER */
+#endif   /* __AVX2__ */
+
 static int parser_eof(sf_parser *sfp) { return sfp->pos == sfp->end; }
 
 static void parser_discard_ows(sf_parser *sfp) {
@@ -401,8 +422,48 @@ static void parser_unset_inner_list_state(sf_parser *sfp) {
   sfp->state &= ~SF_STATE_INNER_LIST;
 }
 
+#ifdef __AVX2__
+static const uint8_t *find_char_key(const uint8_t *first, const uint8_t *last) {
+  const __m256i us = _mm256_set1_epi8('_');
+  const __m256i ds = _mm256_set1_epi8('-');
+  const __m256i dot = _mm256_set1_epi8('.');
+  const __m256i ast = _mm256_set1_epi8('*');
+  const __m256i r0l = _mm256_set1_epi8('0' - 1);
+  const __m256i r0r = _mm256_set1_epi8('9' + 1);
+  const __m256i r1l = _mm256_set1_epi8('a' - 1);
+  const __m256i r1r = _mm256_set1_epi8('z' + 1);
+  __m256i s, x;
+  uint32_t m;
+
+  for (; first != last; first += 32) {
+    s = _mm256_loadu_si256((void *)first);
+
+    x = _mm256_cmpeq_epi8(s, us);
+    x = _mm256_or_si256(_mm256_cmpeq_epi8(s, ds), x);
+    x = _mm256_or_si256(_mm256_cmpeq_epi8(s, dot), x);
+    x = _mm256_or_si256(_mm256_cmpeq_epi8(s, ast), x);
+    x = _mm256_or_si256(
+      _mm256_and_si256(_mm256_cmpgt_epi8(s, r0l), _mm256_cmpgt_epi8(r0r, s)),
+      x);
+    x = _mm256_or_si256(
+      _mm256_and_si256(_mm256_cmpgt_epi8(s, r1l), _mm256_cmpgt_epi8(r1r, s)),
+      x);
+
+    m = ~(uint32_t)_mm256_movemask_epi8(x);
+    if (m) {
+      return first + ctz(m);
+    }
+  }
+
+  return last;
+}
+#endif /* __AVX2__ */
+
 static int parser_key(sf_parser *sfp, sf_vec *dest) {
   const uint8_t *base;
+#ifdef __AVX2__
+  const uint8_t *last;
+#endif /* __AVX2__ */
 
   switch (*sfp->pos) {
   case '*':
@@ -413,6 +474,17 @@ static int parser_key(sf_parser *sfp, sf_vec *dest) {
   }
 
   base = sfp->pos++;
+
+#ifdef __AVX2__
+  if (sfp->end - sfp->pos >= 32) {
+    last = sfp->pos + ((sfp->end - sfp->pos) & ~0x1fu);
+
+    sfp->pos = find_char_key(sfp->pos, last);
+    if (sfp->pos != last) {
+      goto fin;
+    }
+  }
+#endif /* __AVX2__ */
 
   for (; !parser_eof(sfp); ++sfp->pos) {
     switch (*sfp->pos) {
@@ -428,6 +500,9 @@ static int parser_key(sf_parser *sfp, sf_vec *dest) {
     break;
   }
 
+#ifdef __AVX2__
+fin:
+#endif /* __AVX2__ */
   if (dest) {
     dest->base = (uint8_t *)base;
     dest->len = (size_t)(sfp->pos - dest->base);
@@ -567,14 +642,80 @@ static int parser_date(sf_parser *sfp, sf_value *dest) {
   return 0;
 }
 
+#ifdef __AVX2__
+static const uint8_t *find_char_string(const uint8_t *first,
+                                       const uint8_t *last) {
+  const __m256i bs = _mm256_set1_epi8('\\');
+  const __m256i dq = _mm256_set1_epi8('"');
+  const __m256i del = _mm256_set1_epi8(0x7f);
+  const __m256i sp = _mm256_set1_epi8(' ');
+  __m256i s, x;
+  uint32_t m;
+
+  for (; first != last; first += 32) {
+    s = _mm256_loadu_si256((void *)first);
+
+    x = _mm256_cmpgt_epi8(sp, s);
+    x = _mm256_or_si256(_mm256_cmpeq_epi8(s, bs), x);
+    x = _mm256_or_si256(_mm256_cmpeq_epi8(s, dq), x);
+    x = _mm256_or_si256(_mm256_cmpeq_epi8(s, del), x);
+
+    m = (uint32_t)_mm256_movemask_epi8(x);
+    if (m) {
+      return first + ctz(m);
+    }
+  }
+
+  return last;
+}
+#endif /* __AVX2__ */
+
 static int parser_string(sf_parser *sfp, sf_value *dest) {
   const uint8_t *base;
+#ifdef __AVX2__
+  const uint8_t *last;
+#endif /* __AVX2__ */
   uint32_t flags = SF_VALUE_FLAG_NONE;
 
   /* The first byte has already been validated by the caller. */
   assert('"' == *sfp->pos);
 
   base = ++sfp->pos;
+
+#ifdef __AVX2__
+  for (; sfp->end - sfp->pos >= 32; ++sfp->pos) {
+    last = sfp->pos + ((sfp->end - sfp->pos) & ~0x1fu);
+
+    sfp->pos = find_char_string(sfp->pos, last);
+    if (sfp->pos == last) {
+      break;
+    }
+
+    switch (*sfp->pos) {
+    case '\\':
+      ++sfp->pos;
+      if (parser_eof(sfp)) {
+        return SF_ERR_PARSE_ERROR;
+      }
+
+      switch (*sfp->pos) {
+      case '"':
+      case '\\':
+        flags = SF_VALUE_FLAG_ESCAPED_STRING;
+
+        break;
+      default:
+        return SF_ERR_PARSE_ERROR;
+      }
+
+      break;
+    case '"':
+      goto fin;
+    default:
+      return SF_ERR_PARSE_ERROR;
+    }
+  }
+#endif /* __AVX2__ */
 
   for (; !parser_eof(sfp); ++sfp->pos) {
     switch (*sfp->pos) {
@@ -600,29 +741,100 @@ static int parser_string(sf_parser *sfp, sf_value *dest) {
 
       break;
     case '"':
-      if (dest) {
-        dest->type = SF_TYPE_STRING;
-        dest->flags = flags;
-        dest->vec.len = (size_t)(sfp->pos - base);
-        dest->vec.base = dest->vec.len == 0 ? NULL : (uint8_t *)base;
-      }
-
-      ++sfp->pos;
-
-      return 0;
+      goto fin;
     default:
       return SF_ERR_PARSE_ERROR;
     }
   }
 
   return SF_ERR_PARSE_ERROR;
+
+fin:
+  if (dest) {
+    dest->type = SF_TYPE_STRING;
+    dest->flags = flags;
+    dest->vec.len = (size_t)(sfp->pos - base);
+    dest->vec.base = dest->vec.len == 0 ? NULL : (uint8_t *)base;
+  }
+
+  ++sfp->pos;
+
+  return 0;
 }
+
+#ifdef __AVX2__
+static const uint8_t *find_char_token(const uint8_t *first,
+                                      const uint8_t *last) {
+  /* r0: !..:, excluding "(),
+     r1: A..Z
+     r2: ^..~, excluding {} */
+  const __m256i r0l = _mm256_set1_epi8('!' - 1);
+  const __m256i r0r = _mm256_set1_epi8(':' + 1);
+  const __m256i dq = _mm256_set1_epi8('"');
+  const __m256i prl = _mm256_set1_epi8('(');
+  const __m256i prr = _mm256_set1_epi8(')');
+  const __m256i comma = _mm256_set1_epi8(',');
+  const __m256i r1l = _mm256_set1_epi8('A' - 1);
+  const __m256i r1r = _mm256_set1_epi8('Z' + 1);
+  const __m256i r2l = _mm256_set1_epi8('^' - 1);
+  const __m256i r2r = _mm256_set1_epi8('~' + 1);
+  const __m256i cbl = _mm256_set1_epi8('{');
+  const __m256i cbr = _mm256_set1_epi8('}');
+  __m256i s, x;
+  uint32_t m;
+
+  for (; first != last; first += 32) {
+    s = _mm256_loadu_si256((void *)first);
+
+    x = _mm256_andnot_si256(
+      _mm256_cmpeq_epi8(s, comma),
+      _mm256_andnot_si256(
+        _mm256_cmpeq_epi8(s, prr),
+        _mm256_andnot_si256(
+          _mm256_cmpeq_epi8(s, prl),
+          _mm256_andnot_si256(_mm256_cmpeq_epi8(s, dq),
+                              _mm256_and_si256(_mm256_cmpgt_epi8(s, r0l),
+                                               _mm256_cmpgt_epi8(r0r, s))))));
+    x = _mm256_or_si256(
+      _mm256_and_si256(_mm256_cmpgt_epi8(s, r1l), _mm256_cmpgt_epi8(r1r, s)),
+      x);
+    x = _mm256_or_si256(
+      _mm256_andnot_si256(
+        _mm256_cmpeq_epi8(s, cbr),
+        _mm256_andnot_si256(_mm256_cmpeq_epi8(s, cbl),
+                            _mm256_and_si256(_mm256_cmpgt_epi8(s, r2l),
+                                             _mm256_cmpgt_epi8(r2r, s)))),
+      x);
+
+    m = ~(uint32_t)_mm256_movemask_epi8(x);
+    if (m) {
+      return first + ctz(m);
+    }
+  }
+
+  return last;
+}
+#endif /* __AVX2__ */
 
 static int parser_token(sf_parser *sfp, sf_value *dest) {
   const uint8_t *base;
+#ifdef __AVX2__
+  const uint8_t *last;
+#endif /* __AVX2__ */
 
   /* The first byte has already been validated by the caller. */
   base = sfp->pos++;
+
+#ifdef __AVX2__
+  if (sfp->end - sfp->pos >= 32) {
+    last = sfp->pos + ((sfp->end - sfp->pos) & ~0x1fu);
+
+    sfp->pos = find_char_token(sfp->pos, last);
+    if (sfp->pos != last) {
+      goto fin;
+    }
+  }
+#endif /* __AVX2__ */
 
   for (; !parser_eof(sfp); ++sfp->pos) {
     switch (*sfp->pos) {
@@ -633,6 +845,9 @@ static int parser_token(sf_parser *sfp, sf_value *dest) {
     break;
   }
 
+#ifdef __AVX2__
+fin:
+#endif /* __AVX2__ */
   if (dest) {
     dest->type = SF_TYPE_TOKEN;
     dest->flags = SF_VALUE_FLAG_NONE;
@@ -643,13 +858,62 @@ static int parser_token(sf_parser *sfp, sf_value *dest) {
   return 0;
 }
 
+#ifdef __AVX2__
+static const uint8_t *find_char_byteseq(const uint8_t *first,
+                                        const uint8_t *last) {
+  const __m256i pls = _mm256_set1_epi8('+');
+  const __m256i fs = _mm256_set1_epi8('/');
+  const __m256i r0l = _mm256_set1_epi8('0' - 1);
+  const __m256i r0r = _mm256_set1_epi8('9' + 1);
+  const __m256i r1l = _mm256_set1_epi8('A' - 1);
+  const __m256i r1r = _mm256_set1_epi8('Z' + 1);
+  const __m256i r2l = _mm256_set1_epi8('a' - 1);
+  const __m256i r2r = _mm256_set1_epi8('z' + 1);
+  __m256i s, x;
+  uint32_t m;
+
+  for (; first != last; first += 32) {
+    s = _mm256_loadu_si256((void *)first);
+
+    x = _mm256_cmpeq_epi8(s, pls);
+    x = _mm256_or_si256(_mm256_cmpeq_epi8(s, fs), x);
+    x = _mm256_or_si256(
+      _mm256_and_si256(_mm256_cmpgt_epi8(s, r0l), _mm256_cmpgt_epi8(r0r, s)),
+      x);
+    x = _mm256_or_si256(
+      _mm256_and_si256(_mm256_cmpgt_epi8(s, r1l), _mm256_cmpgt_epi8(r1r, s)),
+      x);
+    x = _mm256_or_si256(
+      _mm256_and_si256(_mm256_cmpgt_epi8(s, r2l), _mm256_cmpgt_epi8(r2r, s)),
+      x);
+
+    m = ~(uint32_t)_mm256_movemask_epi8(x);
+    if (m) {
+      return first + ctz(m);
+    }
+  }
+
+  return last;
+}
+#endif /* __AVX2__ */
+
 static int parser_byteseq(sf_parser *sfp, sf_value *dest) {
   const uint8_t *base;
+#ifdef __AVX2__
+  const uint8_t *last;
+#endif /* __AVX2__ */
 
   /* The first byte has already been validated by the caller. */
   assert(':' == *sfp->pos);
 
   base = ++sfp->pos;
+
+#ifdef __AVX2__
+  if (sfp->end - sfp->pos >= 32) {
+    last = sfp->pos + ((sfp->end - sfp->pos) & ~0x1fu);
+    sfp->pos = find_char_byteseq(sfp->pos, last);
+  }
+#endif /* __AVX2__ */
 
   for (; !parser_eof(sfp); ++sfp->pos) {
     switch (*sfp->pos) {

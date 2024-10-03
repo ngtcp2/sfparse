@@ -51,6 +51,7 @@ munit_void_test_decl(test_sf_parser_number_generated);
 munit_void_test_decl(test_sf_parser_string_generated);
 munit_void_test_decl(test_sf_parser_token_generated);
 munit_void_test_decl(test_sf_parser_key_generated);
+munit_void_test_decl(test_sf_parser_byteseq_generated);
 munit_void_test_decl(test_sf_parser_large_generated);
 munit_void_test_decl(test_sf_parser_examples);
 
