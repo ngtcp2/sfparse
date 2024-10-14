@@ -2067,11 +2067,9 @@ void test_sf_parser_dictionary(void) {
 
   {
     /* empty dictionary */
-    sf_parser_bytes_init(&sfp, "");
+    sf_parser_init(&sfp, (const uint8_t *)"", 0);
 
     assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
-
-    sf_parser_bytes_free();
   }
 
   {
@@ -2536,11 +2534,9 @@ void test_sf_parser_list(void) {
 
   {
     /* empty list" */
-    sf_parser_bytes_init(&sfp, "");
+    sf_parser_init(&sfp, (const uint8_t *)"", 0);
 
     assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
-
-    sf_parser_bytes_free();
   }
 
   {
