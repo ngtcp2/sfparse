@@ -31,28 +31,28 @@
 
 extern const MunitSuite sfparse_suite;
 
-munit_void_test_decl(test_sf_parser_item_skip);
-munit_void_test_decl(test_sf_parser_dict_skip);
-munit_void_test_decl(test_sf_parser_list_skip);
-munit_void_test_decl(test_sf_parser_byteseq);
-munit_void_test_decl(test_sf_parser_boolean);
-munit_void_test_decl(test_sf_parser_number);
-munit_void_test_decl(test_sf_parser_date);
-munit_void_test_decl(test_sf_parser_string);
-munit_void_test_decl(test_sf_parser_token);
-munit_void_test_decl(test_sf_parser_dispstring);
-munit_void_test_decl(test_sf_parser_dictionary);
-munit_void_test_decl(test_sf_parser_list);
-munit_void_test_decl(test_sf_parser_list_list);
-munit_void_test_decl(test_sf_parser_param_dict);
-munit_void_test_decl(test_sf_parser_param_list);
-munit_void_test_decl(test_sf_parser_param_list_list);
-munit_void_test_decl(test_sf_parser_number_generated);
-munit_void_test_decl(test_sf_parser_string_generated);
-munit_void_test_decl(test_sf_parser_token_generated);
-munit_void_test_decl(test_sf_parser_key_generated);
-munit_void_test_decl(test_sf_parser_byteseq_generated);
-munit_void_test_decl(test_sf_parser_large_generated);
-munit_void_test_decl(test_sf_parser_examples);
+munit_void_test_decl(test_sf_parser_item_skip)
+munit_void_test_decl(test_sf_parser_dict_skip)
+munit_void_test_decl(test_sf_parser_list_skip)
+munit_void_test_decl(test_sf_parser_byteseq)
+munit_void_test_decl(test_sf_parser_boolean)
+munit_void_test_decl(test_sf_parser_number)
+munit_void_test_decl(test_sf_parser_date)
+munit_void_test_decl(test_sf_parser_string)
+munit_void_test_decl(test_sf_parser_token)
+munit_void_test_decl(test_sf_parser_dispstring)
+munit_void_test_decl(test_sf_parser_dictionary)
+munit_void_test_decl(test_sf_parser_list)
+munit_void_test_decl(test_sf_parser_list_list)
+munit_void_test_decl(test_sf_parser_param_dict)
+munit_void_test_decl(test_sf_parser_param_list)
+munit_void_test_decl(test_sf_parser_param_list_list)
+munit_void_test_decl(test_sf_parser_number_generated)
+munit_void_test_decl(test_sf_parser_string_generated)
+munit_void_test_decl(test_sf_parser_token_generated)
+munit_void_test_decl(test_sf_parser_key_generated)
+munit_void_test_decl(test_sf_parser_byteseq_generated)
+munit_void_test_decl(test_sf_parser_large_generated)
+munit_void_test_decl(test_sf_parser_examples)
 
 #endif /* !defined(SFPARSE_TEST_H) */
