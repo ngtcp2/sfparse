@@ -32,29 +32,29 @@
 #include "sfparse.h"
 
 static const MunitTest tests[] = {
-  munit_void_test(test_sf_parser_item_skip),
-  munit_void_test(test_sf_parser_dict_skip),
-  munit_void_test(test_sf_parser_list_skip),
-  munit_void_test(test_sf_parser_byteseq),
-  munit_void_test(test_sf_parser_boolean),
-  munit_void_test(test_sf_parser_number),
-  munit_void_test(test_sf_parser_date),
-  munit_void_test(test_sf_parser_string),
-  munit_void_test(test_sf_parser_token),
-  munit_void_test(test_sf_parser_dispstring),
-  munit_void_test(test_sf_parser_dictionary),
-  munit_void_test(test_sf_parser_list),
-  munit_void_test(test_sf_parser_list_list),
-  munit_void_test(test_sf_parser_param_dict),
-  munit_void_test(test_sf_parser_param_list),
-  munit_void_test(test_sf_parser_param_list_list),
-  munit_void_test(test_sf_parser_number_generated),
-  munit_void_test(test_sf_parser_string_generated),
-  munit_void_test(test_sf_parser_token_generated),
-  munit_void_test(test_sf_parser_key_generated),
-  munit_void_test(test_sf_parser_byteseq_generated),
-  munit_void_test(test_sf_parser_large_generated),
-  munit_void_test(test_sf_parser_examples),
+  munit_void_test(test_sfparse_parser_item_skip),
+  munit_void_test(test_sfparse_parser_dict_skip),
+  munit_void_test(test_sfparse_parser_list_skip),
+  munit_void_test(test_sfparse_parser_byteseq),
+  munit_void_test(test_sfparse_parser_boolean),
+  munit_void_test(test_sfparse_parser_number),
+  munit_void_test(test_sfparse_parser_date),
+  munit_void_test(test_sfparse_parser_string),
+  munit_void_test(test_sfparse_parser_token),
+  munit_void_test(test_sfparse_parser_dispstring),
+  munit_void_test(test_sfparse_parser_dictionary),
+  munit_void_test(test_sfparse_parser_list),
+  munit_void_test(test_sfparse_parser_list_list),
+  munit_void_test(test_sfparse_parser_param_dict),
+  munit_void_test(test_sfparse_parser_param_list),
+  munit_void_test(test_sfparse_parser_param_list_list),
+  munit_void_test(test_sfparse_parser_number_generated),
+  munit_void_test(test_sfparse_parser_string_generated),
+  munit_void_test(test_sfparse_parser_token_generated),
+  munit_void_test(test_sfparse_parser_key_generated),
+  munit_void_test(test_sfparse_parser_byteseq_generated),
+  munit_void_test(test_sfparse_parser_large_generated),
+  munit_void_test(test_sfparse_parser_examples),
   munit_test_end(),
 };
 
@@ -62,28 +62,28 @@ const MunitSuite sfparse_suite = {
   "/sfparse", tests, NULL, 1, MUNIT_SUITE_OPTION_NONE,
 };
 
-#define sf_parser_bytes_init(SFP, S)                                           \
+#define sfparse_parser_bytes_init(SFP, S)                                      \
   {                                                                            \
     uint8_t *input_buffer = malloc(sizeof(S) - 1);                             \
     memcpy(input_buffer, (S), sizeof(S) - 1);                                  \
-    sf_parser_init((SFP), input_buffer, sizeof(S) - 1);
+    sfparse_parser_init((SFP), input_buffer, sizeof(S) - 1);
 
-#define sf_parser_bytes_len_init(SFP, DATA, DATALEN)                           \
+#define sfparse_parser_bytes_len_init(SFP, DATA, DATALEN)                      \
   {                                                                            \
     uint8_t *input_buffer = malloc((DATALEN));                                 \
     memcpy(input_buffer, (DATA), (DATALEN));                                   \
-    sf_parser_init((SFP), input_buffer, (DATALEN));
+    sfparse_parser_init((SFP), input_buffer, (DATALEN));
 
-#define sf_parser_bytes_free()                                                 \
+#define sfparse_parser_bytes_free()                                            \
   free(input_buffer);                                                          \
   }
 
-static int str_sf_vec_eq(const char *s, const sf_vec *v) {
+static int str_sfparse_vec_eq(const char *s, const sfparse_vec *v) {
   return strlen(s) == v->len &&
          (v->len == 0 || 0 == memcmp(s, v->base, v->len));
 }
 
-#define assert_str_sf_vec_eq(S, V)                                             \
+#define assert_str_sfparse_vec_eq(S, V)                                        \
   do {                                                                         \
     assert_size(strlen(S), ==, (V)->len);                                      \
     if ((V)->len) {                                                            \
@@ -112,1509 +112,1509 @@ static int is_key_char(const uint8_t c) {
          c == '-' || c == '.' || c == '*';
 }
 
-void test_sf_parser_item_skip(void) {
-  sf_parser sfp;
-  sf_vec key;
-  sf_value val;
+void test_sfparse_parser_item_skip(void) {
+  sfparse_parser sfp;
+  sfparse_vec key;
+  sfparse_value val;
 
   {
     /* skip empty parameter */
-    sf_parser_bytes_init(&sfp, "a");
+    sfparse_parser_bytes_init(&sfp, "a");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("a", &val.vec);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("a", &val.vec);
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* skip non-empty parameter */
-    sf_parser_bytes_init(&sfp, "a;f=1000000009;g=1000000007");
+    sfparse_parser_bytes_init(&sfp, "a;f=1000000009;g=1000000007");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("a", &val.vec);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("a", &val.vec);
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* skip boolean parameter */
-    sf_parser_bytes_init(&sfp, "a;f");
+    sfparse_parser_bytes_init(&sfp, "a;f");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("a", &val.vec);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("a", &val.vec);
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* skip inner list with empty parameter */
-    sf_parser_bytes_init(&sfp, "(a)");
+    sfparse_parser_bytes_init(&sfp, "(a)");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* skip inner list with non-empty parameter */
-    sf_parser_bytes_init(&sfp, "(a);f=1000000009;g=1000000007");
+    sfparse_parser_bytes_init(&sfp, "(a);f=1000000009;g=1000000007");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* skip inner list with boolean parameter */
-    sf_parser_bytes_init(&sfp, "(a);f");
+    sfparse_parser_bytes_init(&sfp, "(a);f");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* skip inner list but read parameter */
-    sf_parser_bytes_init(&sfp, "(a);f");
+    sfparse_parser_bytes_init(&sfp, "(a);f");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("f", &key);
-    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("f", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_true(val.boolean);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, NULL, NULL));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* skip inner list item parameter */
-    sf_parser_bytes_init(&sfp, "(1;foo=100 2;bar)");
+    sfparse_parser_bytes_init(&sfp, "(1;foo=100 2;bar)");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_inner_list(&sfp, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
-    sf_parser_bytes_free();
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
+    sfparse_parser_bytes_free();
   }
 }
 
-void test_sf_parser_dict_skip(void) {
-  sf_parser sfp;
-  sf_vec key;
-  sf_value val;
+void test_sfparse_parser_dict_skip(void) {
+  sfparse_parser sfp;
+  sfparse_vec key;
+  sfparse_value val;
 
   {
     /* skip empty parameter */
-    sf_parser_bytes_init(&sfp, "a=3");
+    sfparse_parser_bytes_init(&sfp, "a=3");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* skip non-empty parameter */
-    sf_parser_bytes_init(&sfp, "a=3;f=999;g=1.23");
+    sfparse_parser_bytes_init(&sfp, "a=3;f=999;g=1.23");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* skip boolean parameter */
-    sf_parser_bytes_init(&sfp, "a=3;f");
+    sfparse_parser_bytes_init(&sfp, "a=3;f");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* skip inner list */
-    sf_parser_bytes_init(&sfp, "a=(1 2 3) , b=3");
+    sfparse_parser_bytes_init(&sfp, "a=(1 2 3) , b=3");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("b", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("b", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(3, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* skip inner list with parameter */
-    sf_parser_bytes_init(&sfp, "a=(1 2 3);f=a;g=b , b=3");
+    sfparse_parser_bytes_init(&sfp, "a=(1 2 3);f=a;g=b , b=3");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("b", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("b", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(3, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* skip inner list with boolean parameter */
-    sf_parser_bytes_init(&sfp, "a=(1 2 3);f;g , b=3");
+    sfparse_parser_bytes_init(&sfp, "a=(1 2 3);f;g , b=3");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("b", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("b", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(3, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* skip inner list but read parameter */
-    sf_parser_bytes_init(&sfp, "a=(1 2 3);f;g , b=3");
+    sfparse_parser_bytes_init(&sfp, "a=(1 2 3);f;g , b=3");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("f", &key);
-    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("f", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_true(val.boolean);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("g", &key);
-    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("g", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_true(val.boolean);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("b", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("b", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(3, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* skip inner list item parameter */
-    sf_parser_bytes_init(&sfp, "a=(1;foo=100 2;bar)");
+    sfparse_parser_bytes_init(&sfp, "a=(1;foo=100 2;bar)");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_inner_list(&sfp, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, NULL, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, NULL, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 }
 
-void test_sf_parser_list_skip(void) {
-  sf_parser sfp;
-  sf_vec key;
-  sf_value val;
+void test_sfparse_parser_list_skip(void) {
+  sfparse_parser sfp;
+  sfparse_vec key;
+  sfparse_value val;
 
   {
     /* skip empty parameter */
-    sf_parser_bytes_init(&sfp, "a");
+    sfparse_parser_bytes_init(&sfp, "a");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* skip non-empty parameter */
-    sf_parser_bytes_init(&sfp, "a;fff=1;ggg=9");
+    sfparse_parser_bytes_init(&sfp, "a;fff=1;ggg=9");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* skip inner list */
-    sf_parser_bytes_init(&sfp, "(1 2 3) , 333");
+    sfparse_parser_bytes_init(&sfp, "(1 2 3) , 333");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(333, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* skip inner list with parameter */
-    sf_parser_bytes_init(&sfp, "(1 2 3);f=a;g=b , 333");
+    sfparse_parser_bytes_init(&sfp, "(1 2 3);f=a;g=b , 333");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(333, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* skip inner list with boolean parameter */
-    sf_parser_bytes_init(&sfp, "(1 2 3);f;g , 333");
+    sfparse_parser_bytes_init(&sfp, "(1 2 3);f;g , 333");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(333, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* skip inner list but read parameter */
-    sf_parser_bytes_init(&sfp, "(1 2 3);f;g , 333");
+    sfparse_parser_bytes_init(&sfp, "(1 2 3);f;g , 333");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("f", &key);
-    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("f", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_true(val.boolean);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("g", &key);
-    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("g", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_true(val.boolean);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(333, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* skip inner list item parameter */
-    sf_parser_bytes_init(&sfp, "(1;foo=100 2;bar)");
+    sfparse_parser_bytes_init(&sfp, "(1;foo=100 2;bar)");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_inner_list(&sfp, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 }
 
-void test_sf_parser_byteseq(void) {
-  sf_parser sfp;
-  sf_value val;
-  sf_vec decoded;
+void test_sfparse_parser_byteseq(void) {
+  sfparse_parser sfp;
+  sfparse_value val;
+  sfparse_vec decoded;
   uint8_t buf[64];
 
   /* https://github.com/httpwg/structured-field-tests/blob/main/binary.json */
 
   {
     /* basic binary */
-    sf_parser_bytes_init(&sfp, ":aGVsbG8=:");
+    sfparse_parser_bytes_init(&sfp, ":aGVsbG8=:");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_BYTESEQ, ==, val.type);
-    assert_str_sf_vec_eq("aGVsbG8=", &val.vec);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_BYTESEQ, ==, val.type);
+    assert_str_sfparse_vec_eq("aGVsbG8=", &val.vec);
 
     decoded.base = buf;
-    sf_base64decode(&decoded, &val.vec);
+    sfparse_base64decode(&decoded, &val.vec);
 
-    assert_str_sf_vec_eq("hello", &decoded);
+    assert_str_sfparse_vec_eq("hello", &decoded);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* empty binary */
-    sf_parser_bytes_init(&sfp, "::");
+    sfparse_parser_bytes_init(&sfp, "::");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_BYTESEQ, ==, val.type);
-    assert_str_sf_vec_eq("", &val.vec);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_BYTESEQ, ==, val.type);
+    assert_str_sfparse_vec_eq("", &val.vec);
 
     decoded.base = buf;
-    sf_base64decode(&decoded, &val.vec);
+    sfparse_base64decode(&decoded, &val.vec);
 
-    assert_str_sf_vec_eq("", &decoded);
+    assert_str_sfparse_vec_eq("", &decoded);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* bad paddding */
-    sf_parser_bytes_init(&sfp, ":aGVsbG8:");
+    sfparse_parser_bytes_init(&sfp, ":aGVsbG8:");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_BYTESEQ, ==, val.type);
-    assert_str_sf_vec_eq("aGVsbG8", &val.vec);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_BYTESEQ, ==, val.type);
+    assert_str_sfparse_vec_eq("aGVsbG8", &val.vec);
 
     decoded.base = buf;
-    sf_base64decode(&decoded, &val.vec);
+    sfparse_base64decode(&decoded, &val.vec);
 
-    assert_str_sf_vec_eq("hello", &decoded);
+    assert_str_sfparse_vec_eq("hello", &decoded);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* bad end delimiter */
-    sf_parser_bytes_init(&sfp, ":aGVsbG8=");
+    sfparse_parser_bytes_init(&sfp, ":aGVsbG8=");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* extra whitespace */
-    sf_parser_bytes_init(&sfp, ":aGVsb G8=:");
+    sfparse_parser_bytes_init(&sfp, ":aGVsb G8=:");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* extra chars */
-    sf_parser_bytes_init(&sfp, ":aGVsbG!8=:");
+    sfparse_parser_bytes_init(&sfp, ":aGVsbG!8=:");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* suffix chars */
-    sf_parser_bytes_init(&sfp, ":aGVsbG8=!:");
+    sfparse_parser_bytes_init(&sfp, ":aGVsbG8=!:");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* non-zero pad bits */
-    sf_parser_bytes_init(&sfp, ":iZ==:");
+    sfparse_parser_bytes_init(&sfp, ":iZ==:");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_BYTESEQ, ==, val.type);
-    assert_str_sf_vec_eq("iZ==", &val.vec);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_BYTESEQ, ==, val.type);
+    assert_str_sfparse_vec_eq("iZ==", &val.vec);
 
     decoded.base = buf;
-    sf_base64decode(&decoded, &val.vec);
+    sfparse_base64decode(&decoded, &val.vec);
 
-    assert_str_sf_vec_eq("\x89", &decoded);
+    assert_str_sfparse_vec_eq("\x89", &decoded);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* non-ASCII binary */
-    sf_parser_bytes_init(&sfp, ":/+Ah:");
+    sfparse_parser_bytes_init(&sfp, ":/+Ah:");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_BYTESEQ, ==, val.type);
-    assert_str_sf_vec_eq("/+Ah", &val.vec);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_BYTESEQ, ==, val.type);
+    assert_str_sfparse_vec_eq("/+Ah", &val.vec);
 
     decoded.base = buf;
-    sf_base64decode(&decoded, &val.vec);
+    sfparse_base64decode(&decoded, &val.vec);
 
-    assert_str_sf_vec_eq("\xff\xe0!", &decoded);
+    assert_str_sfparse_vec_eq("\xff\xe0!", &decoded);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* base64url binary */
-    sf_parser_bytes_init(&sfp, ":_-Ah:");
+    sfparse_parser_bytes_init(&sfp, ":_-Ah:");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   /* Additional tests */
 
   {
     /* missing closing DQUOTE */
-    sf_parser_bytes_init(&sfp, "z,:1jk=");
+    sfparse_parser_bytes_init(&sfp, "z,:1jk=");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("z", &val.vec);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("z", &val.vec);
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* Just ':' */
-    sf_parser_bytes_init(&sfp, ":");
+    sfparse_parser_bytes_init(&sfp, ":");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* Just single '=' */
-    sf_parser_bytes_init(&sfp, ":=:");
+    sfparse_parser_bytes_init(&sfp, ":=:");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* Two '=' */
-    sf_parser_bytes_init(&sfp, ":==:");
+    sfparse_parser_bytes_init(&sfp, ":==:");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* Three '=' */
-    sf_parser_bytes_init(&sfp, ":===:");
+    sfparse_parser_bytes_init(&sfp, ":===:");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* Four '=' */
-    sf_parser_bytes_init(&sfp, ":====:");
+    sfparse_parser_bytes_init(&sfp, ":====:");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* Single letter never be a base64 encoded string */
-    sf_parser_bytes_init(&sfp, ":K:");
+    sfparse_parser_bytes_init(&sfp, ":K:");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* Omitting all padding and non-zero pad bits */
-    sf_parser_bytes_init(&sfp, ":K7:");
+    sfparse_parser_bytes_init(&sfp, ":K7:");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_BYTESEQ, ==, val.type);
-    assert_str_sf_vec_eq("K7", &val.vec);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_BYTESEQ, ==, val.type);
+    assert_str_sfparse_vec_eq("K7", &val.vec);
 
     decoded.base = buf;
-    sf_base64decode(&decoded, &val.vec);
+    sfparse_base64decode(&decoded, &val.vec);
 
-    assert_str_sf_vec_eq("\x2b", &decoded);
+    assert_str_sfparse_vec_eq("\x2b", &decoded);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* Omitting a single padding and non-zero pad bits */
-    sf_parser_bytes_init(&sfp, ":K7=:");
+    sfparse_parser_bytes_init(&sfp, ":K7=:");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_BYTESEQ, ==, val.type);
-    assert_str_sf_vec_eq("K7=", &val.vec);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_BYTESEQ, ==, val.type);
+    assert_str_sfparse_vec_eq("K7=", &val.vec);
 
     decoded.base = buf;
-    sf_base64decode(&decoded, &val.vec);
+    sfparse_base64decode(&decoded, &val.vec);
 
-    assert_str_sf_vec_eq("\x2b", &decoded);
+    assert_str_sfparse_vec_eq("\x2b", &decoded);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* Omitting a padding and non-zero pad bits */
-    sf_parser_bytes_init(&sfp, ":K73:");
+    sfparse_parser_bytes_init(&sfp, ":K73:");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_BYTESEQ, ==, val.type);
-    assert_str_sf_vec_eq("K73", &val.vec);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_BYTESEQ, ==, val.type);
+    assert_str_sfparse_vec_eq("K73", &val.vec);
 
     decoded.base = buf;
-    sf_base64decode(&decoded, &val.vec);
+    sfparse_base64decode(&decoded, &val.vec);
 
-    assert_str_sf_vec_eq("\x2b\xbd", &decoded);
+    assert_str_sfparse_vec_eq("\x2b\xbd", &decoded);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* Not omitting a padding but non-zero pad bits */
-    sf_parser_bytes_init(&sfp, ":K73=:");
+    sfparse_parser_bytes_init(&sfp, ":K73=:");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_BYTESEQ, ==, val.type);
-    assert_str_sf_vec_eq("K73=", &val.vec);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_BYTESEQ, ==, val.type);
+    assert_str_sfparse_vec_eq("K73=", &val.vec);
 
     decoded.base = buf;
-    sf_base64decode(&decoded, &val.vec);
+    sfparse_base64decode(&decoded, &val.vec);
 
-    assert_str_sf_vec_eq("\x2b\xbd", &decoded);
+    assert_str_sfparse_vec_eq("\x2b\xbd", &decoded);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* Padding in the middle of encoded string */
-    sf_parser_bytes_init(&sfp, ":ab=a:");
+    sfparse_parser_bytes_init(&sfp, ":ab=a:");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* long binary with extra chars */
-    sf_parser_bytes_init(&sfp,
-                         ":cHJldGVuZCB0aGlzIGlzIGJpbmFyeSBjb250ZW50Lg!==:");
+    sfparse_parser_bytes_init(
+      &sfp, ":cHJldGVuZCB0aGlzIGlzIGJpbmFyeSBjb250ZW50Lg!==:");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 }
 
-void test_sf_parser_boolean(void) {
-  sf_parser sfp;
-  sf_value val;
+void test_sfparse_parser_boolean(void) {
+  sfparse_parser sfp;
+  sfparse_value val;
 
   /* https://github.com/httpwg/structured-field-tests/blob/main/boolean.json */
 
   {
     /* basic true boolean */
-    sf_parser_bytes_init(&sfp, "?1");
+    sfparse_parser_bytes_init(&sfp, "?1");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_true(val.boolean);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* basic false boolean */
-    sf_parser_bytes_init(&sfp, "?0");
+    sfparse_parser_bytes_init(&sfp, "?0");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_false(val.boolean);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* unknown boolean */
-    sf_parser_bytes_init(&sfp, "?Q");
+    sfparse_parser_bytes_init(&sfp, "?Q");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* whitespace boolean */
-    sf_parser_bytes_init(&sfp, "? 1");
+    sfparse_parser_bytes_init(&sfp, "? 1");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* negative zero boolean */
-    sf_parser_bytes_init(&sfp, "?-0");
+    sfparse_parser_bytes_init(&sfp, "?-0");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* T boolean */
-    sf_parser_bytes_init(&sfp, "?T");
+    sfparse_parser_bytes_init(&sfp, "?T");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* F boolean */
-    sf_parser_bytes_init(&sfp, "?F");
+    sfparse_parser_bytes_init(&sfp, "?F");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* t boolean */
-    sf_parser_bytes_init(&sfp, "?t");
+    sfparse_parser_bytes_init(&sfp, "?t");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* f boolean */
-    sf_parser_bytes_init(&sfp, "?f");
+    sfparse_parser_bytes_init(&sfp, "?f");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* spelled-out True boolean */
-    sf_parser_bytes_init(&sfp, "?True");
+    sfparse_parser_bytes_init(&sfp, "?True");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* spelled-out False boolean */
-    sf_parser_bytes_init(&sfp, "?False");
+    sfparse_parser_bytes_init(&sfp, "?False");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   /* Additional tests */
 
   {
     /* Just '?' */
-    sf_parser_bytes_init(&sfp, "?");
+    sfparse_parser_bytes_init(&sfp, "?");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 }
 
-void test_sf_parser_number(void) {
-  sf_parser sfp;
-  sf_value val;
+void test_sfparse_parser_number(void) {
+  sfparse_parser sfp;
+  sfparse_value val;
 
   /* https://github.com/httpwg/structured-field-tests/blob/main/number.json */
 
   {
     /* basic integer */
-    sf_parser_bytes_init(&sfp, "42");
+    sfparse_parser_bytes_init(&sfp, "42");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(42, ==, val.integer);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* zero integer */
-    sf_parser_bytes_init(&sfp, "0");
+    sfparse_parser_bytes_init(&sfp, "0");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(0, ==, val.integer);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* negative zero */
-    sf_parser_bytes_init(&sfp, "-0");
+    sfparse_parser_bytes_init(&sfp, "-0");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(0, ==, val.integer);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* double negative zero */
-    sf_parser_bytes_init(&sfp, "--0");
+    sfparse_parser_bytes_init(&sfp, "--0");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* negative integer */
-    sf_parser_bytes_init(&sfp, "-42");
+    sfparse_parser_bytes_init(&sfp, "-42");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(-42, ==, val.integer);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* leading 0 integer" */
-    sf_parser_bytes_init(&sfp, "042");
+    sfparse_parser_bytes_init(&sfp, "042");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(42, ==, val.integer);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* leading 0 negative integer */
-    sf_parser_bytes_init(&sfp, "-042");
+    sfparse_parser_bytes_init(&sfp, "-042");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(-42, ==, val.integer);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* leading 0 zero */
-    sf_parser_bytes_init(&sfp, "00");
+    sfparse_parser_bytes_init(&sfp, "00");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(0, ==, val.integer);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* comma */
-    sf_parser_bytes_init(&sfp, "2,3");
+    sfparse_parser_bytes_init(&sfp, "2,3");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(2, ==, val.integer);
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* negative non-DIGIT first character */
-    sf_parser_bytes_init(&sfp, "-a23");
+    sfparse_parser_bytes_init(&sfp, "-a23");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* sign out of place */
-    sf_parser_bytes_init(&sfp, "4-2");
+    sfparse_parser_bytes_init(&sfp, "4-2");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(4, ==, val.integer);
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* whitespace after sign */
-    sf_parser_bytes_init(&sfp, "- 42");
+    sfparse_parser_bytes_init(&sfp, "- 42");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* long integer */
-    sf_parser_bytes_init(&sfp, "123456789012345");
+    sfparse_parser_bytes_init(&sfp, "123456789012345");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(123456789012345, ==, val.integer);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* long negative integer */
-    sf_parser_bytes_init(&sfp, "-123456789012345");
+    sfparse_parser_bytes_init(&sfp, "-123456789012345");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(-123456789012345, ==, val.integer);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* too long integer */
-    sf_parser_bytes_init(&sfp, "1234567890123456");
+    sfparse_parser_bytes_init(&sfp, "1234567890123456");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* negative too long integer */
-    sf_parser_bytes_init(&sfp, "-1234567890123456");
+    sfparse_parser_bytes_init(&sfp, "-1234567890123456");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* simple decimal */
-    sf_parser_bytes_init(&sfp, "1.23");
+    sfparse_parser_bytes_init(&sfp, "1.23");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_DECIMAL, ==, val.type);
     assert_int64(123, ==, val.decimal.numer);
     assert_int64(100, ==, val.decimal.denom);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* negative decimal */
-    sf_parser_bytes_init(&sfp, "-1.23");
+    sfparse_parser_bytes_init(&sfp, "-1.23");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_DECIMAL, ==, val.type);
     assert_int64(-123, ==, val.decimal.numer);
     assert_int64(100, ==, val.decimal.denom);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* decimal, whitespace after decimal */
-    sf_parser_bytes_init(&sfp, "1. 23");
+    sfparse_parser_bytes_init(&sfp, "1. 23");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* decimal, whitespace before decimal" */
-    sf_parser_bytes_init(&sfp, "1 .23");
+    sfparse_parser_bytes_init(&sfp, "1 .23");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* negative decimal, whitespace after sign */
-    sf_parser_bytes_init(&sfp, "- 1.23");
+    sfparse_parser_bytes_init(&sfp, "- 1.23");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* tricky precision decimal */
-    sf_parser_bytes_init(&sfp, "123456789012.1");
+    sfparse_parser_bytes_init(&sfp, "123456789012.1");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_DECIMAL, ==, val.type);
     assert_int64(1234567890121, ==, val.decimal.numer);
     assert_int64(10, ==, val.decimal.denom);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* double decimal decimal */
-    sf_parser_bytes_init(&sfp, "1.5.4");
+    sfparse_parser_bytes_init(&sfp, "1.5.4");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_DECIMAL, ==, val.type);
     assert_int64(15, ==, val.decimal.numer);
     assert_int64(10, ==, val.decimal.denom);
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* adjacent double decimal decimal */
-    sf_parser_bytes_init(&sfp, "1..4");
+    sfparse_parser_bytes_init(&sfp, "1..4");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* decimal with three fractional digits */
-    sf_parser_bytes_init(&sfp, "1.123");
+    sfparse_parser_bytes_init(&sfp, "1.123");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_DECIMAL, ==, val.type);
     assert_int64(1123, ==, val.decimal.numer);
     assert_int64(1000, ==, val.decimal.denom);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* negative decimal with three fractional digits */
-    sf_parser_bytes_init(&sfp, "-1.123");
+    sfparse_parser_bytes_init(&sfp, "-1.123");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_DECIMAL, ==, val.type);
     assert_int64(-1123, ==, val.decimal.numer);
     assert_int64(1000, ==, val.decimal.denom);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* decimal with four fractional digits */
-    sf_parser_bytes_init(&sfp, "1.1234");
+    sfparse_parser_bytes_init(&sfp, "1.1234");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* negative decimal with four fractional digits */
-    sf_parser_bytes_init(&sfp, "-1.1234");
+    sfparse_parser_bytes_init(&sfp, "-1.1234");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* decimal with thirteen integer digits */
-    sf_parser_bytes_init(&sfp, "1234567890123.0");
+    sfparse_parser_bytes_init(&sfp, "1234567890123.0");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* negative decimal with thirteen integer digits */
-    sf_parser_bytes_init(&sfp, "-1234567890123.0");
+    sfparse_parser_bytes_init(&sfp, "-1234567890123.0");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   /* Additional tests */
 
   {
     /* No digits */
-    sf_parser_bytes_init(&sfp, "-a");
+    sfparse_parser_bytes_init(&sfp, "-a");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* No digits before '.' */
-    sf_parser_bytes_init(&sfp, "-.1");
+    sfparse_parser_bytes_init(&sfp, "-.1");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 }
 
-void test_sf_parser_date(void) {
-  sf_parser sfp;
-  sf_value val;
+void test_sfparse_parser_date(void) {
+  sfparse_parser sfp;
+  sfparse_value val;
 
   /* https://github.com/httpwg/structured-field-tests/blob/main/date.json */
 
   {
     /* date - 1970-01-01 00:00:00 */
-    sf_parser_bytes_init(&sfp, "@0");
+    sfparse_parser_bytes_init(&sfp, "@0");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_DATE, ==, val.type);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_DATE, ==, val.type);
     assert_int64(0, ==, val.integer);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* date - 2022-08-04 01:57:13 */
-    sf_parser_bytes_init(&sfp, "@1659578233");
+    sfparse_parser_bytes_init(&sfp, "@1659578233");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_DATE, ==, val.type);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_DATE, ==, val.type);
     assert_int64(1659578233, ==, val.integer);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* date - 1917-05-30 22:02:47 */
-    sf_parser_bytes_init(&sfp, "@-1659578233");
+    sfparse_parser_bytes_init(&sfp, "@-1659578233");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_DATE, ==, val.type);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_DATE, ==, val.type);
     assert_int64(-1659578233, ==, val.integer);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* date - 2^31 */
-    sf_parser_bytes_init(&sfp, "@2147483648");
+    sfparse_parser_bytes_init(&sfp, "@2147483648");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_DATE, ==, val.type);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_DATE, ==, val.type);
     assert_int64(2147483648, ==, val.integer);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* date - 2^32 */
-    sf_parser_bytes_init(&sfp, "@4294967296");
+    sfparse_parser_bytes_init(&sfp, "@4294967296");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_DATE, ==, val.type);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_DATE, ==, val.type);
     assert_int64(4294967296, ==, val.integer);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* date - decimal */
-    sf_parser_bytes_init(&sfp, "@1659578233.12");
+    sfparse_parser_bytes_init(&sfp, "@1659578233.12");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   /* Additional tests */
 
   {
     /* Just '@' */
-    sf_parser_bytes_init(&sfp, "@");
+    sfparse_parser_bytes_init(&sfp, "@");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 }
 
-void test_sf_parser_string(void) {
-  sf_parser sfp;
-  sf_value val;
-  sf_vec unescaped;
+void test_sfparse_parser_string(void) {
+  sfparse_parser sfp;
+  sfparse_value val;
+  sfparse_vec unescaped;
   uint8_t buf[256];
 
   /* https://github.com/httpwg/structured-field-tests/blob/main/string.json */
 
   {
     /* basic string */
-    sf_parser_bytes_init(&sfp, "\"foo bar\"");
+    sfparse_parser_bytes_init(&sfp, "\"foo bar\"");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
-    assert_str_sf_vec_eq("foo bar", &val.vec);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_STRING, ==, val.type);
+    assert_str_sfparse_vec_eq("foo bar", &val.vec);
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* empty string */
-    sf_parser_bytes_init(&sfp, "\"\"");
+    sfparse_parser_bytes_init(&sfp, "\"\"");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
-    assert_str_sf_vec_eq("", &val.vec);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_STRING, ==, val.type);
+    assert_str_sfparse_vec_eq("", &val.vec);
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* long string */
-    sf_parser_bytes_init(
+    sfparse_parser_bytes_init(
       &sfp,
       "\"foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo "
       "foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo "
       "foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo "
       "foo foo foo foo foo foo foo foo foo foo foo foo foo foo \"");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
-    assert_str_sf_vec_eq(
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_STRING, ==, val.type);
+    assert_str_sfparse_vec_eq(
       "foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo "
       "foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo "
       "foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo "
       "foo foo foo foo foo foo foo foo foo foo foo foo foo foo ",
       &val.vec);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* whitespace string */
-    sf_parser_bytes_init(&sfp, "\"   \"");
+    sfparse_parser_bytes_init(&sfp, "\"   \"");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
-    assert_str_sf_vec_eq("   ", &val.vec);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_STRING, ==, val.type);
+    assert_str_sfparse_vec_eq("   ", &val.vec);
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* non-ascii string */
-    sf_parser_bytes_init(&sfp, "\"füü\"");
+    sfparse_parser_bytes_init(&sfp, "\"füü\"");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* tab in string" */
-    sf_parser_bytes_init(&sfp, "\"\\t\"");
+    sfparse_parser_bytes_init(&sfp, "\"\\t\"");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* newline in string */
-    sf_parser_bytes_init(&sfp, "\" \\n \"");
+    sfparse_parser_bytes_init(&sfp, "\" \\n \"");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* single quoted string */
-    sf_parser_bytes_init(&sfp, "'foo'");
+    sfparse_parser_bytes_init(&sfp, "'foo'");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* unbalanced string */
-    sf_parser_bytes_init(&sfp, "\"foo");
+    sfparse_parser_bytes_init(&sfp, "\"foo");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* string quoting */
-    sf_parser_bytes_init(&sfp, "\"foo \\\"bar\\\" \\\\ baz\"");
+    sfparse_parser_bytes_init(&sfp, "\"foo \\\"bar\\\" \\\\ baz\"");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
-    assert_str_sf_vec_eq("foo \\\"bar\\\" \\\\ baz", &val.vec);
-    assert_true(val.flags & SF_VALUE_FLAG_ESCAPED_STRING);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_STRING, ==, val.type);
+    assert_str_sfparse_vec_eq("foo \\\"bar\\\" \\\\ baz", &val.vec);
+    assert_true(val.flags & SFPARSE_VALUE_FLAG_ESCAPED_STRING);
 
     unescaped.base = buf;
-    sf_unescape(&unescaped, &val.vec);
+    sfparse_unescape(&unescaped, &val.vec);
 
-    assert_str_sf_vec_eq("foo \"bar\" \\ baz", &unescaped);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_str_sfparse_vec_eq("foo \"bar\" \\ baz", &unescaped);
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* bad string quoting */
-    sf_parser_bytes_init(&sfp, "\"foo \\,\"");
+    sfparse_parser_bytes_init(&sfp, "\"foo \\,\"");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* ending string quote */
-    sf_parser_bytes_init(&sfp, "\"foo \\\"");
+    sfparse_parser_bytes_init(&sfp, "\"foo \\\"");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* abruptly ending string quote */
-    sf_parser_bytes_init(&sfp, "\"foo \\");
+    sfparse_parser_bytes_init(&sfp, "\"foo \\");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   /* Additional tests */
 
   {
     /* Just '"' */
-    sf_parser_bytes_init(&sfp, "\"");
+    sfparse_parser_bytes_init(&sfp, "\"");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* long string with invalid char */
-    sf_parser_bytes_init(
+    sfparse_parser_bytes_init(
       &sfp,
       "\"foo foo foo foo foo foo foo foo \x7f foo foo foo foo foo foo foo foo "
       "foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo "
       "foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo "
       "foo foo foo foo foo foo foo foo foo foo foo foo foo foo \"");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 }
 
-void test_sf_parser_token(void) {
-  sf_parser sfp;
-  sf_value val;
+void test_sfparse_parser_token(void) {
+  sfparse_parser sfp;
+  sfparse_value val;
 
   /* https://github.com/httpwg/structured-field-tests/blob/main/token.json */
 
   {
     /* basic token - item */
-    sf_parser_bytes_init(&sfp, "a_b-c.d3:f%00/*");
+    sfparse_parser_bytes_init(&sfp, "a_b-c.d3:f%00/*");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("a_b-c.d3:f%00/*", &val.vec);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("a_b-c.d3:f%00/*", &val.vec);
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* token with capitals - item */
-    sf_parser_bytes_init(&sfp, "fooBar");
+    sfparse_parser_bytes_init(&sfp, "fooBar");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("fooBar", &val.vec);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("fooBar", &val.vec);
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* token starting with capitals - item */
-    sf_parser_bytes_init(&sfp, "FooBar");
+    sfparse_parser_bytes_init(&sfp, "FooBar");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("FooBar", &val.vec);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("FooBar", &val.vec);
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* basic token - list */
-    sf_parser_bytes_init(&sfp, "a_b-c3/*");
+    sfparse_parser_bytes_init(&sfp, "a_b-c3/*");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("a_b-c3/*", &val.vec);
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("a_b-c3/*", &val.vec);
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* token with capitals - list */
-    sf_parser_bytes_init(&sfp, "fooBar");
+    sfparse_parser_bytes_init(&sfp, "fooBar");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("fooBar", &val.vec);
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("fooBar", &val.vec);
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* token starting with capitals - list */
-    sf_parser_bytes_init(&sfp, "FooBar");
+    sfparse_parser_bytes_init(&sfp, "FooBar");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("FooBar", &val.vec);
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("FooBar", &val.vec);
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 }
 
-void test_sf_parser_dispstring(void) {
-  sf_parser sfp;
-  sf_value val;
-  sf_vec decoded;
+void test_sfparse_parser_dispstring(void) {
+  sfparse_parser sfp;
+  sfparse_value val;
+  sfparse_vec decoded;
   uint8_t buf[128];
 
   /* https://github.com/httpwg/structured-field-tests/blob/main/display-string.json
@@ -1622,417 +1622,418 @@ void test_sf_parser_dispstring(void) {
 
   {
     /* basic display string (ascii content) */
-    sf_parser_bytes_init(&sfp, "%\"foo bar\"");
+    sfparse_parser_bytes_init(&sfp, "%\"foo bar\"");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_DISPSTRING, ==, val.type);
-    assert_str_sf_vec_eq("foo bar", &val.vec);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_DISPSTRING, ==, val.type);
+    assert_str_sfparse_vec_eq("foo bar", &val.vec);
 
     decoded.base = buf;
-    sf_pctdecode(&decoded, &val.vec);
+    sfparse_pctdecode(&decoded, &val.vec);
 
-    assert_str_sf_vec_eq("foo bar", &decoded);
+    assert_str_sfparse_vec_eq("foo bar", &decoded);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* all printable ascii */
-    sf_parser_bytes_init(&sfp, "%\" "
-                               "!%22#$%25&'()*+,-./"
-                               "0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]"
-                               "^_`abcdefghijklmnopqrstuvwxyz{|}~\"");
+    sfparse_parser_bytes_init(&sfp,
+                              "%\" "
+                              "!%22#$%25&'()*+,-./"
+                              "0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]"
+                              "^_`abcdefghijklmnopqrstuvwxyz{|}~\"");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_DISPSTRING, ==, val.type);
-    assert_str_sf_vec_eq(" !%22#$%25&'()*+,-./"
-                         "0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]"
-                         "^_`abcdefghijklmnopqrstuvwxyz{|}~",
-                         &val.vec);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_DISPSTRING, ==, val.type);
+    assert_str_sfparse_vec_eq(" !%22#$%25&'()*+,-./"
+                              "0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]"
+                              "^_`abcdefghijklmnopqrstuvwxyz{|}~",
+                              &val.vec);
 
     decoded.base = buf;
-    sf_pctdecode(&decoded, &val.vec);
+    sfparse_pctdecode(&decoded, &val.vec);
 
     assert_true(
-      str_sf_vec_eq(" !\"#$%&'()*+,-./"
-                    "0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`"
-                    "abcdefghijklmnopqrstuvwxyz{|}~",
-                    &decoded));
+      str_sfparse_vec_eq(" !\"#$%&'()*+,-./"
+                         "0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`"
+                         "abcdefghijklmnopqrstuvwxyz{|}~",
+                         &decoded));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* non-ascii display string (uppercase escaping) */
-    sf_parser_bytes_init(&sfp, "%\"f%C3%BC%C3%BC\"");
+    sfparse_parser_bytes_init(&sfp, "%\"f%C3%BC%C3%BC\"");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* non-ascii display string (lowercase escaping) */
-    sf_parser_bytes_init(&sfp, "%\"f%c3%bc%c3%bc\"");
+    sfparse_parser_bytes_init(&sfp, "%\"f%c3%bc%c3%bc\"");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_DISPSTRING, ==, val.type);
-    assert_str_sf_vec_eq("f%c3%bc%c3%bc", &val.vec);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_DISPSTRING, ==, val.type);
+    assert_str_sfparse_vec_eq("f%c3%bc%c3%bc", &val.vec);
 
     decoded.base = buf;
-    sf_pctdecode(&decoded, &val.vec);
+    sfparse_pctdecode(&decoded, &val.vec);
 
-    assert_str_sf_vec_eq("füü", &decoded);
+    assert_str_sfparse_vec_eq("füü", &decoded);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* tab in display string */
-    sf_parser_bytes_init(&sfp, "%\"\t\"");
+    sfparse_parser_bytes_init(&sfp, "%\"\t\"");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* newline in display string */
-    sf_parser_bytes_init(&sfp, "%\"\n\"");
+    sfparse_parser_bytes_init(&sfp, "%\"\n\"");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* single quoted display string */
-    sf_parser_bytes_init(&sfp, "%'foo'");
+    sfparse_parser_bytes_init(&sfp, "%'foo'");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* unquoted display string */
-    sf_parser_bytes_init(&sfp, "%foo");
+    sfparse_parser_bytes_init(&sfp, "%foo");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* display string missing initial quote */
-    sf_parser_bytes_init(&sfp, "%foo\"");
+    sfparse_parser_bytes_init(&sfp, "%foo\"");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* unbalanced display string */
-    sf_parser_bytes_init(&sfp, "%\"foo");
+    sfparse_parser_bytes_init(&sfp, "%\"foo");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* display string quoting */
-    sf_parser_bytes_init(&sfp, "%\"foo %22bar%22 \\ baz\"");
+    sfparse_parser_bytes_init(&sfp, "%\"foo %22bar%22 \\ baz\"");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_DISPSTRING, ==, val.type);
-    assert_str_sf_vec_eq("foo %22bar%22 \\ baz", &val.vec);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_DISPSTRING, ==, val.type);
+    assert_str_sfparse_vec_eq("foo %22bar%22 \\ baz", &val.vec);
 
     decoded.base = buf;
-    sf_pctdecode(&decoded, &val.vec);
+    sfparse_pctdecode(&decoded, &val.vec);
 
-    assert_str_sf_vec_eq("foo \"bar\" \\ baz", &decoded);
+    assert_str_sfparse_vec_eq("foo \"bar\" \\ baz", &decoded);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* bad display string escaping */
-    sf_parser_bytes_init(&sfp, "%\"foo %a");
+    sfparse_parser_bytes_init(&sfp, "%\"foo %a");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* bad display string utf-8 (invalid 2-byte seq) */
-    sf_parser_bytes_init(&sfp, "%\"%c3%28\"");
+    sfparse_parser_bytes_init(&sfp, "%\"%c3%28\"");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* bad display string utf-8 (invalid sequence id) */
-    sf_parser_bytes_init(&sfp, "%\"%a0%a1\"");
+    sfparse_parser_bytes_init(&sfp, "%\"%a0%a1\"");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* bad display string utf-8 (invalid hex) */
-    sf_parser_bytes_init(&sfp, "%\"%g0%1w\"");
+    sfparse_parser_bytes_init(&sfp, "%\"%g0%1w\"");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* bad display string utf-8 (invalid 3-byte seq) */
-    sf_parser_bytes_init(&sfp, "%\"%e2%28%a1\"");
+    sfparse_parser_bytes_init(&sfp, "%\"%e2%28%a1\"");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* bad display string utf-8 (invalid 4-byte seq) */
-    sf_parser_bytes_init(&sfp, "%\"%f0%28%8c%28\"");
+    sfparse_parser_bytes_init(&sfp, "%\"%f0%28%8c%28\"");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* BOM in display string */
-    sf_parser_bytes_init(&sfp, "%\"BOM: %ef%bb%bf\"");
+    sfparse_parser_bytes_init(&sfp, "%\"BOM: %ef%bb%bf\"");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_DISPSTRING, ==, val.type);
-    assert_str_sf_vec_eq("BOM: %ef%bb%bf", &val.vec);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_DISPSTRING, ==, val.type);
+    assert_str_sfparse_vec_eq("BOM: %ef%bb%bf", &val.vec);
 
     decoded.base = buf;
-    sf_pctdecode(&decoded, &val.vec);
+    sfparse_pctdecode(&decoded, &val.vec);
 
-    assert_str_sf_vec_eq("BOM: \xef\xbb\xbf", &decoded);
+    assert_str_sfparse_vec_eq("BOM: \xef\xbb\xbf", &decoded);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   /* Additional tests */
 
   {
     /* base UTF-8 string */
-    sf_parser_bytes_init(
+    sfparse_parser_bytes_init(
       &sfp,
       "%\"%e3%81%93%e3%82%93%e3%81%ab%e3%81%a1%e3%81%af%e4%b8%96%e7%95%8c\"");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_DISPSTRING, ==, val.type);
-    assert_str_sf_vec_eq(
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_DISPSTRING, ==, val.type);
+    assert_str_sfparse_vec_eq(
       "%e3%81%93%e3%82%93%e3%81%ab%e3%81%a1%e3%81%af%e4%b8%96%e7%95%8c",
       &val.vec);
 
     decoded.base = buf;
-    sf_pctdecode(&decoded, &val.vec);
+    sfparse_pctdecode(&decoded, &val.vec);
 
-    assert_str_sf_vec_eq("\xe3\x81\x93\xe3\x82\x93\xe3\x81\xab\xe3\x81\xa1"
-                         "\xe3\x81\xaf\xe4\xb8\x96\xe7\x95\x8c",
-                         &decoded);
+    assert_str_sfparse_vec_eq("\xe3\x81\x93\xe3\x82\x93\xe3\x81\xab\xe3\x81\xa1"
+                              "\xe3\x81\xaf\xe4\xb8\x96\xe7\x95\x8c",
+                              &decoded);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* truncated UTF-8 string */
-    sf_parser_bytes_init(&sfp, "%\"%e3%81%93%e3%82%93%e3%81%ab%e3%81"
-                               "%a1%e3%81%af%e4%b8%96%e7%95\"");
+    sfparse_parser_bytes_init(&sfp, "%\"%e3%81%93%e3%82%93%e3%81%ab%e3%81"
+                                    "%a1%e3%81%af%e4%b8%96%e7%95\"");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* Just '%' */
-    sf_parser_bytes_init(&sfp, "%");
+    sfparse_parser_bytes_init(&sfp, "%");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* just '%"' */
-    sf_parser_bytes_init(&sfp, "%\"");
+    sfparse_parser_bytes_init(&sfp, "%\"");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* empty dispstring */
-    sf_parser_bytes_init(&sfp, "%\"\"");
+    sfparse_parser_bytes_init(&sfp, "%\"\"");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_DISPSTRING, ==, val.type);
-    assert_str_sf_vec_eq("", &val.vec);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_DISPSTRING, ==, val.type);
+    assert_str_sfparse_vec_eq("", &val.vec);
 
     decoded.base = buf;
-    sf_pctdecode(&decoded, &val.vec);
+    sfparse_pctdecode(&decoded, &val.vec);
 
-    assert_str_sf_vec_eq("", &decoded);
+    assert_str_sfparse_vec_eq("", &decoded);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* base UTF-8 string without closing DQUOTE */
-    sf_parser_bytes_init(
+    sfparse_parser_bytes_init(
       &sfp,
       "%\"%e3%81%93%e3%82%93%e3%81%ab%e3%81%a1%e3%81%af%e4%b8%96%e7%95%8c");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* illegal character */
-    sf_parser_bytes_init(&sfp, "%\""
-                               "\x00"
-                               "\"");
+    sfparse_parser_bytes_init(&sfp, "%\""
+                                    "\x00"
+                                    "\"");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* bad percent encoding (first half) */
-    sf_parser_bytes_init(&sfp, "%\"%qa\"");
+    sfparse_parser_bytes_init(&sfp, "%\"%qa\"");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* bad percent encoding (second half) */
-    sf_parser_bytes_init(&sfp, "%\"%aq\"");
+    sfparse_parser_bytes_init(&sfp, "%\"%aq\"");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* bad percent encoding (missing 2 bytes) */
-    sf_parser_bytes_init(&sfp, "%\"%\"");
+    sfparse_parser_bytes_init(&sfp, "%\"%\"");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* bad percent encoding (missing 2nd byte) */
-    sf_parser_bytes_init(&sfp, "%\"%a\"");
+    sfparse_parser_bytes_init(&sfp, "%\"%a\"");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* ASCII string */
-    sf_parser_bytes_init(&sfp, "%\"hello world\"");
+    sfparse_parser_bytes_init(&sfp, "%\"hello world\"");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_DISPSTRING, ==, val.type);
-    assert_str_sf_vec_eq("hello world", &val.vec);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_DISPSTRING, ==, val.type);
+    assert_str_sfparse_vec_eq("hello world", &val.vec);
 
     decoded.base = buf;
-    sf_pctdecode(&decoded, &val.vec);
+    sfparse_pctdecode(&decoded, &val.vec);
 
-    assert_str_sf_vec_eq("hello world", &decoded);
+    assert_str_sfparse_vec_eq("hello world", &decoded);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* ASCII + percent-encoded UTF-8 byte sequence */
-    sf_parser_bytes_init(&sfp,
-                         "%\"This is intended for display to %c3%bcsers.\"");
+    sfparse_parser_bytes_init(
+      &sfp, "%\"This is intended for display to %c3%bcsers.\"");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_DISPSTRING, ==, val.type);
-    assert_true(
-      str_sf_vec_eq("This is intended for display to %c3%bcsers.", &val.vec));
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_DISPSTRING, ==, val.type);
+    assert_true(str_sfparse_vec_eq(
+      "This is intended for display to %c3%bcsers.", &val.vec));
 
     decoded.base = buf;
-    sf_pctdecode(&decoded, &val.vec);
+    sfparse_pctdecode(&decoded, &val.vec);
 
-    assert_str_sf_vec_eq("This is intended for display to "
-                         "\xc3\xbc"
-                         "sers.",
-                         &decoded);
+    assert_str_sfparse_vec_eq("This is intended for display to "
+                              "\xc3\xbc"
+                              "sers.",
+                              &decoded);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* overlong 2 byte sequence */
-    sf_parser_bytes_init(&sfp, "%\"%c0%af\"");
+    sfparse_parser_bytes_init(&sfp, "%\"%c0%af\"");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* Uppercase percent-encoded string is invalid */
-    sf_parser_bytes_init(&sfp,
-                         "%\"This is intended for display to %C3%BCsers.\"");
+    sfparse_parser_bytes_init(
+      &sfp, "%\"This is intended for display to %C3%BCsers.\"");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 }
 
-void test_sf_parser_dictionary(void) {
-  sf_parser sfp;
-  sf_vec key;
-  sf_value val;
-  sf_vec decoded;
+void test_sfparse_parser_dictionary(void) {
+  sfparse_parser sfp;
+  sfparse_vec key;
+  sfparse_value val;
+  sfparse_vec decoded;
   uint8_t buf[64];
 
   /* https://github.com/httpwg/structured-field-tests/blob/main/dictionary.json
@@ -2040,1697 +2041,1720 @@ void test_sf_parser_dictionary(void) {
 
   {
     /* basic dictionary */
-    sf_parser_bytes_init(&sfp, "en=\"Applepie\", da=:w4ZibGV0w6ZydGUK:");
+    sfparse_parser_bytes_init(&sfp, "en=\"Applepie\", da=:w4ZibGV0w6ZydGUK:");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("en", &key);
-    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
-    assert_str_sf_vec_eq("Applepie", &val.vec);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("en", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_STRING, ==, val.type);
+    assert_str_sfparse_vec_eq("Applepie", &val.vec);
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("da", &key);
-    assert_enum(sf_type, SF_TYPE_BYTESEQ, ==, val.type);
-    assert_str_sf_vec_eq("w4ZibGV0w6ZydGUK", &val.vec);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("da", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_BYTESEQ, ==, val.type);
+    assert_str_sfparse_vec_eq("w4ZibGV0w6ZydGUK", &val.vec);
 
     decoded.base = buf;
-    sf_base64decode(&decoded, &val.vec);
+    sfparse_base64decode(&decoded, &val.vec);
 
-    assert_str_sf_vec_eq("\xc3\x86"
-                         "blet\xc3\xa6"
-                         "rte\n",
-                         &decoded);
+    assert_str_sfparse_vec_eq("\xc3\x86"
+                              "blet\xc3\xa6"
+                              "rte\n",
+                              &decoded);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, &key, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* empty dictionary */
-    sf_parser_init(&sfp, (const uint8_t *)"", 0);
+    sfparse_parser_init(&sfp, (const uint8_t *)"", 0);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, &key, &val));
   }
 
   {
     /* single item dictionary */
-    sf_parser_bytes_init(&sfp, "a=1");
+    sfparse_parser_bytes_init(&sfp, "a=1");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, &key, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* list item dictionary */
-    sf_parser_bytes_init(&sfp, "a=(1 2)");
+    sfparse_parser_bytes_init(&sfp, "a=(1 2)");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(2, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_inner_list(&sfp, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* single list item dictionary */
-    sf_parser_bytes_init(&sfp, "a=(1)");
+    sfparse_parser_bytes_init(&sfp, "a=(1)");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_inner_list(&sfp, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* empty list item dictionary */
-    sf_parser_bytes_init(&sfp, "a=()");
+    sfparse_parser_bytes_init(&sfp, "a=()");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_inner_list(&sfp, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* no whitespace dictionary */
-    sf_parser_bytes_init(&sfp, "a=1,b=2");
+    sfparse_parser_bytes_init(&sfp, "a=1,b=2");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("b", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("b", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(2, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* extra whitespace dictionary */
-    sf_parser_bytes_init(&sfp, "a=1 ,  b=2");
+    sfparse_parser_bytes_init(&sfp, "a=1 ,  b=2");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("b", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("b", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(2, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* tab separated dictionary */
-    sf_parser_bytes_init(&sfp, "a=1\t,\tb=2");
+    sfparse_parser_bytes_init(&sfp, "a=1\t,\tb=2");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("b", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("b", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(2, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* leading whitespace dictionary */
-    sf_parser_bytes_init(&sfp, "     a=1 ,  b=2");
+    sfparse_parser_bytes_init(&sfp, "     a=1 ,  b=2");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("b", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("b", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(2, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* whitespace before = dictionary */
-    sf_parser_bytes_init(&sfp, "a =1, b=2");
+    sfparse_parser_bytes_init(&sfp, "a =1, b=2");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_true(val.boolean);
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
+               sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* whitespace after = dictionary */
-    sf_parser_bytes_init(&sfp, "a=1, b= 2");
+    sfparse_parser_bytes_init(&sfp, "a=1, b= 2");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
+               sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   /* two lines dictionary */
-  /* sf_parser does not support merging 2 lines */
+  /* sfparse_parser does not support merging 2 lines */
 
   {
     /* missing value dictionary */
-    sf_parser_bytes_init(&sfp, "a=1, b, c=3");
+    sfparse_parser_bytes_init(&sfp, "a=1, b, c=3");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("b", &key);
-    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("b", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_true(val.boolean);
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("c", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("c", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(3, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* all missing value dictionary */
-    sf_parser_bytes_init(&sfp, "a, b, c");
+    sfparse_parser_bytes_init(&sfp, "a, b, c");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_true(val.boolean);
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("b", &key);
-    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("b", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_true(val.boolean);
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("c", &key);
-    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("c", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_true(val.boolean);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* start missing value dictionary */
-    sf_parser_bytes_init(&sfp, "a, b=2");
+    sfparse_parser_bytes_init(&sfp, "a, b=2");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_true(val.boolean);
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("b", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("b", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(2, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* end missing value dictionary */
-    sf_parser_bytes_init(&sfp, "a=1, b");
+    sfparse_parser_bytes_init(&sfp, "a=1, b");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("b", &key);
-    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("b", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_true(val.boolean);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* missing value with params dictionary */
-    sf_parser_bytes_init(&sfp, "a=1, b;foo=9, c=3");
+    sfparse_parser_bytes_init(&sfp, "a=1, b;foo=9, c=3");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("b", &key);
-    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("b", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_true(val.boolean);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("foo", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("foo", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(9, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("c", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("c", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(3, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* explicit true value with params dictionary */
-    sf_parser_bytes_init(&sfp, "a=1, b=?1;foo=9, c=3");
+    sfparse_parser_bytes_init(&sfp, "a=1, b=?1;foo=9, c=3");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("b", &key);
-    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("b", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_true(val.boolean);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("foo", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("foo", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(9, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("c", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("c", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(3, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* trailing comma dictionary */
-    sf_parser_bytes_init(&sfp, "a=1, b=2,");
+    sfparse_parser_bytes_init(&sfp, "a=1, b=2,");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("b", &key);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("b", &key);
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
+               sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* empty item dictionary */
-    sf_parser_bytes_init(&sfp, "a=1,,b=2,");
+    sfparse_parser_bytes_init(&sfp, "a=1,,b=2,");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
+               sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* duplicate key dictionary */
-    /* sf_parser does no effort to find duplicates. */
-    sf_parser_bytes_init(&sfp, "a=1,b=2,a=3");
+    /* sfparse_parser does no effort to find duplicates. */
+    sfparse_parser_bytes_init(&sfp, "a=1,b=2,a=3");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("b", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("b", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(2, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(3, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* numeric key dictionary */
-    sf_parser_bytes_init(&sfp, "a=1,1b=2,a=1");
+    sfparse_parser_bytes_init(&sfp, "a=1,1b=2,a=1");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
+               sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* uppercase key dictionary */
-    sf_parser_bytes_init(&sfp, "a=1,B=2,a=1");
+    sfparse_parser_bytes_init(&sfp, "a=1,B=2,a=1");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
+               sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* bad key dictionary */
-    sf_parser_bytes_init(&sfp, "a=1,b!=2,a=1");
+    sfparse_parser_bytes_init(&sfp, "a=1,b!=2,a=1");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("b", &key);
-    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("b", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_true(val.boolean);
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
+               sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   /* Additional tests */
 
   {
     /* Empty value */
-    sf_parser_bytes_init(&sfp, "a=");
+    sfparse_parser_bytes_init(&sfp, "a=");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
+               sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 }
 
-void test_sf_parser_list(void) {
-  sf_parser sfp;
-  sf_value val;
+void test_sfparse_parser_list(void) {
+  sfparse_parser sfp;
+  sfparse_value val;
 
   /* https://github.com/httpwg/structured-field-tests/blob/main/list.json */
 
   {
     /* basic list */
-    sf_parser_bytes_init(&sfp, "1, 42");
+    sfparse_parser_bytes_init(&sfp, "1, 42");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(42, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* empty list" */
-    sf_parser_init(&sfp, (const uint8_t *)"", 0);
+    sfparse_parser_init(&sfp, (const uint8_t *)"", 0);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, &val));
   }
 
   {
     /* leading SP list */
-    sf_parser_bytes_init(&sfp, "  42, 43");
+    sfparse_parser_bytes_init(&sfp, "  42, 43");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(42, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(43, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* single item list */
-    sf_parser_bytes_init(&sfp, "42");
+    sfparse_parser_bytes_init(&sfp, "42");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(42, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* no whitespace list */
-    sf_parser_bytes_init(&sfp, "1,42");
+    sfparse_parser_bytes_init(&sfp, "1,42");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(42, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* extra whitespace list */
-    sf_parser_bytes_init(&sfp, "1 , 42");
+    sfparse_parser_bytes_init(&sfp, "1 , 42");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(42, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* tab separated list */
-    sf_parser_bytes_init(&sfp, "1\t,\t42");
+    sfparse_parser_bytes_init(&sfp, "1\t,\t42");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(42, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   /* two line list */
-  /* sf_parser does not support merging 2 lines */
+  /* sfparse_parser does not support merging 2 lines */
 
   {
     /* trailing comma list */
-    sf_parser_bytes_init(&sfp, "1, 42,");
+    sfparse_parser_bytes_init(&sfp, "1, 42,");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(42, ==, val.integer);
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* empty item list */
-    sf_parser_bytes_init(&sfp, "1,,42");
+    sfparse_parser_bytes_init(&sfp, "1,,42");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   /* empty item list (multiple field lines) */
-  /* sf_parser does not support merging 2 lines */
+  /* sfparse_parser does not support merging 2 lines */
 }
 
-void test_sf_parser_list_list(void) {
-  sf_parser sfp;
-  sf_value val;
+void test_sfparse_parser_list_list(void) {
+  sfparse_parser sfp;
+  sfparse_value val;
 
   /* https://github.com/httpwg/structured-field-tests/blob/main/listlist.json */
 
   {
     /* basic list of lists */
-    sf_parser_bytes_init(&sfp, "(1 2), (42 43)");
+    sfparse_parser_bytes_init(&sfp, "(1 2), (42 43)");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(2, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_inner_list(&sfp, &val));
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(42, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(43, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_inner_list(&sfp, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* single item list of lists */
-    sf_parser_bytes_init(&sfp, "(42)");
+    sfparse_parser_bytes_init(&sfp, "(42)");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(42, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_inner_list(&sfp, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* empty item list of lists" */
-    sf_parser_bytes_init(&sfp, "()");
+    sfparse_parser_bytes_init(&sfp, "()");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_inner_list(&sfp, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* empty middle item list of lists */
-    sf_parser_bytes_init(&sfp, "(1),(),(42)");
+    sfparse_parser_bytes_init(&sfp, "(1),(),(42)");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_inner_list(&sfp, &val));
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_inner_list(&sfp, &val));
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(42, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_inner_list(&sfp, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* extra whitespace list of lists */
-    sf_parser_bytes_init(&sfp, "(  1  42  )");
+    sfparse_parser_bytes_init(&sfp, "(  1  42  )");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(42, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_inner_list(&sfp, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* wrong whitespace list of lists */
-    sf_parser_bytes_init(&sfp, "(1\t 42)");
+    sfparse_parser_bytes_init(&sfp, "(1\t 42)");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_inner_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
+               sfparse_parser_inner_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* no trailing parenthesis list of lists */
-    sf_parser_bytes_init(&sfp, "(1 42");
+    sfparse_parser_bytes_init(&sfp, "(1 42");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(42, ==, val.integer);
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_inner_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
+               sfparse_parser_inner_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* no trailing parenthesis middle list of lists */
-    sf_parser_bytes_init(&sfp, "(1 2, (42 43)");
+    sfparse_parser_bytes_init(&sfp, "(1 2, (42 43)");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(2, ==, val.integer);
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_inner_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
+               sfparse_parser_inner_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* no spaces in inner-list */
-    sf_parser_bytes_init(&sfp, "(abc\"def\"?0123*dXZ3*xyz)");
+    sfparse_parser_bytes_init(&sfp, "(abc\"def\"?0123*dXZ3*xyz)");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("abc", &val.vec);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("abc", &val.vec);
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_inner_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
+               sfparse_parser_inner_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* no closing parenthesis */
-    sf_parser_bytes_init(&sfp, "(");
+    sfparse_parser_bytes_init(&sfp, "(");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_inner_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
+               sfparse_parser_inner_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   /* Additional tests */
 
   {
     /* Just ')' */
-    sf_parser_bytes_init(&sfp, ")");
+    sfparse_parser_bytes_init(&sfp, ")");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 }
 
-void test_sf_parser_param_dict(void) {
-  sf_parser sfp;
-  sf_vec key;
-  sf_value val;
+void test_sfparse_parser_param_dict(void) {
+  sfparse_parser sfp;
+  sfparse_vec key;
+  sfparse_value val;
 
   /* https://github.com/httpwg/structured-field-tests/blob/main/param-dict.json
    */
 
   {
     /* basic parameterised dict */
-    sf_parser_bytes_init(&sfp,
-                         "abc=123;a=1;b=2, def=456, ghi=789;q=9;r=\"+w\"");
+    sfparse_parser_bytes_init(&sfp,
+                              "abc=123;a=1;b=2, def=456, ghi=789;q=9;r=\"+w\"");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("abc", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("abc", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(123, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("b", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("b", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(2, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("def", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("def", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(456, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("ghi", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("ghi", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(789, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("q", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("q", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(9, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("r", &key);
-    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
-    assert_str_sf_vec_eq("+w", &val.vec);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("r", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_STRING, ==, val.type);
+    assert_str_sfparse_vec_eq("+w", &val.vec);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* single item parameterised dict */
-    sf_parser_bytes_init(&sfp, "a=b; q=1.0");
+    sfparse_parser_bytes_init(&sfp, "a=b; q=1.0");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("b", &val.vec);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("b", &val.vec);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("q", &key);
-    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("q", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_DECIMAL, ==, val.type);
     assert_int64(10, ==, val.decimal.numer);
     assert_int64(10, ==, val.decimal.denom);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* list item parameterised dictionary */
-    sf_parser_bytes_init(&sfp, "a=(1 2); q=1.0");
+    sfparse_parser_bytes_init(&sfp, "a=(1 2); q=1.0");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(2, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_inner_list(&sfp, &val));
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("q", &key);
-    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("q", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_DECIMAL, ==, val.type);
     assert_int64(10, ==, val.decimal.numer);
     assert_int64(10, ==, val.decimal.denom);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* missing parameter value parameterised dict */
-    sf_parser_bytes_init(&sfp, "a=3;c;d=5");
+    sfparse_parser_bytes_init(&sfp, "a=3;c;d=5");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(3, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("c", &key);
-    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("c", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_true(val.boolean);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("d", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("d", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(5, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* terminal missing parameter value parameterised dict */
-    sf_parser_bytes_init(&sfp, "a=3;c=5;d");
+    sfparse_parser_bytes_init(&sfp, "a=3;c=5;d");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(3, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("c", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("c", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(5, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("d", &key);
-    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("d", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_true(val.boolean);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* no whitespace parameterised dict */
-    sf_parser_bytes_init(&sfp, "a=b;c=1,d=e;f=2");
+    sfparse_parser_bytes_init(&sfp, "a=b;c=1,d=e;f=2");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("b", &val.vec);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("b", &val.vec);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("c", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("c", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("d", &key);
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("e", &val.vec);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("d", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("e", &val.vec);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("f", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("f", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(2, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* whitespace before = parameterised dict */
-    sf_parser_bytes_init(&sfp, "a=b;q =0.5");
+    sfparse_parser_bytes_init(&sfp, "a=b;q =0.5");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("b", &val.vec);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("b", &val.vec);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("q", &key);
-    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("q", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_true(val.boolean);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
+               sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* whitespace after = parameterised dict */
-    sf_parser_bytes_init(&sfp, "a=b;q= 0.5");
+    sfparse_parser_bytes_init(&sfp, "a=b;q= 0.5");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("b", &val.vec);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("b", &val.vec);
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
+               sfparse_parser_param(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* whitespace before ; parameterised dict */
-    sf_parser_bytes_init(&sfp, "a=b ;q=0.5");
+    sfparse_parser_bytes_init(&sfp, "a=b ;q=0.5");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("b", &val.vec);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("b", &val.vec);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
+               sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* whitespace after ; parameterised dict */
-    sf_parser_bytes_init(&sfp, "a=b; q=0.5");
+    sfparse_parser_bytes_init(&sfp, "a=b; q=0.5");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("b", &val.vec);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("b", &val.vec);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("q", &key);
-    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("q", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_DECIMAL, ==, val.type);
     assert_int64(5, ==, val.decimal.numer);
     assert_int64(10, ==, val.decimal.denom);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* extra whitespace parameterised dict */
-    sf_parser_bytes_init(&sfp, "a=b;  c=1  ,  d=e; f=2; g=3");
+    sfparse_parser_bytes_init(&sfp, "a=b;  c=1  ,  d=e; f=2; g=3");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("b", &val.vec);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("b", &val.vec);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("c", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("c", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("d", &key);
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("e", &val.vec);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("d", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("e", &val.vec);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("f", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("f", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(2, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("g", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("g", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(3, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   /* two lines parameterised list */
-  /* sf_parser does not support merging 2 lines */
+  /* sfparse_parser does not support merging 2 lines */
 
   {
     /* trailing comma parameterised list */
-    sf_parser_bytes_init(&sfp, "a=b; q=1.0,");
+    sfparse_parser_bytes_init(&sfp, "a=b; q=1.0,");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("b", &val.vec);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("b", &val.vec);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("q", &key);
-    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("q", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_DECIMAL, ==, val.type);
     assert_int64(10, ==, val.decimal.numer);
     assert_int64(10, ==, val.decimal.denom);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
+               sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* empty item parameterised list */
-    sf_parser_bytes_init(&sfp, "a=b; q=1.0,,c=d");
+    sfparse_parser_bytes_init(&sfp, "a=b; q=1.0,,c=d");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("b", &val.vec);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("b", &val.vec);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("q", &key);
-    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("q", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_DECIMAL, ==, val.type);
     assert_int64(10, ==, val.decimal.numer);
     assert_int64(10, ==, val.decimal.denom);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
+               sfparse_parser_dict(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   /* Additional tests */
 
   {
     /* empty parameter value */
-    sf_parser_bytes_init(&sfp, "a=b;c=");
+    sfparse_parser_bytes_init(&sfp, "a=b;c=");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("b", &val.vec);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("b", &val.vec);
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
+               sfparse_parser_param(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 }
 
-void test_sf_parser_param_list(void) {
-  sf_parser sfp;
-  sf_vec key;
-  sf_value val;
+void test_sfparse_parser_param_list(void) {
+  sfparse_parser sfp;
+  sfparse_vec key;
+  sfparse_value val;
 
   /* https://github.com/httpwg/structured-field-tests/blob/main/param-list.json
    */
 
   {
     /* basic parameterised list */
-    sf_parser_bytes_init(&sfp, "abc_123;a=1;b=2; cdef_456, ghi;q=9;r=\"+w\"");
+    sfparse_parser_bytes_init(&sfp,
+                              "abc_123;a=1;b=2; cdef_456, ghi;q=9;r=\"+w\"");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("abc_123", &val.vec);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("abc_123", &val.vec);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("b", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("b", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(2, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("cdef_456", &key);
-    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("cdef_456", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_true(val.boolean);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("ghi", &val.vec);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("ghi", &val.vec);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("q", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("q", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(9, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("r", &key);
-    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
-    assert_str_sf_vec_eq("+w", &val.vec);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("r", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_STRING, ==, val.type);
+    assert_str_sfparse_vec_eq("+w", &val.vec);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* single item parameterised list */
-    sf_parser_bytes_init(&sfp, "text/html;q=1.0");
+    sfparse_parser_bytes_init(&sfp, "text/html;q=1.0");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("text/html", &val.vec);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("text/html", &val.vec);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("q", &key);
-    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("q", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_DECIMAL, ==, val.type);
     assert_int64(10, ==, val.decimal.numer);
     assert_int64(10, ==, val.decimal.denom);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* missing parameter value parameterised list */
-    sf_parser_bytes_init(&sfp, "text/html;a;q=1.0");
+    sfparse_parser_bytes_init(&sfp, "text/html;a;q=1.0");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("text/html", &val.vec);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("text/html", &val.vec);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_true(val.boolean);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("q", &key);
-    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("q", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_DECIMAL, ==, val.type);
     assert_int64(10, ==, val.decimal.numer);
     assert_int64(10, ==, val.decimal.denom);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* missing terminal parameter value parameterised list */
-    sf_parser_bytes_init(&sfp, "text/html;q=1.0;a");
+    sfparse_parser_bytes_init(&sfp, "text/html;q=1.0;a");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("text/html", &val.vec);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("text/html", &val.vec);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("q", &key);
-    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("q", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_DECIMAL, ==, val.type);
     assert_int64(10, ==, val.decimal.numer);
     assert_int64(10, ==, val.decimal.denom);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_true(val.boolean);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* no whitespace parameterised list */
-    sf_parser_bytes_init(&sfp, "text/html,text/plain;q=0.5");
+    sfparse_parser_bytes_init(&sfp, "text/html,text/plain;q=0.5");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("text/html", &val.vec);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("text/html", &val.vec);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("text/plain", &val.vec);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("text/plain", &val.vec);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("q", &key);
-    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("q", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_DECIMAL, ==, val.type);
     assert_int64(5, ==, val.decimal.numer);
     assert_int64(10, ==, val.decimal.denom);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* whitespace before = parameterised list */
-    sf_parser_bytes_init(&sfp, "text/html, text/plain;q =0.5");
+    sfparse_parser_bytes_init(&sfp, "text/html, text/plain;q =0.5");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("text/html", &val.vec);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("text/html", &val.vec);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("text/plain", &val.vec);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("text/plain", &val.vec);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("q", &key);
-    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("q", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_true(val.boolean);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* whitespace after = parameterised list */
-    sf_parser_bytes_init(&sfp, "text/html, text/plain;q= 0.5");
+    sfparse_parser_bytes_init(&sfp, "text/html, text/plain;q= 0.5");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("text/html", &val.vec);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("text/html", &val.vec);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("text/plain", &val.vec);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("text/plain", &val.vec);
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
+               sfparse_parser_param(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* whitespace before ; parameterised list */
-    sf_parser_bytes_init(&sfp, "text/html, text/plain ;q=0.5");
+    sfparse_parser_bytes_init(&sfp, "text/html, text/plain ;q=0.5");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("text/html", &val.vec);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("text/html", &val.vec);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("text/plain", &val.vec);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("text/plain", &val.vec);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* whitespace after ; parameterised list */
-    sf_parser_bytes_init(&sfp, "text/html, text/plain; q=0.5");
+    sfparse_parser_bytes_init(&sfp, "text/html, text/plain; q=0.5");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("text/html", &val.vec);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("text/html", &val.vec);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("text/plain", &val.vec);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("text/plain", &val.vec);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("q", &key);
-    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("q", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_DECIMAL, ==, val.type);
     assert_int64(5, ==, val.decimal.numer);
     assert_int64(10, ==, val.decimal.denom);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* extra whitespace parameterised list */
-    sf_parser_bytes_init(&sfp,
-                         "text/html  ,  text/plain;  q=0.5;  charset=utf-8");
+    sfparse_parser_bytes_init(
+      &sfp, "text/html  ,  text/plain;  q=0.5;  charset=utf-8");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("text/html", &val.vec);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("text/html", &val.vec);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("text/plain", &val.vec);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("text/plain", &val.vec);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("q", &key);
-    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("q", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_DECIMAL, ==, val.type);
     assert_int64(5, ==, val.decimal.numer);
     assert_int64(10, ==, val.decimal.denom);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("charset", &key);
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("utf-8", &val.vec);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("charset", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("utf-8", &val.vec);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   /* two lines parameterised list */
-  /* sf_parser does not support merging 2 lines */
+  /* sfparse_parser does not support merging 2 lines */
 
   {
     /* trailing comma parameterised list */
-    sf_parser_bytes_init(&sfp, "text/html,text/plain;q=0.5,");
+    sfparse_parser_bytes_init(&sfp, "text/html,text/plain;q=0.5,");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("text/html", &val.vec);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("text/html", &val.vec);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("text/plain", &val.vec);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("text/plain", &val.vec);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("q", &key);
-    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("q", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_DECIMAL, ==, val.type);
     assert_int64(5, ==, val.decimal.numer);
     assert_int64(10, ==, val.decimal.denom);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* empty item parameterised list */
-    sf_parser_bytes_init(&sfp, "text/html,,text/plain;q=0.5,");
+    sfparse_parser_bytes_init(&sfp, "text/html,,text/plain;q=0.5,");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("text/html", &val.vec);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("text/html", &val.vec);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   /* Additional tests */
 
   {
     /* empty parameter value */
-    sf_parser_bytes_init(&sfp, "a;b=");
+    sfparse_parser_bytes_init(&sfp, "a;b=");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("a", &val.vec);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("a", &val.vec);
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
+               sfparse_parser_param(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 }
 
-void test_sf_parser_param_list_list(void) {
-  sf_parser sfp;
-  sf_vec key;
-  sf_value val;
+void test_sfparse_parser_param_list_list(void) {
+  sfparse_parser sfp;
+  sfparse_vec key;
+  sfparse_value val;
 
   /* https://github.com/httpwg/structured-field-tests/blob/main/param-listlist.json
    */
 
   {
     /* parameterised inner list */
-    sf_parser_bytes_init(&sfp, "(abc_123);a=1;b=2, cdef_456");
+    sfparse_parser_bytes_init(&sfp, "(abc_123);a=1;b=2, cdef_456");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("abc_123", &val.vec);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("abc_123", &val.vec);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_inner_list(&sfp, &val));
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("b", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("b", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(2, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("cdef_456", &val.vec);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("cdef_456", &val.vec);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* parameterised inner list item */
-    sf_parser_bytes_init(&sfp, "(abc_123;a=1;b=2;cdef_456)");
+    sfparse_parser_bytes_init(&sfp, "(abc_123;a=1;b=2;cdef_456)");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("abc_123", &val.vec);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("abc_123", &val.vec);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("b", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("b", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(2, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("cdef_456", &key);
-    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("cdef_456", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_true(val.boolean);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_inner_list(&sfp, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* parameterised inner list with parameterised item */
-    sf_parser_bytes_init(&sfp, "(abc_123;a=1;b=2);cdef_456");
+    sfparse_parser_bytes_init(&sfp, "(abc_123;a=1;b=2);cdef_456");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("abc_123", &val.vec);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("abc_123", &val.vec);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("b", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("b", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(2, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_inner_list(&sfp, &val));
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("cdef_456", &key);
-    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("cdef_456", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_true(val.boolean);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   /* Additional tests */
 
   {
     /* empty parameter value */
-    sf_parser_bytes_init(&sfp, "(a;b= 1)");
+    sfparse_parser_bytes_init(&sfp, "(a;b= 1)");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("a", &val.vec);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("a", &val.vec);
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
+               sfparse_parser_param(&sfp, &key, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 }
 
-void test_sf_parser_number_generated(void) {
-  sf_parser sfp;
-  sf_value val;
+void test_sfparse_parser_number_generated(void) {
+  sfparse_parser sfp;
+  sfparse_value val;
   size_t len, i, j;
   size_t flen;
   const char digits[] = {'0', '1', '9'};
@@ -3747,13 +3771,13 @@ void test_sf_parser_number_generated(void) {
 
       integer = strtoll((char *)buf, NULL, 10);
 
-      sf_parser_bytes_len_init(&sfp, buf, len);
+      sfparse_parser_bytes_len_init(&sfp, buf, len);
 
-      assert_int(0, ==, sf_parser_item(&sfp, &val));
-      assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+      assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+      assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
       assert_int64(integer, ==, val.integer);
 
-      sf_parser_bytes_free();
+      sfparse_parser_bytes_free();
     }
   }
 
@@ -3775,59 +3799,59 @@ void test_sf_parser_number_generated(void) {
           denom *= 10;
         }
 
-        sf_parser_bytes_len_init(&sfp, buf, len + 1 + flen);
+        sfparse_parser_bytes_len_init(&sfp, buf, len + 1 + flen);
 
-        assert_int(0, ==, sf_parser_item(&sfp, &val));
-        assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+        assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+        assert_enum(sfparse_type, SFPARSE_TYPE_DECIMAL, ==, val.type);
         assert_int64(integer, ==, val.decimal.numer);
         assert_int64(denom, ==, val.decimal.denom);
-        assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+        assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-        sf_parser_bytes_free();
+        sfparse_parser_bytes_free();
       }
     }
   }
 
   {
     /* too many digit 0 decimal */
-    sf_parser_bytes_init(&sfp, "000000000000000.0");
+    sfparse_parser_bytes_init(&sfp, "000000000000000.0");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* too many fractional digits 0 decimal */
-    sf_parser_bytes_init(&sfp, "000000000000.0000");
+    sfparse_parser_bytes_init(&sfp, "000000000000.0000");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* too many digit 9 decimal */
-    sf_parser_bytes_init(&sfp, "999999999999999.9");
+    sfparse_parser_bytes_init(&sfp, "999999999999999.9");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* too many fractional digits 9 decimal */
-    sf_parser_bytes_init(&sfp, "999999999999.9999");
+    sfparse_parser_bytes_init(&sfp, "999999999999.9999");
 
-    assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 }
 
-void test_sf_parser_string_generated(void) {
-  sf_parser sfp;
-  sf_value val;
+void test_sfparse_parser_string_generated(void) {
+  sfparse_parser sfp;
+  sfparse_value val;
   size_t i;
   uint8_t buf[64];
   int rv;
@@ -3842,26 +3866,26 @@ void test_sf_parser_string_generated(void) {
     buf[3] = ' ';
     buf[4] = '"';
 
-    sf_parser_bytes_len_init(&sfp, buf, sizeof(buf));
+    sfparse_parser_bytes_len_init(&sfp, buf, sizeof(buf));
 
-    rv = sf_parser_item(&sfp, &val);
+    rv = sfparse_parser_item(&sfp, &val);
 
     if (i == 0x20 || i == 0x21 || (0x23 <= i && i <= 0x5b) ||
         (0x5d <= i && i <= 0x7e) || i == 0x22) {
       assert_int(0, ==, rv);
 
-      rv = sf_parser_item(&sfp, NULL);
+      rv = sfparse_parser_item(&sfp, NULL);
 
       if (i == 0x22) {
-        assert_int(SF_ERR_PARSE_ERROR, ==, rv);
+        assert_int(SFPARSE_ERR_PARSE_ERROR, ==, rv);
       } else {
-        assert_int(SF_ERR_EOF, ==, rv);
+        assert_int(SFPARSE_ERR_EOF, ==, rv);
       }
     } else {
-      assert_int(SF_ERR_PARSE_ERROR, ==, rv);
+      assert_int(SFPARSE_ERR_PARSE_ERROR, ==, rv);
     }
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   /* Escaped 0x?? in string */
@@ -3873,25 +3897,25 @@ void test_sf_parser_string_generated(void) {
     buf[2] = (uint8_t)i;
     buf[3] = '"';
 
-    sf_parser_bytes_len_init(&sfp, buf, sizeof(buf));
+    sfparse_parser_bytes_len_init(&sfp, buf, sizeof(buf));
 
-    rv = sf_parser_item(&sfp, &val);
+    rv = sfparse_parser_item(&sfp, &val);
 
     if (i == '\\' || i == '"') {
       assert_int(0, ==, rv);
-      assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+      assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
     } else {
-      assert_int(SF_ERR_PARSE_ERROR, ==, rv);
+      assert_int(SFPARSE_ERR_PARSE_ERROR, ==, rv);
     }
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 }
 
-void test_sf_parser_token_generated(void) {
-  sf_parser sfp;
-  sf_vec key;
-  sf_value val;
+void test_sfparse_parser_token_generated(void) {
+  sfparse_parser sfp;
+  sfparse_vec key;
+  sfparse_value val;
   size_t i;
   uint8_t buf[64];
   int rv;
@@ -3904,32 +3928,33 @@ void test_sf_parser_token_generated(void) {
     buf[1] = (uint8_t)i;
     buf[2] = 'a';
 
-    sf_parser_bytes_len_init(&sfp, buf, sizeof(buf));
+    sfparse_parser_bytes_len_init(&sfp, buf, sizeof(buf));
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
 
     if (is_token_char((uint8_t)i)) {
-      assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+      assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
       assert_size(3, ==, val.vec.len);
       assert_memory_equal(3, buf, val.vec.base);
-      assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+      assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
     } else {
-      assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-      assert_str_sf_vec_eq("a", &val.vec);
+      assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+      assert_str_sfparse_vec_eq("a", &val.vec);
 
       if (i == ';') {
-        assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-        assert_str_sf_vec_eq("a", &key);
-        assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+        assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+        assert_str_sfparse_vec_eq("a", &key);
+        assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
         assert_true(val.boolean);
-        assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, &key, &val));
-        assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, &val));
+        assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
+        assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, &val));
       } else {
-        assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, NULL));
+        assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
+                   sfparse_parser_item(&sfp, NULL));
       }
     }
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   /* 0x?? starting a token */
@@ -3939,45 +3964,46 @@ void test_sf_parser_token_generated(void) {
     buf[0] = (uint8_t)i;
     buf[1] = 'a';
 
-    sf_parser_bytes_len_init(&sfp, buf, sizeof(buf));
+    sfparse_parser_bytes_len_init(&sfp, buf, sizeof(buf));
 
-    rv = sf_parser_item(&sfp, &val);
+    rv = sfparse_parser_item(&sfp, &val);
 
     if (is_first_token_char((uint8_t)i)) {
       assert_int(0, ==, rv);
-      assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+      assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
       assert_size(2, ==, val.vec.len);
       assert_memory_equal(2, buf, val.vec.base);
-      assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+      assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
     } else if (i == ' ') {
       assert_int(0, ==, rv);
-      assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-      assert_str_sf_vec_eq("a", &val.vec);
-      assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+      assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+      assert_str_sfparse_vec_eq("a", &val.vec);
+      assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
     } else if ('0' <= i && i <= '9') {
       assert_int(0, ==, rv);
-      assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+      assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
       assert_int64((int64_t)(i - '0'), ==, val.integer);
-      assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_item(&sfp, NULL));
+      assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, NULL));
     } else if (i == '(') {
       assert_int(0, ==, rv);
-      assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
-      assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-      assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-      assert_str_sf_vec_eq("a", &val.vec);
-      assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_inner_list(&sfp, NULL));
+      assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
+      assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+      assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+      assert_str_sfparse_vec_eq("a", &val.vec);
+      assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
+                 sfparse_parser_inner_list(&sfp, NULL));
     } else {
-      assert_int(SF_ERR_PARSE_ERROR, ==, rv);
+      assert_int(SFPARSE_ERR_PARSE_ERROR, ==, rv);
     }
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 }
 
-void test_sf_parser_key_generated(void) {
-  sf_parser sfp;
-  sf_vec key;
-  sf_value val;
+void test_sfparse_parser_key_generated(void) {
+  sfparse_parser sfp;
+  sfparse_vec key;
+  sfparse_value val;
   size_t i;
   uint8_t buf[64];
   int rv;
@@ -3991,22 +4017,22 @@ void test_sf_parser_key_generated(void) {
     buf[1] = '=';
     buf[2] = '1';
 
-    sf_parser_bytes_len_init(&sfp, buf, sizeof(buf));
+    sfparse_parser_bytes_len_init(&sfp, buf, sizeof(buf));
 
-    rv = sf_parser_dict(&sfp, &key, &val);
+    rv = sfparse_parser_dict(&sfp, &key, &val);
 
     if (('a' <= i && i <= 'z') || i == '*') {
       assert_int(0, ==, rv);
       assert_size(1, ==, key.len);
       assert_uint8((uint8_t)i, ==, key.base[0]);
-      assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+      assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
       assert_int64(1, ==, val.integer);
-      assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, NULL, NULL));
+      assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, NULL, NULL));
     } else {
-      assert_int(SF_ERR_PARSE_ERROR, ==, rv);
+      assert_int(SFPARSE_ERR_PARSE_ERROR, ==, rv);
     }
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   /* 0x?? in dictionary key */
@@ -4019,48 +4045,50 @@ void test_sf_parser_key_generated(void) {
     buf[3] = '=';
     buf[4] = '1';
 
-    sf_parser_bytes_len_init(&sfp, buf, sizeof(buf));
+    sfparse_parser_bytes_len_init(&sfp, buf, sizeof(buf));
 
-    rv = sf_parser_dict(&sfp, &key, &val);
+    rv = sfparse_parser_dict(&sfp, &key, &val);
 
     if (is_key_char((uint8_t)i)) {
       assert_int(0, ==, rv);
       assert_size(3, ==, key.len);
       assert_memory_equal(3, buf, key.base);
-      assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+      assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
       assert_int64(1, ==, val.integer);
-      assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, NULL, NULL));
+      assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, NULL, NULL));
     } else if (i == '=') {
       assert_int(0, ==, rv);
-      assert_str_sf_vec_eq("a", &key);
-      assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-      assert_str_sf_vec_eq("a", &val.vec);
-      assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_dict(&sfp, NULL, NULL));
+      assert_str_sfparse_vec_eq("a", &key);
+      assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+      assert_str_sfparse_vec_eq("a", &val.vec);
+      assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
+                 sfparse_parser_dict(&sfp, NULL, NULL));
     } else {
       assert_int(0, ==, rv);
-      assert_str_sf_vec_eq("a", &key);
-      assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+      assert_str_sfparse_vec_eq("a", &key);
+      assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
       assert_true(val.boolean);
 
       if (i == ',') {
-        assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-        assert_str_sf_vec_eq("a", &key);
-        assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+        assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+        assert_str_sfparse_vec_eq("a", &key);
+        assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
         assert_int64(1, ==, val.integer);
-        assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, NULL, NULL));
+        assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, NULL, NULL));
       } else if (i == ';') {
-        assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-        assert_str_sf_vec_eq("a", &key);
-        assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+        assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+        assert_str_sfparse_vec_eq("a", &key);
+        assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
         assert_int64(1, ==, val.integer);
-        assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
-        assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, NULL, NULL));
+        assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, NULL, NULL));
+        assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, NULL, NULL));
       } else {
-        assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_dict(&sfp, NULL, NULL));
+        assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
+                   sfparse_parser_dict(&sfp, NULL, NULL));
       }
     }
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   /* 0x?? starting a dictionary key */
@@ -4072,28 +4100,28 @@ void test_sf_parser_key_generated(void) {
     buf[2] = '=';
     buf[3] = '1';
 
-    sf_parser_bytes_len_init(&sfp, buf, sizeof(buf));
+    sfparse_parser_bytes_len_init(&sfp, buf, sizeof(buf));
 
-    rv = sf_parser_dict(&sfp, &key, &val);
+    rv = sfparse_parser_dict(&sfp, &key, &val);
 
     if (is_first_key_char((uint8_t)i)) {
       assert_int(0, ==, rv);
       assert_size(2, ==, key.len);
       assert_memory_equal(2, buf, key.base);
-      assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+      assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
       assert_int64(1, ==, val.integer);
-      assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, NULL, NULL));
+      assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, NULL, NULL));
     } else if (i == ' ') {
       assert_int(0, ==, rv);
-      assert_str_sf_vec_eq("a", &key);
-      assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+      assert_str_sfparse_vec_eq("a", &key);
+      assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
       assert_int64(1, ==, val.integer);
-      assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, NULL, NULL));
+      assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, NULL, NULL));
     } else {
-      assert_int(SF_ERR_PARSE_ERROR, ==, rv);
+      assert_int(SFPARSE_ERR_PARSE_ERROR, ==, rv);
     }
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   /* 0x?? in parameterised list key */
@@ -4103,56 +4131,57 @@ void test_sf_parser_key_generated(void) {
     len = snprintf((char *)buf, sizeof(buf), "foo; a%ca=1", (char)i);
     buf[len] = ' ';
 
-    sf_parser_bytes_len_init(&sfp, buf, sizeof(buf));
+    sfparse_parser_bytes_len_init(&sfp, buf, sizeof(buf));
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("foo", &val.vec);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("foo", &val.vec);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
 
     if (is_key_char((uint8_t)i)) {
       assert_size(3, ==, key.len);
       assert_memory_equal(3, buf + 5, key.base);
-      assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+      assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
       assert_int64(1, ==, val.integer);
-      assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
-      assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, NULL));
+      assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, NULL, NULL));
+      assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, NULL));
     } else if (i == '=') {
-      assert_str_sf_vec_eq("a", &key);
-      assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-      assert_str_sf_vec_eq("a", &val.vec);
-      assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
-      assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_list(&sfp, NULL));
+      assert_str_sfparse_vec_eq("a", &key);
+      assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+      assert_str_sfparse_vec_eq("a", &val.vec);
+      assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, NULL, NULL));
+      assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_list(&sfp, NULL));
     } else {
-      assert_str_sf_vec_eq("a", &key);
-      assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+      assert_str_sfparse_vec_eq("a", &key);
+      assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
       assert_true(val.boolean);
 
       if (i == ';') {
-        assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-        assert_str_sf_vec_eq("a", &key);
-        assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+        assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+        assert_str_sfparse_vec_eq("a", &key);
+        assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
         assert_int64(1, ==, val.integer);
-        assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
-        assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, NULL));
+        assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, NULL, NULL));
+        assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, NULL));
       } else {
-        assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
+        assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, NULL, NULL));
 
-        rv = sf_parser_list(&sfp, &val);
+        rv = sfparse_parser_list(&sfp, &val);
 
         if (i == ',') {
           assert_int(0, ==, rv);
-          assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-          assert_str_sf_vec_eq("a", &val.vec);
-          assert_int(SF_ERR_PARSE_ERROR, ==, sf_parser_list(&sfp, NULL));
+          assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+          assert_str_sfparse_vec_eq("a", &val.vec);
+          assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
+                     sfparse_parser_list(&sfp, NULL));
         } else {
-          assert_int(SF_ERR_PARSE_ERROR, ==, rv);
+          assert_int(SFPARSE_ERR_PARSE_ERROR, ==, rv);
         }
       }
     }
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   /* 0x?? starting a parameterised list key */
@@ -4162,40 +4191,40 @@ void test_sf_parser_key_generated(void) {
     len = snprintf((char *)buf, sizeof(buf), "foo; %ca=1", (char)i);
     buf[len] = ' ';
 
-    sf_parser_bytes_len_init(&sfp, buf, sizeof(buf));
+    sfparse_parser_bytes_len_init(&sfp, buf, sizeof(buf));
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("foo", &val.vec);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("foo", &val.vec);
 
-    rv = sf_parser_param(&sfp, &key, &val);
+    rv = sfparse_parser_param(&sfp, &key, &val);
 
     if (is_first_key_char((uint8_t)i)) {
       assert_int(0, ==, rv);
       assert_size(2, ==, key.len);
       assert_memory_equal(2, buf + 5, key.base);
-      assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+      assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
       assert_int64(1, ==, val.integer);
-      assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
-      assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, NULL));
+      assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, NULL, NULL));
+      assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, NULL));
     } else if (i == ' ') {
       assert_int(0, ==, rv);
-      assert_str_sf_vec_eq("a", &key);
-      assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+      assert_str_sfparse_vec_eq("a", &key);
+      assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
       assert_int64(1, ==, val.integer);
-      assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
-      assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, NULL));
+      assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, NULL, NULL));
+      assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, NULL));
     } else {
-      assert_int(SF_ERR_PARSE_ERROR, ==, rv);
+      assert_int(SFPARSE_ERR_PARSE_ERROR, ==, rv);
     }
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 }
 
-void test_sf_parser_byteseq_generated(void) {
-  sf_parser sfp;
-  sf_value val;
+void test_sfparse_parser_byteseq_generated(void) {
+  sfparse_parser sfp;
+  sfparse_value val;
   size_t i;
   uint8_t buf[64];
   int rv;
@@ -4211,30 +4240,30 @@ void test_sf_parser_byteseq_generated(void) {
     buf[4] = 'h';
     buf[5] = ':';
 
-    sf_parser_bytes_len_init(&sfp, buf, sizeof(buf));
+    sfparse_parser_bytes_len_init(&sfp, buf, sizeof(buf));
 
-    rv = sf_parser_item(&sfp, &val);
+    rv = sfparse_parser_item(&sfp, &val);
 
     if (i == '+' || i == '/' || ('0' <= i && i <= '9') ||
         ('A' <= i && i <= 'Z') || ('a' <= i && i <= 'z')) {
       assert_int(0, ==, rv);
 
-      rv = sf_parser_item(&sfp, NULL);
+      rv = sfparse_parser_item(&sfp, NULL);
 
-      assert_int(SF_ERR_EOF, ==, rv);
+      assert_int(SFPARSE_ERR_EOF, ==, rv);
     } else {
-      assert_int(SF_ERR_PARSE_ERROR, ==, rv);
+      assert_int(SFPARSE_ERR_PARSE_ERROR, ==, rv);
     }
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 }
 
-void test_sf_parser_large_generated(void) {
-  sf_parser sfp;
-  sf_vec key;
-  sf_value val;
-  sf_vec unescaped;
+void test_sfparse_parser_large_generated(void) {
+  sfparse_parser sfp;
+  sfparse_vec key;
+  sfparse_value val;
+  sfparse_vec unescaped;
   uint8_t buf[16384], sbuf[16];
   uint8_t *p;
   size_t i;
@@ -4252,38 +4281,38 @@ void test_sf_parser_large_generated(void) {
 
     len = (int)(p - buf - 2);
 
-    sf_parser_bytes_len_init(&sfp, buf, (size_t)len);
+    sfparse_parser_bytes_len_init(&sfp, buf, (size_t)len);
 
     for (i = 0; i < 1024; ++i) {
-      assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
+      assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
 
       len = snprintf((char *)sbuf, sizeof(sbuf), "a%d", (int)i);
 
       assert_size((size_t)len, ==, key.len);
       assert_memory_equal((size_t)len, sbuf, key.base);
-      assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+      assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
       assert_int64(1, ==, val.integer);
     }
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, NULL, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, NULL, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* large dictionary key */
-    sf_parser_bytes_init(
+    sfparse_parser_bytes_init(
       &sfp,
       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa=1");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq(
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq(
       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, NULL, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, NULL, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
@@ -4298,21 +4327,21 @@ void test_sf_parser_large_generated(void) {
 
     len = (int)(p - buf - 2);
 
-    sf_parser_bytes_len_init(&sfp, buf, (size_t)len);
+    sfparse_parser_bytes_len_init(&sfp, buf, (size_t)len);
 
     for (i = 0; i < 1024; ++i) {
-      assert_int(0, ==, sf_parser_list(&sfp, &val));
+      assert_int(0, ==, sfparse_parser_list(&sfp, &val));
 
       len = snprintf((char *)sbuf, sizeof(sbuf), "a%d", (int)i);
 
-      assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
+      assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
       assert_size((size_t)len, ==, val.vec.len);
       assert_memory_equal((size_t)len, sbuf, val.vec.base);
     }
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
@@ -4327,26 +4356,26 @@ void test_sf_parser_large_generated(void) {
 
     len = (int)(p - buf - 2);
 
-    sf_parser_bytes_len_init(&sfp, buf, (size_t)len);
+    sfparse_parser_bytes_len_init(&sfp, buf, (size_t)len);
 
     for (i = 0; i < 1024; ++i) {
-      assert_int(0, ==, sf_parser_list(&sfp, &val));
-      assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-      assert_str_sf_vec_eq("foo", &val.vec);
+      assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+      assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+      assert_str_sfparse_vec_eq("foo", &val.vec);
 
       len = snprintf((char *)sbuf, sizeof(sbuf), "a%d", (int)i);
 
-      assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+      assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
       assert_size((size_t)len, ==, key.len);
       assert_memory_equal((size_t)len, sbuf, key.base);
-      assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+      assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
       assert_int64(1, ==, val.integer);
-      assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
+      assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, NULL, NULL));
     }
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
@@ -4365,56 +4394,56 @@ void test_sf_parser_large_generated(void) {
 
     len = (int)(p - buf);
 
-    sf_parser_bytes_len_init(&sfp, buf, (size_t)len);
+    sfparse_parser_bytes_len_init(&sfp, buf, (size_t)len);
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("foo", &val.vec);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("foo", &val.vec);
 
     for (i = 0; i < 1024; ++i) {
       len = snprintf((char *)sbuf, sizeof(sbuf), "a%d", (int)i);
 
-      assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
+      assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
       assert_size((size_t)len, ==, key.len);
       assert_memory_equal((size_t)len, sbuf, key.base);
-      assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+      assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
       assert_int64(1, ==, val.integer);
     }
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, NULL, NULL));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* large param key */
-    sf_parser_bytes_init(
+    sfparse_parser_bytes_init(
       &sfp,
       "foo;aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa="
       "1");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("foo", &val.vec);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("foo", &val.vec);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq(
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq(
       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, NULL, NULL));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* large string */
-    sf_parser_bytes_init(
+    sfparse_parser_bytes_init(
       &sfp,
       "\"===================================================================="
       "======================================================================"
@@ -4432,9 +4461,9 @@ void test_sf_parser_large_generated(void) {
       "======================================================================"
       "==============================================\"");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
-    assert_str_sf_vec_eq(
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_STRING, ==, val.type);
+    assert_str_sfparse_vec_eq(
       "======================================================================"
       "======================================================================"
       "======================================================================"
@@ -4451,14 +4480,14 @@ void test_sf_parser_large_generated(void) {
       "======================================================================"
       "============================================",
       &val.vec);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* large escaped string */
-    sf_parser_bytes_init(
+    sfparse_parser_bytes_init(
       &sfp,
       "\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\""
       "\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\"
@@ -4520,14 +4549,14 @@ void test_sf_parser_large_generated(void) {
       "\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\"
       "\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\\\"\"");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
-    assert_true(val.flags & SF_VALUE_FLAG_ESCAPED_STRING);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_STRING, ==, val.type);
+    assert_true(val.flags & SFPARSE_VALUE_FLAG_ESCAPED_STRING);
 
     unescaped.base = buf;
-    sf_unescape(&unescaped, &val.vec);
+    sfparse_unescape(&unescaped, &val.vec);
 
-    assert_str_sf_vec_eq(
+    assert_str_sfparse_vec_eq(
       "\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\""
       "\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\""
       "\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\""
@@ -4559,14 +4588,14 @@ void test_sf_parser_large_generated(void) {
       "\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\""
       "\"\"\"\"\"\"\"\"\"",
       &unescaped);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* large token */
-    sf_parser_bytes_init(
+    sfparse_parser_bytes_init(
       &sfp,
       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -4577,9 +4606,9 @@ void test_sf_parser_large_generated(void) {
       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
       "aaaaaaaaaaaaaaaaaaaaaa");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq(
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq(
       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -4589,520 +4618,520 @@ void test_sf_parser_large_generated(void) {
       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
       "aaaaaaaaaaaaaaaaaaaaaa",
       &val.vec);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 }
 
-void test_sf_parser_examples(void) {
-  sf_parser sfp;
-  sf_vec key;
-  sf_value val;
-  sf_vec decoded;
+void test_sfparse_parser_examples(void) {
+  sfparse_parser sfp;
+  sfparse_vec key;
+  sfparse_value val;
+  sfparse_vec decoded;
   uint8_t buf[64];
 
   /* https://github.com/httpwg/structured-field-tests/blob/main/examples.json */
 
   {
     /* Foo-Example */
-    sf_parser_bytes_init(&sfp, "2; foourl=\"https://foo.example.com/\"");
+    sfparse_parser_bytes_init(&sfp, "2; foourl=\"https://foo.example.com/\"");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(2, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("foourl", &key);
-    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
-    assert_false(val.flags & SF_VALUE_FLAG_ESCAPED_STRING);
-    assert_str_sf_vec_eq("https://foo.example.com/", &val.vec);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("foourl", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_STRING, ==, val.type);
+    assert_false(val.flags & SFPARSE_VALUE_FLAG_ESCAPED_STRING);
+    assert_str_sfparse_vec_eq("https://foo.example.com/", &val.vec);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, NULL, NULL));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* Example-StrListHeader */
-    sf_parser_bytes_init(&sfp,
-                         "\"foo\", \"bar\", \"It was the best of times.\"");
+    sfparse_parser_bytes_init(
+      &sfp, "\"foo\", \"bar\", \"It was the best of times.\"");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
-    assert_false(val.flags & SF_VALUE_FLAG_ESCAPED_STRING);
-    assert_str_sf_vec_eq("foo", &val.vec);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_STRING, ==, val.type);
+    assert_false(val.flags & SFPARSE_VALUE_FLAG_ESCAPED_STRING);
+    assert_str_sfparse_vec_eq("foo", &val.vec);
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
-    assert_false(val.flags & SF_VALUE_FLAG_ESCAPED_STRING);
-    assert_str_sf_vec_eq("bar", &val.vec);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_STRING, ==, val.type);
+    assert_false(val.flags & SFPARSE_VALUE_FLAG_ESCAPED_STRING);
+    assert_str_sfparse_vec_eq("bar", &val.vec);
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
-    assert_false(val.flags & SF_VALUE_FLAG_ESCAPED_STRING);
-    assert_str_sf_vec_eq("It was the best of times.", &val.vec);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_STRING, ==, val.type);
+    assert_false(val.flags & SFPARSE_VALUE_FLAG_ESCAPED_STRING);
+    assert_str_sfparse_vec_eq("It was the best of times.", &val.vec);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* Example-StrListListHeader */
-    sf_parser_bytes_init(&sfp,
-                         "(\"foo\" \"bar\"), (\"baz\"), (\"bat\" \"one\"), ()");
+    sfparse_parser_bytes_init(
+      &sfp, "(\"foo\" \"bar\"), (\"baz\"), (\"bat\" \"one\"), ()");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
-    assert_str_sf_vec_eq("foo", &val.vec);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_STRING, ==, val.type);
+    assert_str_sfparse_vec_eq("foo", &val.vec);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
-    assert_str_sf_vec_eq("bar", &val.vec);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_STRING, ==, val.type);
+    assert_str_sfparse_vec_eq("bar", &val.vec);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_inner_list(&sfp, NULL));
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
-    assert_str_sf_vec_eq("baz", &val.vec);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_STRING, ==, val.type);
+    assert_str_sfparse_vec_eq("baz", &val.vec);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_inner_list(&sfp, NULL));
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
-    assert_str_sf_vec_eq("bat", &val.vec);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_STRING, ==, val.type);
+    assert_str_sfparse_vec_eq("bat", &val.vec);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
-    assert_str_sf_vec_eq("one", &val.vec);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_STRING, ==, val.type);
+    assert_str_sfparse_vec_eq("one", &val.vec);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_inner_list(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* Example-ListListParam */
-    sf_parser_bytes_init(&sfp,
-                         "(\"foo\"; a=1;b=2);lvl=5, (\"bar\" \"baz\");lvl=1");
+    sfparse_parser_bytes_init(
+      &sfp, "(\"foo\"; a=1;b=2);lvl=5, (\"bar\" \"baz\");lvl=1");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
-    assert_str_sf_vec_eq("foo", &val.vec);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_STRING, ==, val.type);
+    assert_str_sfparse_vec_eq("foo", &val.vec);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("b", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("b", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(2, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, NULL, NULL));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_inner_list(&sfp, NULL));
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("lvl", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("lvl", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(5, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, NULL, NULL));
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
-    assert_str_sf_vec_eq("bar", &val.vec);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_STRING, ==, val.type);
+    assert_str_sfparse_vec_eq("bar", &val.vec);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
-    assert_str_sf_vec_eq("baz", &val.vec);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_STRING, ==, val.type);
+    assert_str_sfparse_vec_eq("baz", &val.vec);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_inner_list(&sfp, &val));
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("lvl", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("lvl", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, NULL, NULL));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* Example-ParamListHeader */
-    sf_parser_bytes_init(&sfp,
-                         "abc;a=1;b=2; cde_456, (ghi;jk=4 l);q=\"9\";r=w");
+    sfparse_parser_bytes_init(&sfp,
+                              "abc;a=1;b=2; cde_456, (ghi;jk=4 l);q=\"9\";r=w");
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("abc", &val.vec);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("abc", &val.vec);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("b", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("b", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(2, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("cde_456", &key);
-    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("cde_456", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_true(val.boolean);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, NULL, NULL));
 
-    assert_int(0, ==, sf_parser_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("ghi", &val.vec);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("ghi", &val.vec);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("jk", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("jk", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(4, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, NULL, NULL));
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("l", &val.vec);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("l", &val.vec);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_inner_list(&sfp, NULL));
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("q", &key);
-    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
-    assert_str_sf_vec_eq("9", &val.vec);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("q", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_STRING, ==, val.type);
+    assert_str_sfparse_vec_eq("9", &val.vec);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("r", &key);
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("w", &val.vec);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("r", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("w", &val.vec);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, NULL, NULL));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_list(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* Example-IntHeader */
-    sf_parser_bytes_init(&sfp, "1; a; b=?0");
+    sfparse_parser_bytes_init(&sfp, "1; a; b=?0");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_true(val.boolean);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("b", &key);
-    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("b", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_false(val.boolean);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, NULL, NULL));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* Example-DictHeader */
-    sf_parser_bytes_init(&sfp, "en=\"Applepie\", da=:w4ZibGV0w6ZydGU=:");
+    sfparse_parser_bytes_init(&sfp, "en=\"Applepie\", da=:w4ZibGV0w6ZydGU=:");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("en", &key);
-    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
-    assert_str_sf_vec_eq("Applepie", &val.vec);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("en", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_STRING, ==, val.type);
+    assert_str_sfparse_vec_eq("Applepie", &val.vec);
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("da", &key);
-    assert_enum(sf_type, SF_TYPE_BYTESEQ, ==, val.type);
-    assert_str_sf_vec_eq("w4ZibGV0w6ZydGU=", &val.vec);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("da", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_BYTESEQ, ==, val.type);
+    assert_str_sfparse_vec_eq("w4ZibGV0w6ZydGU=", &val.vec);
 
     decoded.base = buf;
-    sf_base64decode(&decoded, &val.vec);
+    sfparse_base64decode(&decoded, &val.vec);
 
-    assert_str_sf_vec_eq("\xc3\x86"
-                         "blet\xc3\xa6"
-                         "rte",
-                         &decoded);
+    assert_str_sfparse_vec_eq("\xc3\x86"
+                              "blet\xc3\xa6"
+                              "rte",
+                              &decoded);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, NULL, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, NULL, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* Example-DictHeader (boolean values) */
-    sf_parser_bytes_init(&sfp, "a=?0, b, c; foo=bar");
+    sfparse_parser_bytes_init(&sfp, "a=?0, b, c; foo=bar");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_false(val.boolean);
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("b", &key);
-    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("b", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_true(val.boolean);
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("c", &key);
-    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("c", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_true(val.boolean);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("foo", &key);
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("bar", &val.vec);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("foo", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("bar", &val.vec);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, NULL, NULL));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, NULL, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, NULL, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* Example-DictListHeader */
-    sf_parser_bytes_init(&sfp, "rating=1.5, feelings=(joy sadness)");
+    sfparse_parser_bytes_init(&sfp, "rating=1.5, feelings=(joy sadness)");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("rating", &key);
-    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("rating", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_DECIMAL, ==, val.type);
     assert_int64(15, ==, val.decimal.numer);
     assert_int64(10, ==, val.decimal.denom);
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("feelings", &key);
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("feelings", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("joy", &val.vec);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("joy", &val.vec);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("sadness", &val.vec);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("sadness", &val.vec);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_inner_list(&sfp, NULL));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, NULL, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, NULL, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* Example-MixDict */
-    sf_parser_bytes_init(&sfp, "a=(1 2), b=3, c=4;aa=bb, d=(5 6);valid");
+    sfparse_parser_bytes_init(&sfp, "a=(1 2), b=3, c=4;aa=bb, d=(5 6);valid");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("a", &key);
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("a", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(2, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_inner_list(&sfp, NULL));
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("b", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("b", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(3, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("c", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("c", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(4, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("aa", &key);
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("bb", &val.vec);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("aa", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("bb", &val.vec);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, NULL, NULL));
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("d", &key);
-    assert_enum(sf_type, SF_TYPE_INNER_LIST, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("d", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(5, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_inner_list(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(6, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_inner_list(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_inner_list(&sfp, NULL));
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("valid", &key);
-    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("valid", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_true(val.boolean);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, NULL, NULL));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, NULL, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, NULL, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* Example-Hdr (dictionary on one line) */
-    sf_parser_bytes_init(&sfp, "foo=1, bar=2");
+    sfparse_parser_bytes_init(&sfp, "foo=1, bar=2");
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("foo", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("foo", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_dict(&sfp, &key, &val));
-    assert_str_sf_vec_eq("bar", &key);
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("bar", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(2, ==, val.integer);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_dict(&sfp, NULL, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, NULL, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* Example-IntItemHeader */
-    sf_parser_bytes_init(&sfp, "5");
+    sfparse_parser_bytes_init(&sfp, "5");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(5, ==, val.integer);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* Example-IntItemHeader (params) */
-    sf_parser_bytes_init(&sfp, "5; foo=bar");
+    sfparse_parser_bytes_init(&sfp, "5; foo=bar");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(5, ==, val.integer);
 
-    assert_int(0, ==, sf_parser_param(&sfp, &key, &val));
-    assert_str_sf_vec_eq("foo", &key);
-    assert_enum(sf_type, SF_TYPE_TOKEN, ==, val.type);
-    assert_str_sf_vec_eq("bar", &val.vec);
+    assert_int(0, ==, sfparse_parser_param(&sfp, &key, &val));
+    assert_str_sfparse_vec_eq("foo", &key);
+    assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
+    assert_str_sfparse_vec_eq("bar", &val.vec);
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_param(&sfp, NULL, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, NULL, NULL));
 
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* Example-IntegerHeader */
-    sf_parser_bytes_init(&sfp, "42");
+    sfparse_parser_bytes_init(&sfp, "42");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_INTEGER, ==, val.type);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(42, ==, val.integer);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* Example-FloatHeader */
-    sf_parser_bytes_init(&sfp, "4.5");
+    sfparse_parser_bytes_init(&sfp, "4.5");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_DECIMAL, ==, val.type);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_DECIMAL, ==, val.type);
     assert_int64(45, ==, val.decimal.numer);
     assert_int64(10, ==, val.decimal.denom);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* Example-StringHeader */
-    sf_parser_bytes_init(&sfp, "\"hello world\"");
+    sfparse_parser_bytes_init(&sfp, "\"hello world\"");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_STRING, ==, val.type);
-    assert_str_sf_vec_eq("hello world", &val.vec);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_STRING, ==, val.type);
+    assert_str_sfparse_vec_eq("hello world", &val.vec);
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* Example-BinaryHdr */
-    sf_parser_bytes_init(&sfp,
-                         ":cHJldGVuZCB0aGlzIGlzIGJpbmFyeSBjb250ZW50Lg==:");
+    sfparse_parser_bytes_init(&sfp,
+                              ":cHJldGVuZCB0aGlzIGlzIGJpbmFyeSBjb250ZW50Lg==:");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_BYTESEQ, ==, val.type);
-    assert_str_sf_vec_eq("cHJldGVuZCB0aGlzIGlzIGJpbmFyeSBjb250ZW50Lg==",
-                         &val.vec);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_BYTESEQ, ==, val.type);
+    assert_str_sfparse_vec_eq("cHJldGVuZCB0aGlzIGlzIGJpbmFyeSBjb250ZW50Lg==",
+                              &val.vec);
 
     decoded.base = buf;
-    sf_base64decode(&decoded, &val.vec);
+    sfparse_base64decode(&decoded, &val.vec);
 
-    assert_str_sf_vec_eq("pretend this is binary content.", &decoded);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_str_sfparse_vec_eq("pretend this is binary content.", &decoded);
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 
   {
     /* Example-BoolHdr */
-    sf_parser_bytes_init(&sfp, "?1");
+    sfparse_parser_bytes_init(&sfp, "?1");
 
-    assert_int(0, ==, sf_parser_item(&sfp, &val));
-    assert_enum(sf_type, SF_TYPE_BOOLEAN, ==, val.type);
+    assert_int(0, ==, sfparse_parser_item(&sfp, &val));
+    assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_true(val.boolean);
-    assert_int(SF_ERR_EOF, ==, sf_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
 
-    sf_parser_bytes_free();
+    sfparse_parser_bytes_free();
   }
 }
