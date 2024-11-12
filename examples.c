@@ -567,7 +567,7 @@ static void example_item(void) {
 
     rv = sfparse_parser_item(&sfp, NULL);
 
-    assert(SFPARSE_ERR_PARSE_ERROR == rv);
+    assert(SFPARSE_ERR_PARSE == rv);
   }
 }
 
@@ -587,7 +587,7 @@ static int parse_rfc9218_priority(rfc9218_priority *pri, const uint8_t *data,
   for (;;) {
     rv = sfparse_parser_dict(&sfp, &key, &val);
     if (rv != 0) {
-      if (rv == SFPARSE_ERR_PARSE_ERROR) {
+      if (rv == SFPARSE_ERR_PARSE) {
         return -1;
       }
 
