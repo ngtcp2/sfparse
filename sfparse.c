@@ -34,38 +34,42 @@
 #  include <immintrin.h>
 #endif /* __AVX2__ */
 
-#define SF_STATE_DICT 0x08u
-#define SF_STATE_LIST 0x10u
-#define SF_STATE_ITEM 0x18u
+#define SFPARSE_STATE_DICT 0x08u
+#define SFPARSE_STATE_LIST 0x10u
+#define SFPARSE_STATE_ITEM 0x18u
 
-#define SF_STATE_INNER_LIST 0x04u
+#define SFPARSE_STATE_INNER_LIST 0x04u
 
-#define SF_STATE_BEFORE 0x00u
-#define SF_STATE_BEFORE_PARAMS 0x01u
-#define SF_STATE_PARAMS 0x02u
-#define SF_STATE_AFTER 0x03u
+#define SFPARSE_STATE_BEFORE 0x00u
+#define SFPARSE_STATE_BEFORE_PARAMS 0x01u
+#define SFPARSE_STATE_PARAMS 0x02u
+#define SFPARSE_STATE_AFTER 0x03u
 
-#define SF_STATE_OP_MASK 0x03u
+#define SFPARSE_STATE_OP_MASK 0x03u
 
-#define SF_SET_STATE_AFTER(NAME) (SF_STATE_##NAME | SF_STATE_AFTER)
-#define SF_SET_STATE_BEFORE_PARAMS(NAME)                                       \
-  (SF_STATE_##NAME | SF_STATE_BEFORE_PARAMS)
-#define SF_SET_STATE_INNER_LIST_BEFORE(NAME)                                   \
-  (SF_STATE_##NAME | SF_STATE_INNER_LIST | SF_STATE_BEFORE)
+#define SFPARSE_SET_STATE_AFTER(NAME)                                          \
+  (SFPARSE_STATE_##NAME | SFPARSE_STATE_AFTER)
+#define SFPARSE_SET_STATE_BEFORE_PARAMS(NAME)                                  \
+  (SFPARSE_STATE_##NAME | SFPARSE_STATE_BEFORE_PARAMS)
+#define SFPARSE_SET_STATE_INNER_LIST_BEFORE(NAME)                              \
+  (SFPARSE_STATE_##NAME | SFPARSE_STATE_INNER_LIST | SFPARSE_STATE_BEFORE)
 
-#define SF_STATE_DICT_AFTER SF_SET_STATE_AFTER(DICT)
-#define SF_STATE_DICT_BEFORE_PARAMS SF_SET_STATE_BEFORE_PARAMS(DICT)
-#define SF_STATE_DICT_INNER_LIST_BEFORE SF_SET_STATE_INNER_LIST_BEFORE(DICT)
+#define SFPARSE_STATE_DICT_AFTER SFPARSE_SET_STATE_AFTER(DICT)
+#define SFPARSE_STATE_DICT_BEFORE_PARAMS SFPARSE_SET_STATE_BEFORE_PARAMS(DICT)
+#define SFPARSE_STATE_DICT_INNER_LIST_BEFORE                                   \
+  SFPARSE_SET_STATE_INNER_LIST_BEFORE(DICT)
 
-#define SF_STATE_LIST_AFTER SF_SET_STATE_AFTER(LIST)
-#define SF_STATE_LIST_BEFORE_PARAMS SF_SET_STATE_BEFORE_PARAMS(LIST)
-#define SF_STATE_LIST_INNER_LIST_BEFORE SF_SET_STATE_INNER_LIST_BEFORE(LIST)
+#define SFPARSE_STATE_LIST_AFTER SFPARSE_SET_STATE_AFTER(LIST)
+#define SFPARSE_STATE_LIST_BEFORE_PARAMS SFPARSE_SET_STATE_BEFORE_PARAMS(LIST)
+#define SFPARSE_STATE_LIST_INNER_LIST_BEFORE                                   \
+  SFPARSE_SET_STATE_INNER_LIST_BEFORE(LIST)
 
-#define SF_STATE_ITEM_AFTER SF_SET_STATE_AFTER(ITEM)
-#define SF_STATE_ITEM_BEFORE_PARAMS SF_SET_STATE_BEFORE_PARAMS(ITEM)
-#define SF_STATE_ITEM_INNER_LIST_BEFORE SF_SET_STATE_INNER_LIST_BEFORE(ITEM)
+#define SFPARSE_STATE_ITEM_AFTER SFPARSE_SET_STATE_AFTER(ITEM)
+#define SFPARSE_STATE_ITEM_BEFORE_PARAMS SFPARSE_SET_STATE_BEFORE_PARAMS(ITEM)
+#define SFPARSE_STATE_ITEM_INNER_LIST_BEFORE                                   \
+  SFPARSE_SET_STATE_INNER_LIST_BEFORE(ITEM)
 
-#define SF_STATE_INITIAL 0x00u
+#define SFPARSE_STATE_INITIAL 0x00u
 
 #define DIGIT_CASES                                                            \
   case '0':                                                                    \
@@ -401,25 +405,25 @@ static int ctz(unsigned int v) {
 #  endif /* !_MSC_VER */
 #endif   /* __AVX2__ */
 
-static int parser_eof(sf_parser *sfp) { return sfp->pos == sfp->end; }
+static int parser_eof(sfparse_parser *sfp) { return sfp->pos == sfp->end; }
 
-static void parser_discard_ows(sf_parser *sfp) {
+static void parser_discard_ows(sfparse_parser *sfp) {
   for (; !parser_eof(sfp) && is_ws(*sfp->pos); ++sfp->pos)
     ;
 }
 
-static void parser_discard_sp(sf_parser *sfp) {
+static void parser_discard_sp(sfparse_parser *sfp) {
   for (; !parser_eof(sfp) && *sfp->pos == ' '; ++sfp->pos)
     ;
 }
 
-static void parser_set_op_state(sf_parser *sfp, uint32_t op) {
-  sfp->state &= ~SF_STATE_OP_MASK;
+static void parser_set_op_state(sfparse_parser *sfp, uint32_t op) {
+  sfp->state &= ~SFPARSE_STATE_OP_MASK;
   sfp->state |= op;
 }
 
-static void parser_unset_inner_list_state(sf_parser *sfp) {
-  sfp->state &= ~SF_STATE_INNER_LIST;
+static void parser_unset_inner_list_state(sfparse_parser *sfp) {
+  sfp->state &= ~SFPARSE_STATE_INNER_LIST;
 }
 
 #ifdef __AVX2__
@@ -459,7 +463,7 @@ static const uint8_t *find_char_key(const uint8_t *first, const uint8_t *last) {
 }
 #endif /* __AVX2__ */
 
-static int parser_key(sf_parser *sfp, sf_vec *dest) {
+static int parser_key(sfparse_parser *sfp, sfparse_vec *dest) {
   const uint8_t *base;
 #ifdef __AVX2__
   const uint8_t *last;
@@ -470,7 +474,7 @@ static int parser_key(sf_parser *sfp, sf_vec *dest) {
   LCALPHA_CASES:
     break;
   default:
-    return SF_ERR_PARSE_ERROR;
+    return SFPARSE_ERR_PARSE_ERROR;
   }
 
   base = sfp->pos++;
@@ -511,7 +515,7 @@ fin:
   return 0;
 }
 
-static int parser_number(sf_parser *sfp, sf_value *dest) {
+static int parser_number(sfparse_parser *sfp, sfparse_value *dest) {
   int sign = 1;
   int64_t value = 0;
   size_t len = 0;
@@ -520,7 +524,7 @@ static int parser_number(sf_parser *sfp, sf_value *dest) {
   if (*sfp->pos == '-') {
     ++sfp->pos;
     if (parser_eof(sfp)) {
-      return SF_ERR_PARSE_ERROR;
+      return SFPARSE_ERR_PARSE_ERROR;
     }
 
     sign = -1;
@@ -532,7 +536,7 @@ static int parser_number(sf_parser *sfp, sf_value *dest) {
     switch (*sfp->pos) {
     DIGIT_CASES:
       if (++len > 15) {
-        return SF_ERR_PARSE_ERROR;
+        return SFPARSE_ERR_PARSE_ERROR;
       }
 
       value *= 10;
@@ -545,13 +549,13 @@ static int parser_number(sf_parser *sfp, sf_value *dest) {
   }
 
   if (len == 0) {
-    return SF_ERR_PARSE_ERROR;
+    return SFPARSE_ERR_PARSE_ERROR;
   }
 
   if (parser_eof(sfp) || *sfp->pos != '.') {
     if (dest) {
-      dest->type = SF_TYPE_INTEGER;
-      dest->flags = SF_VALUE_FLAG_NONE;
+      dest->type = SFPARSE_TYPE_INTEGER;
+      dest->flags = SFPARSE_VALUE_FLAG_NONE;
       dest->integer = value * sign;
     }
 
@@ -561,7 +565,7 @@ static int parser_number(sf_parser *sfp, sf_value *dest) {
   /* decimal */
 
   if (len > 12) {
-    return SF_ERR_PARSE_ERROR;
+    return SFPARSE_ERR_PARSE_ERROR;
   }
 
   fpos = len;
@@ -572,7 +576,7 @@ static int parser_number(sf_parser *sfp, sf_value *dest) {
     switch (*sfp->pos) {
     DIGIT_CASES:
       if (++len > 15) {
-        return SF_ERR_PARSE_ERROR;
+        return SFPARSE_ERR_PARSE_ERROR;
       }
 
       value *= 10;
@@ -585,12 +589,12 @@ static int parser_number(sf_parser *sfp, sf_value *dest) {
   }
 
   if (fpos == len || len - fpos > 3) {
-    return SF_ERR_PARSE_ERROR;
+    return SFPARSE_ERR_PARSE_ERROR;
   }
 
   if (dest) {
-    dest->type = SF_TYPE_DECIMAL;
-    dest->flags = SF_VALUE_FLAG_NONE;
+    dest->type = SFPARSE_TYPE_DECIMAL;
+    dest->flags = SFPARSE_VALUE_FLAG_NONE;
     dest->decimal.numer = value * sign;
 
     switch (len - fpos) {
@@ -612,9 +616,9 @@ static int parser_number(sf_parser *sfp, sf_value *dest) {
   return 0;
 }
 
-static int parser_date(sf_parser *sfp, sf_value *dest) {
+static int parser_date(sfparse_parser *sfp, sfparse_value *dest) {
   int rv;
-  sf_value val;
+  sfparse_value val;
 
   /* The first byte has already been validated by the caller. */
   assert('@' == *sfp->pos);
@@ -622,7 +626,7 @@ static int parser_date(sf_parser *sfp, sf_value *dest) {
   ++sfp->pos;
 
   if (parser_eof(sfp)) {
-    return SF_ERR_PARSE_ERROR;
+    return SFPARSE_ERR_PARSE_ERROR;
   }
 
   rv = parser_number(sfp, &val);
@@ -630,13 +634,13 @@ static int parser_date(sf_parser *sfp, sf_value *dest) {
     return rv;
   }
 
-  if (val.type != SF_TYPE_INTEGER) {
-    return SF_ERR_PARSE_ERROR;
+  if (val.type != SFPARSE_TYPE_INTEGER) {
+    return SFPARSE_ERR_PARSE_ERROR;
   }
 
   if (dest) {
     *dest = val;
-    dest->type = SF_TYPE_DATE;
+    dest->type = SFPARSE_TYPE_DATE;
   }
 
   return 0;
@@ -670,12 +674,12 @@ static const uint8_t *find_char_string(const uint8_t *first,
 }
 #endif /* __AVX2__ */
 
-static int parser_string(sf_parser *sfp, sf_value *dest) {
+static int parser_string(sfparse_parser *sfp, sfparse_value *dest) {
   const uint8_t *base;
 #ifdef __AVX2__
   const uint8_t *last;
 #endif /* __AVX2__ */
-  uint32_t flags = SF_VALUE_FLAG_NONE;
+  uint32_t flags = SFPARSE_VALUE_FLAG_NONE;
 
   /* The first byte has already been validated by the caller. */
   assert('"' == *sfp->pos);
@@ -695,24 +699,24 @@ static int parser_string(sf_parser *sfp, sf_value *dest) {
     case '\\':
       ++sfp->pos;
       if (parser_eof(sfp)) {
-        return SF_ERR_PARSE_ERROR;
+        return SFPARSE_ERR_PARSE_ERROR;
       }
 
       switch (*sfp->pos) {
       case '"':
       case '\\':
-        flags = SF_VALUE_FLAG_ESCAPED_STRING;
+        flags = SFPARSE_VALUE_FLAG_ESCAPED_STRING;
 
         break;
       default:
-        return SF_ERR_PARSE_ERROR;
+        return SFPARSE_ERR_PARSE_ERROR;
       }
 
       break;
     case '"':
       goto fin;
     default:
-      return SF_ERR_PARSE_ERROR;
+      return SFPARSE_ERR_PARSE_ERROR;
     }
   }
 #endif /* __AVX2__ */
@@ -726,32 +730,32 @@ static int parser_string(sf_parser *sfp, sf_value *dest) {
     case '\\':
       ++sfp->pos;
       if (parser_eof(sfp)) {
-        return SF_ERR_PARSE_ERROR;
+        return SFPARSE_ERR_PARSE_ERROR;
       }
 
       switch (*sfp->pos) {
       case '"':
       case '\\':
-        flags = SF_VALUE_FLAG_ESCAPED_STRING;
+        flags = SFPARSE_VALUE_FLAG_ESCAPED_STRING;
 
         break;
       default:
-        return SF_ERR_PARSE_ERROR;
+        return SFPARSE_ERR_PARSE_ERROR;
       }
 
       break;
     case '"':
       goto fin;
     default:
-      return SF_ERR_PARSE_ERROR;
+      return SFPARSE_ERR_PARSE_ERROR;
     }
   }
 
-  return SF_ERR_PARSE_ERROR;
+  return SFPARSE_ERR_PARSE_ERROR;
 
 fin:
   if (dest) {
-    dest->type = SF_TYPE_STRING;
+    dest->type = SFPARSE_TYPE_STRING;
     dest->flags = flags;
     dest->vec.len = (size_t)(sfp->pos - base);
     dest->vec.base = dest->vec.len == 0 ? NULL : (uint8_t *)base;
@@ -816,7 +820,7 @@ static const uint8_t *find_char_token(const uint8_t *first,
 }
 #endif /* __AVX2__ */
 
-static int parser_token(sf_parser *sfp, sf_value *dest) {
+static int parser_token(sfparse_parser *sfp, sfparse_value *dest) {
   const uint8_t *base;
 #ifdef __AVX2__
   const uint8_t *last;
@@ -849,8 +853,8 @@ static int parser_token(sf_parser *sfp, sf_value *dest) {
 fin:
 #endif /* __AVX2__ */
   if (dest) {
-    dest->type = SF_TYPE_TOKEN;
-    dest->flags = SF_VALUE_FLAG_NONE;
+    dest->type = SFPARSE_TYPE_TOKEN;
+    dest->flags = SFPARSE_VALUE_FLAG_NONE;
     dest->vec.base = (uint8_t *)base;
     dest->vec.len = (size_t)(sfp->pos - base);
   }
@@ -897,7 +901,7 @@ static const uint8_t *find_char_byteseq(const uint8_t *first,
 }
 #endif /* __AVX2__ */
 
-static int parser_byteseq(sf_parser *sfp, sf_value *dest) {
+static int parser_byteseq(sfparse_parser *sfp, sfparse_value *dest) {
   const uint8_t *base;
 #ifdef __AVX2__
   const uint8_t *last;
@@ -926,12 +930,12 @@ static int parser_byteseq(sf_parser *sfp, sf_value *dest) {
       switch ((sfp->pos - base) & 0x3) {
       case 0:
       case 1:
-        return SF_ERR_PARSE_ERROR;
+        return SFPARSE_ERR_PARSE_ERROR;
       case 2:
         ++sfp->pos;
 
         if (parser_eof(sfp)) {
-          return SF_ERR_PARSE_ERROR;
+          return SFPARSE_ERR_PARSE_ERROR;
         }
 
         if (*sfp->pos == '=') {
@@ -946,27 +950,27 @@ static int parser_byteseq(sf_parser *sfp, sf_value *dest) {
       }
 
       if (parser_eof(sfp) || *sfp->pos != ':') {
-        return SF_ERR_PARSE_ERROR;
+        return SFPARSE_ERR_PARSE_ERROR;
       }
 
       goto fin;
     case ':':
       if (((sfp->pos - base) & 0x3) == 1) {
-        return SF_ERR_PARSE_ERROR;
+        return SFPARSE_ERR_PARSE_ERROR;
       }
 
       goto fin;
     default:
-      return SF_ERR_PARSE_ERROR;
+      return SFPARSE_ERR_PARSE_ERROR;
     }
   }
 
-  return SF_ERR_PARSE_ERROR;
+  return SFPARSE_ERR_PARSE_ERROR;
 
 fin:
   if (dest) {
-    dest->type = SF_TYPE_BYTESEQ;
-    dest->flags = SF_VALUE_FLAG_NONE;
+    dest->type = SFPARSE_TYPE_BYTESEQ;
+    dest->flags = SFPARSE_VALUE_FLAG_NONE;
     dest->vec.len = (size_t)(sfp->pos - base);
     dest->vec.base = dest->vec.len == 0 ? NULL : (uint8_t *)base;
   }
@@ -976,7 +980,7 @@ fin:
   return 0;
 }
 
-static int parser_boolean(sf_parser *sfp, sf_value *dest) {
+static int parser_boolean(sfparse_parser *sfp, sfparse_value *dest) {
   int b;
 
   /* The first byte has already been validated by the caller. */
@@ -985,7 +989,7 @@ static int parser_boolean(sf_parser *sfp, sf_value *dest) {
   ++sfp->pos;
 
   if (parser_eof(sfp)) {
-    return SF_ERR_PARSE_ERROR;
+    return SFPARSE_ERR_PARSE_ERROR;
   }
 
   switch (*sfp->pos) {
@@ -998,14 +1002,14 @@ static int parser_boolean(sf_parser *sfp, sf_value *dest) {
 
     break;
   default:
-    return SF_ERR_PARSE_ERROR;
+    return SFPARSE_ERR_PARSE_ERROR;
   }
 
   ++sfp->pos;
 
   if (dest) {
-    dest->type = SF_TYPE_BOOLEAN;
-    dest->flags = SF_VALUE_FLAG_NONE;
+    dest->type = SFPARSE_TYPE_BOOLEAN;
+    dest->flags = SFPARSE_VALUE_FLAG_NONE;
     dest->boolean = b;
   }
 
@@ -1111,7 +1115,7 @@ static void utf8_decode(uint32_t *state, uint8_t byte) {
 
 /* End of utf8 dfa */
 
-static int parser_dispstring(sf_parser *sfp, sf_value *dest) {
+static int parser_dispstring(sfparse_parser *sfp, sfparse_value *dest) {
   const uint8_t *base;
   uint8_t c;
   uint32_t utf8state = UTF8_ACCEPT;
@@ -1121,7 +1125,7 @@ static int parser_dispstring(sf_parser *sfp, sf_value *dest) {
   ++sfp->pos;
 
   if (parser_eof(sfp) || *sfp->pos != '"') {
-    return SF_ERR_PARSE_ERROR;
+    return SFPARSE_ERR_PARSE_ERROR;
   }
 
   base = ++sfp->pos;
@@ -1130,32 +1134,32 @@ static int parser_dispstring(sf_parser *sfp, sf_value *dest) {
     switch (*sfp->pos) {
     X00_1F_CASES:
     X7F_FF_CASES:
-      return SF_ERR_PARSE_ERROR;
+      return SFPARSE_ERR_PARSE_ERROR;
     case '%':
       ++sfp->pos;
 
       if (sfp->pos + 2 > sfp->end) {
-        return SF_ERR_PARSE_ERROR;
+        return SFPARSE_ERR_PARSE_ERROR;
       }
 
       if (pctdecode(&c, &sfp->pos) != 0) {
-        return SF_ERR_PARSE_ERROR;
+        return SFPARSE_ERR_PARSE_ERROR;
       }
 
       utf8_decode(&utf8state, c);
       if (utf8state == UTF8_REJECT) {
-        return SF_ERR_PARSE_ERROR;
+        return SFPARSE_ERR_PARSE_ERROR;
       }
 
       break;
     case '"':
       if (utf8state != UTF8_ACCEPT) {
-        return SF_ERR_PARSE_ERROR;
+        return SFPARSE_ERR_PARSE_ERROR;
       }
 
       if (dest) {
-        dest->type = SF_TYPE_DISPSTRING;
-        dest->flags = SF_VALUE_FLAG_NONE;
+        dest->type = SFPARSE_TYPE_DISPSTRING;
+        dest->flags = SFPARSE_VALUE_FLAG_NONE;
         dest->vec.len = (size_t)(sfp->pos - base);
         dest->vec.base = dest->vec.len == 0 ? NULL : (uint8_t *)base;
       }
@@ -1165,17 +1169,17 @@ static int parser_dispstring(sf_parser *sfp, sf_value *dest) {
       return 0;
     default:
       if (utf8state != UTF8_ACCEPT) {
-        return SF_ERR_PARSE_ERROR;
+        return SFPARSE_ERR_PARSE_ERROR;
       }
 
       ++sfp->pos;
     }
   }
 
-  return SF_ERR_PARSE_ERROR;
+  return SFPARSE_ERR_PARSE_ERROR;
 }
 
-static int parser_bare_item(sf_parser *sfp, sf_value *dest) {
+static int parser_bare_item(sfparse_parser *sfp, sfparse_value *dest) {
   switch (*sfp->pos) {
   case '"':
     return parser_string(sfp, dest);
@@ -1194,28 +1198,29 @@ static int parser_bare_item(sf_parser *sfp, sf_value *dest) {
   case '%':
     return parser_dispstring(sfp, dest);
   default:
-    return SF_ERR_PARSE_ERROR;
+    return SFPARSE_ERR_PARSE_ERROR;
   }
 }
 
-static int parser_skip_inner_list(sf_parser *sfp);
+static int parser_skip_inner_list(sfparse_parser *sfp);
 
-int sf_parser_param(sf_parser *sfp, sf_vec *dest_key, sf_value *dest_value) {
+int sfparse_parser_param(sfparse_parser *sfp, sfparse_vec *dest_key,
+                         sfparse_value *dest_value) {
   int rv;
 
-  switch (sfp->state & SF_STATE_OP_MASK) {
-  case SF_STATE_BEFORE:
+  switch (sfp->state & SFPARSE_STATE_OP_MASK) {
+  case SFPARSE_STATE_BEFORE:
     rv = parser_skip_inner_list(sfp);
     if (rv != 0) {
       return rv;
     }
 
     /* fall through */
-  case SF_STATE_BEFORE_PARAMS:
-    parser_set_op_state(sfp, SF_STATE_PARAMS);
+  case SFPARSE_STATE_BEFORE_PARAMS:
+    parser_set_op_state(sfp, SFPARSE_STATE_PARAMS);
 
     break;
-  case SF_STATE_PARAMS:
+  case SFPARSE_STATE_PARAMS:
     break;
   default:
     assert(0);
@@ -1223,16 +1228,16 @@ int sf_parser_param(sf_parser *sfp, sf_vec *dest_key, sf_value *dest_value) {
   }
 
   if (parser_eof(sfp) || *sfp->pos != ';') {
-    parser_set_op_state(sfp, SF_STATE_AFTER);
+    parser_set_op_state(sfp, SFPARSE_STATE_AFTER);
 
-    return SF_ERR_EOF;
+    return SFPARSE_ERR_EOF;
   }
 
   ++sfp->pos;
 
   parser_discard_sp(sfp);
   if (parser_eof(sfp)) {
-    return SF_ERR_PARSE_ERROR;
+    return SFPARSE_ERR_PARSE_ERROR;
   }
 
   rv = parser_key(sfp, dest_key);
@@ -1242,8 +1247,8 @@ int sf_parser_param(sf_parser *sfp, sf_vec *dest_key, sf_value *dest_value) {
 
   if (parser_eof(sfp) || *sfp->pos != '=') {
     if (dest_value) {
-      dest_value->type = SF_TYPE_BOOLEAN;
-      dest_value->flags = SF_VALUE_FLAG_NONE;
+      dest_value->type = SFPARSE_TYPE_BOOLEAN;
+      dest_value->flags = SFPARSE_VALUE_FLAG_NONE;
       dest_value->boolean = 1;
     }
 
@@ -1253,23 +1258,23 @@ int sf_parser_param(sf_parser *sfp, sf_vec *dest_key, sf_value *dest_value) {
   ++sfp->pos;
 
   if (parser_eof(sfp)) {
-    return SF_ERR_PARSE_ERROR;
+    return SFPARSE_ERR_PARSE_ERROR;
   }
 
   return parser_bare_item(sfp, dest_value);
 }
 
-static int parser_skip_params(sf_parser *sfp) {
+static int parser_skip_params(sfparse_parser *sfp) {
   int rv;
 
   for (;;) {
-    rv = sf_parser_param(sfp, NULL, NULL);
+    rv = sfparse_parser_param(sfp, NULL, NULL);
     switch (rv) {
     case 0:
       break;
-    case SF_ERR_EOF:
+    case SFPARSE_ERR_EOF:
       return 0;
-    case SF_ERR_PARSE_ERROR:
+    case SFPARSE_ERR_PARSE_ERROR:
       return rv;
     default:
       assert(0);
@@ -1278,45 +1283,45 @@ static int parser_skip_params(sf_parser *sfp) {
   }
 }
 
-int sf_parser_inner_list(sf_parser *sfp, sf_value *dest) {
+int sfparse_parser_inner_list(sfparse_parser *sfp, sfparse_value *dest) {
   int rv;
 
-  switch (sfp->state & SF_STATE_OP_MASK) {
-  case SF_STATE_BEFORE:
+  switch (sfp->state & SFPARSE_STATE_OP_MASK) {
+  case SFPARSE_STATE_BEFORE:
     parser_discard_sp(sfp);
     if (parser_eof(sfp)) {
-      return SF_ERR_PARSE_ERROR;
+      return SFPARSE_ERR_PARSE_ERROR;
     }
 
     break;
-  case SF_STATE_BEFORE_PARAMS:
+  case SFPARSE_STATE_BEFORE_PARAMS:
     rv = parser_skip_params(sfp);
     if (rv != 0) {
       return rv;
     }
 
-    /* Technically, we are entering SF_STATE_AFTER, but we will set
+    /* Technically, we are entering SFPARSE_STATE_AFTER, but we will set
        another state without reading the state. */
-    /* parser_set_op_state(sfp, SF_STATE_AFTER); */
+    /* parser_set_op_state(sfp, SFPARSE_STATE_AFTER); */
 
     /* fall through */
-  case SF_STATE_AFTER:
+  case SFPARSE_STATE_AFTER:
     if (parser_eof(sfp)) {
-      return SF_ERR_PARSE_ERROR;
+      return SFPARSE_ERR_PARSE_ERROR;
     }
 
     switch (*sfp->pos) {
     case ' ':
       parser_discard_sp(sfp);
       if (parser_eof(sfp)) {
-        return SF_ERR_PARSE_ERROR;
+        return SFPARSE_ERR_PARSE_ERROR;
       }
 
       break;
     case ')':
       break;
     default:
-      return SF_ERR_PARSE_ERROR;
+      return SFPARSE_ERR_PARSE_ERROR;
     }
 
     break;
@@ -1329,9 +1334,9 @@ int sf_parser_inner_list(sf_parser *sfp, sf_value *dest) {
     ++sfp->pos;
 
     parser_unset_inner_list_state(sfp);
-    parser_set_op_state(sfp, SF_STATE_BEFORE_PARAMS);
+    parser_set_op_state(sfp, SFPARSE_STATE_BEFORE_PARAMS);
 
-    return SF_ERR_EOF;
+    return SFPARSE_ERR_EOF;
   }
 
   rv = parser_bare_item(sfp, dest);
@@ -1339,22 +1344,22 @@ int sf_parser_inner_list(sf_parser *sfp, sf_value *dest) {
     return rv;
   }
 
-  parser_set_op_state(sfp, SF_STATE_BEFORE_PARAMS);
+  parser_set_op_state(sfp, SFPARSE_STATE_BEFORE_PARAMS);
 
   return 0;
 }
 
-static int parser_skip_inner_list(sf_parser *sfp) {
+static int parser_skip_inner_list(sfparse_parser *sfp) {
   int rv;
 
   for (;;) {
-    rv = sf_parser_inner_list(sfp, NULL);
+    rv = sfparse_parser_inner_list(sfp, NULL);
     switch (rv) {
     case 0:
       break;
-    case SF_ERR_EOF:
+    case SFPARSE_ERR_EOF:
       return 0;
-    case SF_ERR_PARSE_ERROR:
+    case SFPARSE_ERR_PARSE_ERROR:
       return rv;
     default:
       assert(0);
@@ -1363,39 +1368,39 @@ static int parser_skip_inner_list(sf_parser *sfp) {
   }
 }
 
-static int parser_next_key_or_item(sf_parser *sfp) {
+static int parser_next_key_or_item(sfparse_parser *sfp) {
   parser_discard_ows(sfp);
 
   if (parser_eof(sfp)) {
-    return SF_ERR_EOF;
+    return SFPARSE_ERR_EOF;
   }
 
   if (*sfp->pos != ',') {
-    return SF_ERR_PARSE_ERROR;
+    return SFPARSE_ERR_PARSE_ERROR;
   }
 
   ++sfp->pos;
 
   parser_discard_ows(sfp);
   if (parser_eof(sfp)) {
-    return SF_ERR_PARSE_ERROR;
+    return SFPARSE_ERR_PARSE_ERROR;
   }
 
   return 0;
 }
 
-static int parser_dict_value(sf_parser *sfp, sf_value *dest) {
+static int parser_dict_value(sfparse_parser *sfp, sfparse_value *dest) {
   int rv;
 
   if (parser_eof(sfp) || *(sfp->pos) != '=') {
     /* Boolean true */
     if (dest) {
-      dest->type = SF_TYPE_BOOLEAN;
-      dest->flags = SF_VALUE_FLAG_NONE;
+      dest->type = SFPARSE_TYPE_BOOLEAN;
+      dest->flags = SFPARSE_VALUE_FLAG_NONE;
       dest->boolean = 1;
     }
 
-    sfp->state = SF_STATE_DICT_BEFORE_PARAMS;
+    sfp->state = SFPARSE_STATE_DICT_BEFORE_PARAMS;
 
     return 0;
   }
@@ -1403,18 +1408,18 @@ static int parser_dict_value(sf_parser *sfp, sf_value *dest) {
   ++sfp->pos;
 
   if (parser_eof(sfp)) {
-    return SF_ERR_PARSE_ERROR;
+    return SFPARSE_ERR_PARSE_ERROR;
   }
 
   if (*sfp->pos == '(') {
     if (dest) {
-      dest->type = SF_TYPE_INNER_LIST;
-      dest->flags = SF_VALUE_FLAG_NONE;
+      dest->type = SFPARSE_TYPE_INNER_LIST;
+      dest->flags = SFPARSE_VALUE_FLAG_NONE;
     }
 
     ++sfp->pos;
 
-    sfp->state = SF_STATE_DICT_INNER_LIST_BEFORE;
+    sfp->state = SFPARSE_STATE_DICT_INNER_LIST_BEFORE;
 
     return 0;
   }
@@ -1424,41 +1429,42 @@ static int parser_dict_value(sf_parser *sfp, sf_value *dest) {
     return rv;
   }
 
-  sfp->state = SF_STATE_DICT_BEFORE_PARAMS;
+  sfp->state = SFPARSE_STATE_DICT_BEFORE_PARAMS;
 
   return 0;
 }
 
-int sf_parser_dict(sf_parser *sfp, sf_vec *dest_key, sf_value *dest_value) {
+int sfparse_parser_dict(sfparse_parser *sfp, sfparse_vec *dest_key,
+                        sfparse_value *dest_value) {
   int rv;
 
   switch (sfp->state) {
-  case SF_STATE_DICT_INNER_LIST_BEFORE:
+  case SFPARSE_STATE_DICT_INNER_LIST_BEFORE:
     rv = parser_skip_inner_list(sfp);
     if (rv != 0) {
       return rv;
     }
 
     /* fall through */
-  case SF_STATE_DICT_BEFORE_PARAMS:
+  case SFPARSE_STATE_DICT_BEFORE_PARAMS:
     rv = parser_skip_params(sfp);
     if (rv != 0) {
       return rv;
     }
 
     /* fall through */
-  case SF_STATE_DICT_AFTER:
+  case SFPARSE_STATE_DICT_AFTER:
     rv = parser_next_key_or_item(sfp);
     if (rv != 0) {
       return rv;
     }
 
     break;
-  case SF_STATE_INITIAL:
+  case SFPARSE_STATE_INITIAL:
     parser_discard_sp(sfp);
 
     if (parser_eof(sfp)) {
-      return SF_ERR_EOF;
+      return SFPARSE_ERR_EOF;
     }
 
     break;
@@ -1475,36 +1481,36 @@ int sf_parser_dict(sf_parser *sfp, sf_vec *dest_key, sf_value *dest_value) {
   return parser_dict_value(sfp, dest_value);
 }
 
-int sf_parser_list(sf_parser *sfp, sf_value *dest) {
+int sfparse_parser_list(sfparse_parser *sfp, sfparse_value *dest) {
   int rv;
 
   switch (sfp->state) {
-  case SF_STATE_LIST_INNER_LIST_BEFORE:
+  case SFPARSE_STATE_LIST_INNER_LIST_BEFORE:
     rv = parser_skip_inner_list(sfp);
     if (rv != 0) {
       return rv;
     }
 
     /* fall through */
-  case SF_STATE_LIST_BEFORE_PARAMS:
+  case SFPARSE_STATE_LIST_BEFORE_PARAMS:
     rv = parser_skip_params(sfp);
     if (rv != 0) {
       return rv;
     }
 
     /* fall through */
-  case SF_STATE_LIST_AFTER:
+  case SFPARSE_STATE_LIST_AFTER:
     rv = parser_next_key_or_item(sfp);
     if (rv != 0) {
       return rv;
     }
 
     break;
-  case SF_STATE_INITIAL:
+  case SFPARSE_STATE_INITIAL:
     parser_discard_sp(sfp);
 
     if (parser_eof(sfp)) {
-      return SF_ERR_EOF;
+      return SFPARSE_ERR_EOF;
     }
 
     break;
@@ -1515,13 +1521,13 @@ int sf_parser_list(sf_parser *sfp, sf_value *dest) {
 
   if (*sfp->pos == '(') {
     if (dest) {
-      dest->type = SF_TYPE_INNER_LIST;
-      dest->flags = SF_VALUE_FLAG_NONE;
+      dest->type = SFPARSE_TYPE_INNER_LIST;
+      dest->flags = SFPARSE_VALUE_FLAG_NONE;
     }
 
     ++sfp->pos;
 
-    sfp->state = SF_STATE_LIST_INNER_LIST_BEFORE;
+    sfp->state = SFPARSE_STATE_LIST_INNER_LIST_BEFORE;
 
     return 0;
   }
@@ -1531,45 +1537,45 @@ int sf_parser_list(sf_parser *sfp, sf_value *dest) {
     return rv;
   }
 
-  sfp->state = SF_STATE_LIST_BEFORE_PARAMS;
+  sfp->state = SFPARSE_STATE_LIST_BEFORE_PARAMS;
 
   return 0;
 }
 
-int sf_parser_item(sf_parser *sfp, sf_value *dest) {
+int sfparse_parser_item(sfparse_parser *sfp, sfparse_value *dest) {
   int rv;
 
   switch (sfp->state) {
-  case SF_STATE_INITIAL:
+  case SFPARSE_STATE_INITIAL:
     parser_discard_sp(sfp);
 
     if (parser_eof(sfp)) {
-      return SF_ERR_PARSE_ERROR;
+      return SFPARSE_ERR_PARSE_ERROR;
     }
 
     break;
-  case SF_STATE_ITEM_INNER_LIST_BEFORE:
+  case SFPARSE_STATE_ITEM_INNER_LIST_BEFORE:
     rv = parser_skip_inner_list(sfp);
     if (rv != 0) {
       return rv;
     }
 
     /* fall through */
-  case SF_STATE_ITEM_BEFORE_PARAMS:
+  case SFPARSE_STATE_ITEM_BEFORE_PARAMS:
     rv = parser_skip_params(sfp);
     if (rv != 0) {
       return rv;
     }
 
     /* fall through */
-  case SF_STATE_ITEM_AFTER:
+  case SFPARSE_STATE_ITEM_AFTER:
     parser_discard_sp(sfp);
 
     if (!parser_eof(sfp)) {
-      return SF_ERR_PARSE_ERROR;
+      return SFPARSE_ERR_PARSE_ERROR;
     }
 
-    return SF_ERR_EOF;
+    return SFPARSE_ERR_EOF;
   default:
     assert(0);
     abort();
@@ -1577,13 +1583,13 @@ int sf_parser_item(sf_parser *sfp, sf_value *dest) {
 
   if (*sfp->pos == '(') {
     if (dest) {
-      dest->type = SF_TYPE_INNER_LIST;
-      dest->flags = SF_VALUE_FLAG_NONE;
+      dest->type = SFPARSE_TYPE_INNER_LIST;
+      dest->flags = SFPARSE_VALUE_FLAG_NONE;
     }
 
     ++sfp->pos;
 
-    sfp->state = SF_STATE_ITEM_INNER_LIST_BEFORE;
+    sfp->state = SFPARSE_STATE_ITEM_INNER_LIST_BEFORE;
 
     return 0;
   }
@@ -1593,12 +1599,13 @@ int sf_parser_item(sf_parser *sfp, sf_value *dest) {
     return rv;
   }
 
-  sfp->state = SF_STATE_ITEM_BEFORE_PARAMS;
+  sfp->state = SFPARSE_STATE_ITEM_BEFORE_PARAMS;
 
   return 0;
 }
 
-void sf_parser_init(sf_parser *sfp, const uint8_t *data, size_t datalen) {
+void sfparse_parser_init(sfparse_parser *sfp, const uint8_t *data,
+                         size_t datalen) {
   if (datalen == 0) {
     sfp->pos = sfp->end = NULL;
   } else {
@@ -1606,10 +1613,10 @@ void sf_parser_init(sf_parser *sfp, const uint8_t *data, size_t datalen) {
     sfp->end = data + datalen;
   }
 
-  sfp->state = SF_STATE_INITIAL;
+  sfp->state = SFPARSE_STATE_INITIAL;
 }
 
-void sf_unescape(sf_vec *dest, const sf_vec *src) {
+void sfparse_unescape(sfparse_vec *dest, const sfparse_vec *src) {
   const uint8_t *p, *q;
   uint8_t *o;
   size_t len, slen;
@@ -1645,7 +1652,7 @@ void sf_unescape(sf_vec *dest, const sf_vec *src) {
   }
 }
 
-void sf_base64decode(sf_vec *dest, const sf_vec *src) {
+void sfparse_base64decode(sfparse_vec *dest, const sfparse_vec *src) {
   static const int index_tbl[] = {
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -1741,7 +1748,7 @@ fin:
   dest->len = (size_t)(o - dest->base);
 }
 
-void sf_pctdecode(sf_vec *dest, const sf_vec *src) {
+void sfparse_pctdecode(sfparse_vec *dest, const sfparse_vec *src) {
   const uint8_t *p, *q;
   uint8_t *o;
   size_t len, slen;

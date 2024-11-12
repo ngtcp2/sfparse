@@ -28,30 +28,30 @@
 
 #include "sfparse.h"
 
-static void print_key(const char *prefix, const sf_vec *key) {
+static void print_key(const char *prefix, const sfparse_vec *key) {
   printf("%s: %.*s\n", prefix, (int)key->len, key->base);
 }
 
-static void print_value(const char *prefix, const sf_value *val) {
+static void print_value(const char *prefix, const sfparse_value *val) {
   uint8_t *buf;
-  sf_vec decoded;
+  sfparse_vec decoded;
 
   switch (val->type) {
-  case SF_TYPE_BOOLEAN:
+  case SFPARSE_TYPE_BOOLEAN:
     printf("%s: %s\n", prefix, val->boolean ? "true" : "false");
 
     break;
-  case SF_TYPE_INTEGER:
+  case SFPARSE_TYPE_INTEGER:
     printf("%s: %" PRId64 "\n", prefix, val->integer);
 
     break;
-  case SF_TYPE_DECIMAL:
+  case SFPARSE_TYPE_DECIMAL:
     printf("%s: %.03f\n", prefix,
            (double)val->decimal.numer / (double)val->decimal.denom);
 
     break;
-  case SF_TYPE_STRING:
-    if (!(val->flags & SF_VALUE_FLAG_ESCAPED_STRING)) {
+  case SFPARSE_TYPE_STRING:
+    if (!(val->flags & SFPARSE_VALUE_FLAG_ESCAPED_STRING)) {
       printf("%s: (string) %.*s\n", prefix, (int)val->vec.len, val->vec.base);
 
       break;
@@ -59,39 +59,39 @@ static void print_value(const char *prefix, const sf_value *val) {
 
     buf = malloc(val->vec.len);
     decoded.base = buf;
-    sf_unescape(&decoded, &val->vec);
+    sfparse_unescape(&decoded, &val->vec);
 
     printf("%s: (string) %.*s\n", prefix, (int)decoded.len, decoded.base);
 
     free(buf);
 
     break;
-  case SF_TYPE_TOKEN:
+  case SFPARSE_TYPE_TOKEN:
     printf("%s: (token) %.*s\n", prefix, (int)val->vec.len, val->vec.base);
 
     break;
-  case SF_TYPE_BYTESEQ:
+  case SFPARSE_TYPE_BYTESEQ:
     buf = malloc(val->vec.len);
     decoded.base = buf;
-    sf_base64decode(&decoded, &val->vec);
+    sfparse_base64decode(&decoded, &val->vec);
 
     printf("%s: (byteseq) %.*s\n", prefix, (int)decoded.len, decoded.base);
 
     free(buf);
 
     break;
-  case SF_TYPE_INNER_LIST:
+  case SFPARSE_TYPE_INNER_LIST:
     printf("%s: (inner list)\n", prefix);
 
     break;
-  case SF_TYPE_DATE:
+  case SFPARSE_TYPE_DATE:
     printf("%s: (date) %" PRId64 "\n", prefix, val->integer);
 
     break;
-  case SF_TYPE_DISPSTRING:
+  case SFPARSE_TYPE_DISPSTRING:
     buf = malloc(val->vec.len);
     decoded.base = buf;
-    sf_pctdecode(&decoded, &val->vec);
+    sfparse_pctdecode(&decoded, &val->vec);
 
     printf("%s: (dispstring) %.*s\n", prefix, (int)decoded.len, decoded.base);
 
@@ -105,9 +105,9 @@ static void print_value(const char *prefix, const sf_value *val) {
 
 static void example_dictionary(void) {
   static const uint8_t s[] = "a=(1 2 3;b=\"foo\");c;d=1, e=1.001";
-  sf_parser sfp;
-  sf_vec key;
-  sf_value val;
+  sfparse_parser sfp;
+  sfparse_vec key;
+  sfparse_value val;
   int rv;
 
   printf("# example dictionary\n");
@@ -115,12 +115,12 @@ static void example_dictionary(void) {
   {
     printf("## Iterate dictionary keys\n");
 
-    sf_parser_init(&sfp, s, sizeof(s) - 1);
+    sfparse_parser_init(&sfp, s, sizeof(s) - 1);
 
     for (;;) {
-      rv = sf_parser_dict(&sfp, &key, NULL);
+      rv = sfparse_parser_dict(&sfp, &key, NULL);
       if (rv != 0) {
-        assert(SF_ERR_EOF == rv);
+        assert(SFPARSE_ERR_EOF == rv);
 
         break;
       }
@@ -132,12 +132,12 @@ static void example_dictionary(void) {
   {
     printf("## Iterate dictionary values\n");
 
-    sf_parser_init(&sfp, s, sizeof(s) - 1);
+    sfparse_parser_init(&sfp, s, sizeof(s) - 1);
 
     for (;;) {
-      rv = sf_parser_dict(&sfp, &key, &val);
+      rv = sfparse_parser_dict(&sfp, &key, &val);
       if (rv != 0) {
-        assert(SF_ERR_EOF == rv);
+        assert(SFPARSE_ERR_EOF == rv);
 
         break;
       }
@@ -150,21 +150,21 @@ static void example_dictionary(void) {
   {
     printf("## Read inner list\n");
 
-    sf_parser_init(&sfp, s, sizeof(s) - 1);
+    sfparse_parser_init(&sfp, s, sizeof(s) - 1);
 
     for (;;) {
-      rv = sf_parser_dict(&sfp, &key, &val);
+      rv = sfparse_parser_dict(&sfp, &key, &val);
       if (rv != 0) {
-        assert(SF_ERR_EOF == rv);
+        assert(SFPARSE_ERR_EOF == rv);
 
         break;
       }
 
-      if (val.type == SF_TYPE_INNER_LIST) {
+      if (val.type == SFPARSE_TYPE_INNER_LIST) {
         for (;;) {
-          rv = sf_parser_inner_list(&sfp, &val);
+          rv = sfparse_parser_inner_list(&sfp, &val);
           if (rv != 0) {
-            assert(SF_ERR_EOF == rv);
+            assert(SFPARSE_ERR_EOF == rv);
 
             break;
           }
@@ -178,12 +178,12 @@ static void example_dictionary(void) {
   {
     printf("## Read parameters\n");
 
-    sf_parser_init(&sfp, s, sizeof(s) - 1);
+    sfparse_parser_init(&sfp, s, sizeof(s) - 1);
 
     for (;;) {
-      rv = sf_parser_dict(&sfp, &key, &val);
+      rv = sfparse_parser_dict(&sfp, &key, &val);
       if (rv != 0) {
-        assert(SF_ERR_EOF == rv);
+        assert(SFPARSE_ERR_EOF == rv);
 
         break;
       }
@@ -192,9 +192,9 @@ static void example_dictionary(void) {
       print_value("value", &val);
 
       for (;;) {
-        rv = sf_parser_param(&sfp, &key, &val);
+        rv = sfparse_parser_param(&sfp, &key, &val);
         if (rv != 0) {
-          assert(SF_ERR_EOF == rv);
+          assert(SFPARSE_ERR_EOF == rv);
 
           break;
         }
@@ -208,29 +208,29 @@ static void example_dictionary(void) {
   {
     printf("## Read parameters of items in inner list\n");
 
-    sf_parser_init(&sfp, s, sizeof(s) - 1);
+    sfparse_parser_init(&sfp, s, sizeof(s) - 1);
 
     for (;;) {
-      rv = sf_parser_dict(&sfp, &key, &val);
+      rv = sfparse_parser_dict(&sfp, &key, &val);
       if (rv != 0) {
-        assert(SF_ERR_EOF == rv);
+        assert(SFPARSE_ERR_EOF == rv);
 
         break;
       }
 
-      if (val.type == SF_TYPE_INNER_LIST) {
+      if (val.type == SFPARSE_TYPE_INNER_LIST) {
         for (;;) {
-          rv = sf_parser_inner_list(&sfp, &val);
+          rv = sfparse_parser_inner_list(&sfp, &val);
           if (rv != 0) {
-            assert(SF_ERR_EOF == rv);
+            assert(SFPARSE_ERR_EOF == rv);
 
             break;
           }
 
           for (;;) {
-            rv = sf_parser_param(&sfp, &key, &val);
+            rv = sfparse_parser_param(&sfp, &key, &val);
             if (rv != 0) {
-              assert(SF_ERR_EOF == rv);
+              assert(SFPARSE_ERR_EOF == rv);
 
               break;
             }
@@ -246,9 +246,9 @@ static void example_dictionary(void) {
 
 static void example_list(void) {
   static const uint8_t s[] = "(1 2 3;b=\"foo\"), bar, baz;f=:aGVsbG8=:";
-  sf_parser sfp;
-  sf_vec key;
-  sf_value val;
+  sfparse_parser sfp;
+  sfparse_vec key;
+  sfparse_value val;
   int rv;
 
   printf("# example list\n");
@@ -256,12 +256,12 @@ static void example_list(void) {
   {
     printf("## Iterate list values\n");
 
-    sf_parser_init(&sfp, s, sizeof(s) - 1);
+    sfparse_parser_init(&sfp, s, sizeof(s) - 1);
 
     for (;;) {
-      rv = sf_parser_list(&sfp, &val);
+      rv = sfparse_parser_list(&sfp, &val);
       if (rv != 0) {
-        assert(SF_ERR_EOF == rv);
+        assert(SFPARSE_ERR_EOF == rv);
 
         break;
       }
@@ -273,21 +273,21 @@ static void example_list(void) {
   {
     printf("## Read inner list\n");
 
-    sf_parser_init(&sfp, s, sizeof(s) - 1);
+    sfparse_parser_init(&sfp, s, sizeof(s) - 1);
 
     for (;;) {
-      rv = sf_parser_list(&sfp, &val);
+      rv = sfparse_parser_list(&sfp, &val);
       if (rv != 0) {
-        assert(SF_ERR_EOF == rv);
+        assert(SFPARSE_ERR_EOF == rv);
 
         break;
       }
 
-      if (val.type == SF_TYPE_INNER_LIST) {
+      if (val.type == SFPARSE_TYPE_INNER_LIST) {
         for (;;) {
-          rv = sf_parser_inner_list(&sfp, &val);
+          rv = sfparse_parser_inner_list(&sfp, &val);
           if (rv != 0) {
-            assert(SF_ERR_EOF == rv);
+            assert(SFPARSE_ERR_EOF == rv);
 
             break;
           }
@@ -301,12 +301,12 @@ static void example_list(void) {
   {
     printf("## Read parameters\n");
 
-    sf_parser_init(&sfp, s, sizeof(s) - 1);
+    sfparse_parser_init(&sfp, s, sizeof(s) - 1);
 
     for (;;) {
-      rv = sf_parser_list(&sfp, &val);
+      rv = sfparse_parser_list(&sfp, &val);
       if (rv != 0) {
-        assert(SF_ERR_EOF == rv);
+        assert(SFPARSE_ERR_EOF == rv);
 
         break;
       }
@@ -314,9 +314,9 @@ static void example_list(void) {
       print_value("value", &val);
 
       for (;;) {
-        rv = sf_parser_param(&sfp, &key, &val);
+        rv = sfparse_parser_param(&sfp, &key, &val);
         if (rv != 0) {
-          assert(SF_ERR_EOF == rv);
+          assert(SFPARSE_ERR_EOF == rv);
 
           break;
         }
@@ -329,9 +329,9 @@ static void example_list(void) {
 }
 
 static void example_item(void) {
-  sf_parser sfp;
-  sf_vec key;
-  sf_value val;
+  sfparse_parser sfp;
+  sfparse_vec key;
+  sfparse_value val;
   int rv;
 
   printf("# example item\n");
@@ -341,17 +341,17 @@ static void example_item(void) {
 
     printf("## Read boolean\n");
 
-    sf_parser_init(&sfp, s, sizeof(s) - 1);
+    sfparse_parser_init(&sfp, s, sizeof(s) - 1);
 
-    rv = sf_parser_item(&sfp, &val);
+    rv = sfparse_parser_item(&sfp, &val);
 
     assert(0 == rv);
 
     print_value("value", &val);
 
-    rv = sf_parser_item(&sfp, NULL);
+    rv = sfparse_parser_item(&sfp, NULL);
 
-    assert(SF_ERR_EOF == rv);
+    assert(SFPARSE_ERR_EOF == rv);
   }
 
   {
@@ -359,17 +359,17 @@ static void example_item(void) {
 
     printf("## Read integer\n");
 
-    sf_parser_init(&sfp, s, sizeof(s) - 1);
+    sfparse_parser_init(&sfp, s, sizeof(s) - 1);
 
-    rv = sf_parser_item(&sfp, &val);
+    rv = sfparse_parser_item(&sfp, &val);
 
     assert(0 == rv);
 
     print_value("value", &val);
 
-    rv = sf_parser_item(&sfp, NULL);
+    rv = sfparse_parser_item(&sfp, NULL);
 
-    assert(SF_ERR_EOF == rv);
+    assert(SFPARSE_ERR_EOF == rv);
   }
 
   {
@@ -377,17 +377,17 @@ static void example_item(void) {
 
     printf("## Read decimal\n");
 
-    sf_parser_init(&sfp, s, sizeof(s) - 1);
+    sfparse_parser_init(&sfp, s, sizeof(s) - 1);
 
-    rv = sf_parser_item(&sfp, &val);
+    rv = sfparse_parser_item(&sfp, &val);
 
     assert(0 == rv);
 
     print_value("value", &val);
 
-    rv = sf_parser_item(&sfp, NULL);
+    rv = sfparse_parser_item(&sfp, NULL);
 
-    assert(SF_ERR_EOF == rv);
+    assert(SFPARSE_ERR_EOF == rv);
   }
 
   {
@@ -395,17 +395,17 @@ static void example_item(void) {
 
     printf("## Read string\n");
 
-    sf_parser_init(&sfp, s, sizeof(s) - 1);
+    sfparse_parser_init(&sfp, s, sizeof(s) - 1);
 
-    rv = sf_parser_item(&sfp, &val);
+    rv = sfparse_parser_item(&sfp, &val);
 
     assert(0 == rv);
 
     print_value("value", &val);
 
-    rv = sf_parser_item(&sfp, NULL);
+    rv = sfparse_parser_item(&sfp, NULL);
 
-    assert(SF_ERR_EOF == rv);
+    assert(SFPARSE_ERR_EOF == rv);
   }
 
   {
@@ -413,17 +413,17 @@ static void example_item(void) {
 
     printf("## Read token\n");
 
-    sf_parser_init(&sfp, s, sizeof(s) - 1);
+    sfparse_parser_init(&sfp, s, sizeof(s) - 1);
 
-    rv = sf_parser_item(&sfp, &val);
+    rv = sfparse_parser_item(&sfp, &val);
 
     assert(0 == rv);
 
     print_value("value", &val);
 
-    rv = sf_parser_item(&sfp, NULL);
+    rv = sfparse_parser_item(&sfp, NULL);
 
-    assert(SF_ERR_EOF == rv);
+    assert(SFPARSE_ERR_EOF == rv);
   }
 
   {
@@ -431,17 +431,17 @@ static void example_item(void) {
 
     printf("## Read byteseq\n");
 
-    sf_parser_init(&sfp, s, sizeof(s) - 1);
+    sfparse_parser_init(&sfp, s, sizeof(s) - 1);
 
-    rv = sf_parser_item(&sfp, &val);
+    rv = sfparse_parser_item(&sfp, &val);
 
     assert(0 == rv);
 
     print_value("value", &val);
 
-    rv = sf_parser_item(&sfp, NULL);
+    rv = sfparse_parser_item(&sfp, NULL);
 
-    assert(SF_ERR_EOF == rv);
+    assert(SFPARSE_ERR_EOF == rv);
   }
 
   {
@@ -449,17 +449,17 @@ static void example_item(void) {
 
     printf("## Read date\n");
 
-    sf_parser_init(&sfp, s, sizeof(s) - 1);
+    sfparse_parser_init(&sfp, s, sizeof(s) - 1);
 
-    rv = sf_parser_item(&sfp, &val);
+    rv = sfparse_parser_item(&sfp, &val);
 
     assert(0 == rv);
 
     print_value("value", &val);
 
-    rv = sf_parser_item(&sfp, NULL);
+    rv = sfparse_parser_item(&sfp, NULL);
 
-    assert(SF_ERR_EOF == rv);
+    assert(SFPARSE_ERR_EOF == rv);
   }
 
   {
@@ -468,17 +468,17 @@ static void example_item(void) {
 
     printf("## Read dispstring\n");
 
-    sf_parser_init(&sfp, s, sizeof(s) - 1);
+    sfparse_parser_init(&sfp, s, sizeof(s) - 1);
 
-    rv = sf_parser_item(&sfp, &val);
+    rv = sfparse_parser_item(&sfp, &val);
 
     assert(0 == rv);
 
     print_value("value", &val);
 
-    rv = sf_parser_item(&sfp, NULL);
+    rv = sfparse_parser_item(&sfp, NULL);
 
-    assert(SF_ERR_EOF == rv);
+    assert(SFPARSE_ERR_EOF == rv);
   }
 
   {
@@ -486,17 +486,17 @@ static void example_item(void) {
 
     printf("## Read inner list\n");
 
-    sf_parser_init(&sfp, s, sizeof(s) - 1);
+    sfparse_parser_init(&sfp, s, sizeof(s) - 1);
 
-    rv = sf_parser_item(&sfp, &val);
+    rv = sfparse_parser_item(&sfp, &val);
 
     assert(0 == rv);
 
     print_value("value", &val);
 
-    rv = sf_parser_item(&sfp, NULL);
+    rv = sfparse_parser_item(&sfp, NULL);
 
-    assert(SF_ERR_EOF == rv);
+    assert(SFPARSE_ERR_EOF == rv);
   }
 
   {
@@ -504,17 +504,17 @@ static void example_item(void) {
 
     printf("## Read each value in inner list\n");
 
-    sf_parser_init(&sfp, s, sizeof(s) - 1);
+    sfparse_parser_init(&sfp, s, sizeof(s) - 1);
 
-    rv = sf_parser_item(&sfp, &val);
+    rv = sfparse_parser_item(&sfp, &val);
 
     assert(0 == rv);
-    assert(SF_TYPE_INNER_LIST == val.type);
+    assert(SFPARSE_TYPE_INNER_LIST == val.type);
 
     for (;;) {
-      rv = sf_parser_inner_list(&sfp, &val);
+      rv = sfparse_parser_inner_list(&sfp, &val);
       if (rv != 0) {
-        assert(SF_ERR_EOF == rv);
+        assert(SFPARSE_ERR_EOF == rv);
 
         break;
       }
@@ -522,9 +522,9 @@ static void example_item(void) {
       print_value("value", &val);
     }
 
-    rv = sf_parser_item(&sfp, NULL);
+    rv = sfparse_parser_item(&sfp, NULL);
 
-    assert(SF_ERR_EOF == rv);
+    assert(SFPARSE_ERR_EOF == rv);
   }
 
   {
@@ -532,16 +532,16 @@ static void example_item(void) {
 
     printf("## Read parameters\n");
 
-    sf_parser_init(&sfp, s, sizeof(s) - 1);
+    sfparse_parser_init(&sfp, s, sizeof(s) - 1);
 
-    rv = sf_parser_item(&sfp, &val);
+    rv = sfparse_parser_item(&sfp, &val);
 
     assert(0 == rv);
 
     for (;;) {
-      rv = sf_parser_param(&sfp, &key, &val);
+      rv = sfparse_parser_param(&sfp, &key, &val);
       if (rv != 0) {
-        assert(SF_ERR_EOF == rv);
+        assert(SFPARSE_ERR_EOF == rv);
 
         break;
       }
@@ -550,24 +550,24 @@ static void example_item(void) {
       print_value("param-value", &val);
     }
 
-    rv = sf_parser_item(&sfp, NULL);
+    rv = sfparse_parser_item(&sfp, NULL);
 
-    assert(SF_ERR_EOF == rv);
+    assert(SFPARSE_ERR_EOF == rv);
   }
 
   {
     static const uint8_t s[] = "foo bar";
     printf("## Trailing garbage causes parse error\n");
 
-    sf_parser_init(&sfp, s, sizeof(s) - 1);
+    sfparse_parser_init(&sfp, s, sizeof(s) - 1);
 
-    rv = sf_parser_item(&sfp, &val);
+    rv = sfparse_parser_item(&sfp, &val);
 
     assert(0 == rv);
 
-    rv = sf_parser_item(&sfp, NULL);
+    rv = sfparse_parser_item(&sfp, NULL);
 
-    assert(SF_ERR_PARSE_ERROR == rv);
+    assert(SFPARSE_ERR_PARSE_ERROR == rv);
   }
 }
 
@@ -577,17 +577,17 @@ typedef struct rfc9218_priority {
 
 static int parse_rfc9218_priority(rfc9218_priority *pri, const uint8_t *data,
                                   size_t datalen) {
-  sf_parser sfp;
-  sf_vec key;
-  sf_value val;
+  sfparse_parser sfp;
+  sfparse_vec key;
+  sfparse_value val;
   int rv;
 
-  sf_parser_init(&sfp, data, datalen);
+  sfparse_parser_init(&sfp, data, datalen);
 
   for (;;) {
-    rv = sf_parser_dict(&sfp, &key, &val);
+    rv = sfparse_parser_dict(&sfp, &key, &val);
     if (rv != 0) {
-      if (rv == SF_ERR_PARSE_ERROR) {
+      if (rv == SFPARSE_ERR_PARSE_ERROR) {
         return -1;
       }
 
@@ -600,7 +600,7 @@ static int parse_rfc9218_priority(rfc9218_priority *pri, const uint8_t *data,
 
     switch (key.base[0]) {
     case 'u':
-      if (val.type != SF_TYPE_INTEGER) {
+      if (val.type != SFPARSE_TYPE_INTEGER) {
         return -1;
       }
 
@@ -612,7 +612,7 @@ static int parse_rfc9218_priority(rfc9218_priority *pri, const uint8_t *data,
 
       break;
     case 'i':
-      if (val.type != SF_TYPE_BOOLEAN) {
+      if (val.type != SFPARSE_TYPE_BOOLEAN) {
         return -1;
       }
 

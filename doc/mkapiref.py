@@ -36,7 +36,7 @@ class FunctionDoc:
         self.content = content
         self.domain = domain
         if self.domain == 'function':
-            self.funcname = re.search(r'(sf_[^ )]+)\(', self.name).group(1)
+            self.funcname = re.search(r'(sfparse_[^ )]+)\(', self.name).group(1)
         self.filename = filename
 
     def write(self, out):
