@@ -15,6 +15,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        submodules: recursive
     - name: Linux setup
       if: runner.os == 'Linux'
       run: |
@@ -71,7 +73,6 @@ jobs:
         echo 'CXXFLAGS='"$CXXFLAGS" >> $GITHUB_ENV
     - name: Configure autotools
       run: |
-        git submodule update --init --depth 1
         autoreconf -i && ./configure --disable-dependency-tracking
     - name: Build sfparse with distcheck
       run: |
@@ -89,9 +90,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Linux setup
+      with:
+        submodules: recursive
+    - name: Prepare for i386
+      if: matrix.host == 'i686-w64-mingw32'
       run: |
         sudo dpkg --add-architecture i386
+    - name: Linux setup
+      run: |
         sudo apt-get update
         sudo apt-get install \
           gcc-mingw-w64 \
@@ -103,7 +109,6 @@ jobs:
           wine
     - name: Configure autotools
       run: |
-        git submodule update --init --depth 1
         autoreconf -i && \
         ./configure --disable-dependency-tracking --enable-werror \
           --host="$HOST" LIBS="-pthread"
@@ -112,7 +117,6 @@ jobs:
         make -j$(nproc)
         make -j$(nproc) check TESTS=""
     - name: Run tests
-      if: matrix.host == 'x86_64-w64-mingw32'
       run: |
-        export WINEPATH=/usr/x86_64-w64-mingw32/lib
+        export WINEPATH="/usr/${{ matrix.host }}/lib;$(winepath -w /usr/lib/x86_64-linux-gnu/wine/x86_64-windows)"
         wine test.exe
