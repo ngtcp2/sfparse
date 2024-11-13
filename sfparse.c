@@ -474,7 +474,7 @@ static int parser_key(sfparse_parser *sfp, sfparse_vec *dest) {
   LCALPHA_CASES:
     break;
   default:
-    return SFPARSE_ERR_PARSE_ERROR;
+    return SFPARSE_ERR_PARSE;
   }
 
   base = sfp->pos++;
@@ -524,7 +524,7 @@ static int parser_number(sfparse_parser *sfp, sfparse_value *dest) {
   if (*sfp->pos == '-') {
     ++sfp->pos;
     if (parser_eof(sfp)) {
-      return SFPARSE_ERR_PARSE_ERROR;
+      return SFPARSE_ERR_PARSE;
     }
 
     sign = -1;
@@ -536,7 +536,7 @@ static int parser_number(sfparse_parser *sfp, sfparse_value *dest) {
     switch (*sfp->pos) {
     DIGIT_CASES:
       if (++len > 15) {
-        return SFPARSE_ERR_PARSE_ERROR;
+        return SFPARSE_ERR_PARSE;
       }
 
       value *= 10;
@@ -549,7 +549,7 @@ static int parser_number(sfparse_parser *sfp, sfparse_value *dest) {
   }
 
   if (len == 0) {
-    return SFPARSE_ERR_PARSE_ERROR;
+    return SFPARSE_ERR_PARSE;
   }
 
   if (parser_eof(sfp) || *sfp->pos != '.') {
@@ -565,7 +565,7 @@ static int parser_number(sfparse_parser *sfp, sfparse_value *dest) {
   /* decimal */
 
   if (len > 12) {
-    return SFPARSE_ERR_PARSE_ERROR;
+    return SFPARSE_ERR_PARSE;
   }
 
   fpos = len;
@@ -576,7 +576,7 @@ static int parser_number(sfparse_parser *sfp, sfparse_value *dest) {
     switch (*sfp->pos) {
     DIGIT_CASES:
       if (++len > 15) {
-        return SFPARSE_ERR_PARSE_ERROR;
+        return SFPARSE_ERR_PARSE;
       }
 
       value *= 10;
@@ -589,7 +589,7 @@ static int parser_number(sfparse_parser *sfp, sfparse_value *dest) {
   }
 
   if (fpos == len || len - fpos > 3) {
-    return SFPARSE_ERR_PARSE_ERROR;
+    return SFPARSE_ERR_PARSE;
   }
 
   if (dest) {
@@ -626,7 +626,7 @@ static int parser_date(sfparse_parser *sfp, sfparse_value *dest) {
   ++sfp->pos;
 
   if (parser_eof(sfp)) {
-    return SFPARSE_ERR_PARSE_ERROR;
+    return SFPARSE_ERR_PARSE;
   }
 
   rv = parser_number(sfp, &val);
@@ -635,7 +635,7 @@ static int parser_date(sfparse_parser *sfp, sfparse_value *dest) {
   }
 
   if (val.type != SFPARSE_TYPE_INTEGER) {
-    return SFPARSE_ERR_PARSE_ERROR;
+    return SFPARSE_ERR_PARSE;
   }
 
   if (dest) {
@@ -699,7 +699,7 @@ static int parser_string(sfparse_parser *sfp, sfparse_value *dest) {
     case '\\':
       ++sfp->pos;
       if (parser_eof(sfp)) {
-        return SFPARSE_ERR_PARSE_ERROR;
+        return SFPARSE_ERR_PARSE;
       }
 
       switch (*sfp->pos) {
@@ -709,14 +709,14 @@ static int parser_string(sfparse_parser *sfp, sfparse_value *dest) {
 
         break;
       default:
-        return SFPARSE_ERR_PARSE_ERROR;
+        return SFPARSE_ERR_PARSE;
       }
 
       break;
     case '"':
       goto fin;
     default:
-      return SFPARSE_ERR_PARSE_ERROR;
+      return SFPARSE_ERR_PARSE;
     }
   }
 #endif /* __AVX2__ */
@@ -730,7 +730,7 @@ static int parser_string(sfparse_parser *sfp, sfparse_value *dest) {
     case '\\':
       ++sfp->pos;
       if (parser_eof(sfp)) {
-        return SFPARSE_ERR_PARSE_ERROR;
+        return SFPARSE_ERR_PARSE;
       }
 
       switch (*sfp->pos) {
@@ -740,18 +740,18 @@ static int parser_string(sfparse_parser *sfp, sfparse_value *dest) {
 
         break;
       default:
-        return SFPARSE_ERR_PARSE_ERROR;
+        return SFPARSE_ERR_PARSE;
       }
 
       break;
     case '"':
       goto fin;
     default:
-      return SFPARSE_ERR_PARSE_ERROR;
+      return SFPARSE_ERR_PARSE;
     }
   }
 
-  return SFPARSE_ERR_PARSE_ERROR;
+  return SFPARSE_ERR_PARSE;
 
 fin:
   if (dest) {
@@ -930,12 +930,12 @@ static int parser_byteseq(sfparse_parser *sfp, sfparse_value *dest) {
       switch ((sfp->pos - base) & 0x3) {
       case 0:
       case 1:
-        return SFPARSE_ERR_PARSE_ERROR;
+        return SFPARSE_ERR_PARSE;
       case 2:
         ++sfp->pos;
 
         if (parser_eof(sfp)) {
-          return SFPARSE_ERR_PARSE_ERROR;
+          return SFPARSE_ERR_PARSE;
         }
 
         if (*sfp->pos == '=') {
@@ -950,22 +950,22 @@ static int parser_byteseq(sfparse_parser *sfp, sfparse_value *dest) {
       }
 
       if (parser_eof(sfp) || *sfp->pos != ':') {
-        return SFPARSE_ERR_PARSE_ERROR;
+        return SFPARSE_ERR_PARSE;
       }
 
       goto fin;
     case ':':
       if (((sfp->pos - base) & 0x3) == 1) {
-        return SFPARSE_ERR_PARSE_ERROR;
+        return SFPARSE_ERR_PARSE;
       }
 
       goto fin;
     default:
-      return SFPARSE_ERR_PARSE_ERROR;
+      return SFPARSE_ERR_PARSE;
     }
   }
 
-  return SFPARSE_ERR_PARSE_ERROR;
+  return SFPARSE_ERR_PARSE;
 
 fin:
   if (dest) {
@@ -989,7 +989,7 @@ static int parser_boolean(sfparse_parser *sfp, sfparse_value *dest) {
   ++sfp->pos;
 
   if (parser_eof(sfp)) {
-    return SFPARSE_ERR_PARSE_ERROR;
+    return SFPARSE_ERR_PARSE;
   }
 
   switch (*sfp->pos) {
@@ -1002,7 +1002,7 @@ static int parser_boolean(sfparse_parser *sfp, sfparse_value *dest) {
 
     break;
   default:
-    return SFPARSE_ERR_PARSE_ERROR;
+    return SFPARSE_ERR_PARSE;
   }
 
   ++sfp->pos;
@@ -1125,7 +1125,7 @@ static int parser_dispstring(sfparse_parser *sfp, sfparse_value *dest) {
   ++sfp->pos;
 
   if (parser_eof(sfp) || *sfp->pos != '"') {
-    return SFPARSE_ERR_PARSE_ERROR;
+    return SFPARSE_ERR_PARSE;
   }
 
   base = ++sfp->pos;
@@ -1134,27 +1134,27 @@ static int parser_dispstring(sfparse_parser *sfp, sfparse_value *dest) {
     switch (*sfp->pos) {
     X00_1F_CASES:
     X7F_FF_CASES:
-      return SFPARSE_ERR_PARSE_ERROR;
+      return SFPARSE_ERR_PARSE;
     case '%':
       ++sfp->pos;
 
       if (sfp->pos + 2 > sfp->end) {
-        return SFPARSE_ERR_PARSE_ERROR;
+        return SFPARSE_ERR_PARSE;
       }
 
       if (pctdecode(&c, &sfp->pos) != 0) {
-        return SFPARSE_ERR_PARSE_ERROR;
+        return SFPARSE_ERR_PARSE;
       }
 
       utf8_decode(&utf8state, c);
       if (utf8state == UTF8_REJECT) {
-        return SFPARSE_ERR_PARSE_ERROR;
+        return SFPARSE_ERR_PARSE;
       }
 
       break;
     case '"':
       if (utf8state != UTF8_ACCEPT) {
-        return SFPARSE_ERR_PARSE_ERROR;
+        return SFPARSE_ERR_PARSE;
       }
 
       if (dest) {
@@ -1169,14 +1169,14 @@ static int parser_dispstring(sfparse_parser *sfp, sfparse_value *dest) {
       return 0;
     default:
       if (utf8state != UTF8_ACCEPT) {
-        return SFPARSE_ERR_PARSE_ERROR;
+        return SFPARSE_ERR_PARSE;
       }
 
       ++sfp->pos;
     }
   }
 
-  return SFPARSE_ERR_PARSE_ERROR;
+  return SFPARSE_ERR_PARSE;
 }
 
 static int parser_bare_item(sfparse_parser *sfp, sfparse_value *dest) {
@@ -1198,7 +1198,7 @@ static int parser_bare_item(sfparse_parser *sfp, sfparse_value *dest) {
   case '%':
     return parser_dispstring(sfp, dest);
   default:
-    return SFPARSE_ERR_PARSE_ERROR;
+    return SFPARSE_ERR_PARSE;
   }
 }
 
@@ -1237,7 +1237,7 @@ int sfparse_parser_param(sfparse_parser *sfp, sfparse_vec *dest_key,
 
   parser_discard_sp(sfp);
   if (parser_eof(sfp)) {
-    return SFPARSE_ERR_PARSE_ERROR;
+    return SFPARSE_ERR_PARSE;
   }
 
   rv = parser_key(sfp, dest_key);
@@ -1258,7 +1258,7 @@ int sfparse_parser_param(sfparse_parser *sfp, sfparse_vec *dest_key,
   ++sfp->pos;
 
   if (parser_eof(sfp)) {
-    return SFPARSE_ERR_PARSE_ERROR;
+    return SFPARSE_ERR_PARSE;
   }
 
   return parser_bare_item(sfp, dest_value);
@@ -1274,7 +1274,7 @@ static int parser_skip_params(sfparse_parser *sfp) {
       break;
     case SFPARSE_ERR_EOF:
       return 0;
-    case SFPARSE_ERR_PARSE_ERROR:
+    case SFPARSE_ERR_PARSE:
       return rv;
     default:
       assert(0);
@@ -1290,7 +1290,7 @@ int sfparse_parser_inner_list(sfparse_parser *sfp, sfparse_value *dest) {
   case SFPARSE_STATE_BEFORE:
     parser_discard_sp(sfp);
     if (parser_eof(sfp)) {
-      return SFPARSE_ERR_PARSE_ERROR;
+      return SFPARSE_ERR_PARSE;
     }
 
     break;
@@ -1307,21 +1307,21 @@ int sfparse_parser_inner_list(sfparse_parser *sfp, sfparse_value *dest) {
     /* fall through */
   case SFPARSE_STATE_AFTER:
     if (parser_eof(sfp)) {
-      return SFPARSE_ERR_PARSE_ERROR;
+      return SFPARSE_ERR_PARSE;
     }
 
     switch (*sfp->pos) {
     case ' ':
       parser_discard_sp(sfp);
       if (parser_eof(sfp)) {
-        return SFPARSE_ERR_PARSE_ERROR;
+        return SFPARSE_ERR_PARSE;
       }
 
       break;
     case ')':
       break;
     default:
-      return SFPARSE_ERR_PARSE_ERROR;
+      return SFPARSE_ERR_PARSE;
     }
 
     break;
@@ -1359,7 +1359,7 @@ static int parser_skip_inner_list(sfparse_parser *sfp) {
       break;
     case SFPARSE_ERR_EOF:
       return 0;
-    case SFPARSE_ERR_PARSE_ERROR:
+    case SFPARSE_ERR_PARSE:
       return rv;
     default:
       assert(0);
@@ -1376,14 +1376,14 @@ static int parser_next_key_or_item(sfparse_parser *sfp) {
   }
 
   if (*sfp->pos != ',') {
-    return SFPARSE_ERR_PARSE_ERROR;
+    return SFPARSE_ERR_PARSE;
   }
 
   ++sfp->pos;
 
   parser_discard_ows(sfp);
   if (parser_eof(sfp)) {
-    return SFPARSE_ERR_PARSE_ERROR;
+    return SFPARSE_ERR_PARSE;
   }
 
   return 0;
@@ -1408,7 +1408,7 @@ static int parser_dict_value(sfparse_parser *sfp, sfparse_value *dest) {
   ++sfp->pos;
 
   if (parser_eof(sfp)) {
-    return SFPARSE_ERR_PARSE_ERROR;
+    return SFPARSE_ERR_PARSE;
   }
 
   if (*sfp->pos == '(') {
@@ -1550,7 +1550,7 @@ int sfparse_parser_item(sfparse_parser *sfp, sfparse_value *dest) {
     parser_discard_sp(sfp);
 
     if (parser_eof(sfp)) {
-      return SFPARSE_ERR_PARSE_ERROR;
+      return SFPARSE_ERR_PARSE;
     }
 
     break;
@@ -1572,7 +1572,7 @@ int sfparse_parser_item(sfparse_parser *sfp, sfparse_value *dest) {
     parser_discard_sp(sfp);
 
     if (!parser_eof(sfp)) {
-      return SFPARSE_ERR_PARSE_ERROR;
+      return SFPARSE_ERR_PARSE;
     }
 
     return SFPARSE_ERR_EOF;

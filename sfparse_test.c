@@ -545,7 +545,7 @@ void test_sfparse_parser_byteseq(void) {
     /* bad end delimiter */
     sfparse_parser_bytes_init(&sfp, ":aGVsbG8=");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -554,7 +554,7 @@ void test_sfparse_parser_byteseq(void) {
     /* extra whitespace */
     sfparse_parser_bytes_init(&sfp, ":aGVsb G8=:");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -563,7 +563,7 @@ void test_sfparse_parser_byteseq(void) {
     /* extra chars */
     sfparse_parser_bytes_init(&sfp, ":aGVsbG!8=:");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -572,7 +572,7 @@ void test_sfparse_parser_byteseq(void) {
     /* suffix chars */
     sfparse_parser_bytes_init(&sfp, ":aGVsbG8=!:");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -617,7 +617,7 @@ void test_sfparse_parser_byteseq(void) {
     /* base64url binary */
     sfparse_parser_bytes_init(&sfp, ":_-Ah:");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -632,7 +632,7 @@ void test_sfparse_parser_byteseq(void) {
     assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
     assert_str_sfparse_vec_eq("z", &val.vec);
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_list(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -641,7 +641,7 @@ void test_sfparse_parser_byteseq(void) {
     /* Just ':' */
     sfparse_parser_bytes_init(&sfp, ":");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -650,7 +650,7 @@ void test_sfparse_parser_byteseq(void) {
     /* Just single '=' */
     sfparse_parser_bytes_init(&sfp, ":=:");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -659,7 +659,7 @@ void test_sfparse_parser_byteseq(void) {
     /* Two '=' */
     sfparse_parser_bytes_init(&sfp, ":==:");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -668,7 +668,7 @@ void test_sfparse_parser_byteseq(void) {
     /* Three '=' */
     sfparse_parser_bytes_init(&sfp, ":===:");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -677,7 +677,7 @@ void test_sfparse_parser_byteseq(void) {
     /* Four '=' */
     sfparse_parser_bytes_init(&sfp, ":====:");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -686,7 +686,7 @@ void test_sfparse_parser_byteseq(void) {
     /* Single letter never be a base64 encoded string */
     sfparse_parser_bytes_init(&sfp, ":K:");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -767,7 +767,7 @@ void test_sfparse_parser_byteseq(void) {
     /* Padding in the middle of encoded string */
     sfparse_parser_bytes_init(&sfp, ":ab=a:");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -777,7 +777,7 @@ void test_sfparse_parser_byteseq(void) {
     sfparse_parser_bytes_init(
       &sfp, ":cHJldGVuZCB0aGlzIGlzIGJpbmFyeSBjb250ZW50Lg!==:");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -817,7 +817,7 @@ void test_sfparse_parser_boolean(void) {
     /* unknown boolean */
     sfparse_parser_bytes_init(&sfp, "?Q");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -826,7 +826,7 @@ void test_sfparse_parser_boolean(void) {
     /* whitespace boolean */
     sfparse_parser_bytes_init(&sfp, "? 1");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -835,7 +835,7 @@ void test_sfparse_parser_boolean(void) {
     /* negative zero boolean */
     sfparse_parser_bytes_init(&sfp, "?-0");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -844,7 +844,7 @@ void test_sfparse_parser_boolean(void) {
     /* T boolean */
     sfparse_parser_bytes_init(&sfp, "?T");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -853,7 +853,7 @@ void test_sfparse_parser_boolean(void) {
     /* F boolean */
     sfparse_parser_bytes_init(&sfp, "?F");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -862,7 +862,7 @@ void test_sfparse_parser_boolean(void) {
     /* t boolean */
     sfparse_parser_bytes_init(&sfp, "?t");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -871,7 +871,7 @@ void test_sfparse_parser_boolean(void) {
     /* f boolean */
     sfparse_parser_bytes_init(&sfp, "?f");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -880,7 +880,7 @@ void test_sfparse_parser_boolean(void) {
     /* spelled-out True boolean */
     sfparse_parser_bytes_init(&sfp, "?True");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -889,7 +889,7 @@ void test_sfparse_parser_boolean(void) {
     /* spelled-out False boolean */
     sfparse_parser_bytes_init(&sfp, "?False");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -900,7 +900,7 @@ void test_sfparse_parser_boolean(void) {
     /* Just '?' */
     sfparse_parser_bytes_init(&sfp, "?");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -952,7 +952,7 @@ void test_sfparse_parser_number(void) {
     /* double negative zero */
     sfparse_parser_bytes_init(&sfp, "--0");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1012,7 +1012,7 @@ void test_sfparse_parser_number(void) {
     assert_int(0, ==, sfparse_parser_item(&sfp, &val));
     assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(2, ==, val.integer);
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, NULL));
 
     sfparse_parser_bytes_free();
   }
@@ -1021,7 +1021,7 @@ void test_sfparse_parser_number(void) {
     /* negative non-DIGIT first character */
     sfparse_parser_bytes_init(&sfp, "-a23");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1033,7 +1033,7 @@ void test_sfparse_parser_number(void) {
     assert_int(0, ==, sfparse_parser_item(&sfp, &val));
     assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(4, ==, val.integer);
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, NULL));
 
     sfparse_parser_bytes_free();
   }
@@ -1042,7 +1042,7 @@ void test_sfparse_parser_number(void) {
     /* whitespace after sign */
     sfparse_parser_bytes_init(&sfp, "- 42");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1075,7 +1075,7 @@ void test_sfparse_parser_number(void) {
     /* too long integer */
     sfparse_parser_bytes_init(&sfp, "1234567890123456");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1084,7 +1084,7 @@ void test_sfparse_parser_number(void) {
     /* negative too long integer */
     sfparse_parser_bytes_init(&sfp, "-1234567890123456");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1119,7 +1119,7 @@ void test_sfparse_parser_number(void) {
     /* decimal, whitespace after decimal */
     sfparse_parser_bytes_init(&sfp, "1. 23");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1131,7 +1131,7 @@ void test_sfparse_parser_number(void) {
     assert_int(0, ==, sfparse_parser_item(&sfp, &val));
     assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, NULL));
 
     sfparse_parser_bytes_free();
   }
@@ -1140,7 +1140,7 @@ void test_sfparse_parser_number(void) {
     /* negative decimal, whitespace after sign */
     sfparse_parser_bytes_init(&sfp, "- 1.23");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1166,7 +1166,7 @@ void test_sfparse_parser_number(void) {
     assert_enum(sfparse_type, SFPARSE_TYPE_DECIMAL, ==, val.type);
     assert_int64(15, ==, val.decimal.numer);
     assert_int64(10, ==, val.decimal.denom);
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, NULL));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, NULL));
 
     sfparse_parser_bytes_free();
   }
@@ -1175,7 +1175,7 @@ void test_sfparse_parser_number(void) {
     /* adjacent double decimal decimal */
     sfparse_parser_bytes_init(&sfp, "1..4");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1210,7 +1210,7 @@ void test_sfparse_parser_number(void) {
     /* decimal with four fractional digits */
     sfparse_parser_bytes_init(&sfp, "1.1234");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1219,7 +1219,7 @@ void test_sfparse_parser_number(void) {
     /* negative decimal with four fractional digits */
     sfparse_parser_bytes_init(&sfp, "-1.1234");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1228,7 +1228,7 @@ void test_sfparse_parser_number(void) {
     /* decimal with thirteen integer digits */
     sfparse_parser_bytes_init(&sfp, "1234567890123.0");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1237,7 +1237,7 @@ void test_sfparse_parser_number(void) {
     /* negative decimal with thirteen integer digits */
     sfparse_parser_bytes_init(&sfp, "-1234567890123.0");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1248,7 +1248,7 @@ void test_sfparse_parser_number(void) {
     /* No digits */
     sfparse_parser_bytes_init(&sfp, "-a");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1257,7 +1257,7 @@ void test_sfparse_parser_number(void) {
     /* No digits before '.' */
     sfparse_parser_bytes_init(&sfp, "-.1");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1333,7 +1333,7 @@ void test_sfparse_parser_date(void) {
     /* date - decimal */
     sfparse_parser_bytes_init(&sfp, "@1659578233.12");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1344,7 +1344,7 @@ void test_sfparse_parser_date(void) {
     /* Just '@' */
     sfparse_parser_bytes_init(&sfp, "@");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1420,7 +1420,7 @@ void test_sfparse_parser_string(void) {
     /* non-ascii string */
     sfparse_parser_bytes_init(&sfp, "\"füü\"");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1429,7 +1429,7 @@ void test_sfparse_parser_string(void) {
     /* tab in string" */
     sfparse_parser_bytes_init(&sfp, "\"\\t\"");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1438,7 +1438,7 @@ void test_sfparse_parser_string(void) {
     /* newline in string */
     sfparse_parser_bytes_init(&sfp, "\" \\n \"");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1447,7 +1447,7 @@ void test_sfparse_parser_string(void) {
     /* single quoted string */
     sfparse_parser_bytes_init(&sfp, "'foo'");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1456,7 +1456,7 @@ void test_sfparse_parser_string(void) {
     /* unbalanced string */
     sfparse_parser_bytes_init(&sfp, "\"foo");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1483,7 +1483,7 @@ void test_sfparse_parser_string(void) {
     /* bad string quoting */
     sfparse_parser_bytes_init(&sfp, "\"foo \\,\"");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1492,7 +1492,7 @@ void test_sfparse_parser_string(void) {
     /* ending string quote */
     sfparse_parser_bytes_init(&sfp, "\"foo \\\"");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1501,7 +1501,7 @@ void test_sfparse_parser_string(void) {
     /* abruptly ending string quote */
     sfparse_parser_bytes_init(&sfp, "\"foo \\");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1512,7 +1512,7 @@ void test_sfparse_parser_string(void) {
     /* Just '"' */
     sfparse_parser_bytes_init(&sfp, "\"");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1526,7 +1526,7 @@ void test_sfparse_parser_string(void) {
       "foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo "
       "foo foo foo foo foo foo foo foo foo foo foo foo foo foo \"");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1671,7 +1671,7 @@ void test_sfparse_parser_dispstring(void) {
     /* non-ascii display string (uppercase escaping) */
     sfparse_parser_bytes_init(&sfp, "%\"f%C3%BC%C3%BC\"");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1698,7 +1698,7 @@ void test_sfparse_parser_dispstring(void) {
     /* tab in display string */
     sfparse_parser_bytes_init(&sfp, "%\"\t\"");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1707,7 +1707,7 @@ void test_sfparse_parser_dispstring(void) {
     /* newline in display string */
     sfparse_parser_bytes_init(&sfp, "%\"\n\"");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1716,7 +1716,7 @@ void test_sfparse_parser_dispstring(void) {
     /* single quoted display string */
     sfparse_parser_bytes_init(&sfp, "%'foo'");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1725,7 +1725,7 @@ void test_sfparse_parser_dispstring(void) {
     /* unquoted display string */
     sfparse_parser_bytes_init(&sfp, "%foo");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1734,7 +1734,7 @@ void test_sfparse_parser_dispstring(void) {
     /* display string missing initial quote */
     sfparse_parser_bytes_init(&sfp, "%foo\"");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1743,7 +1743,7 @@ void test_sfparse_parser_dispstring(void) {
     /* unbalanced display string */
     sfparse_parser_bytes_init(&sfp, "%\"foo");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1770,7 +1770,7 @@ void test_sfparse_parser_dispstring(void) {
     /* bad display string escaping */
     sfparse_parser_bytes_init(&sfp, "%\"foo %a");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1779,7 +1779,7 @@ void test_sfparse_parser_dispstring(void) {
     /* bad display string utf-8 (invalid 2-byte seq) */
     sfparse_parser_bytes_init(&sfp, "%\"%c3%28\"");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1788,7 +1788,7 @@ void test_sfparse_parser_dispstring(void) {
     /* bad display string utf-8 (invalid sequence id) */
     sfparse_parser_bytes_init(&sfp, "%\"%a0%a1\"");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1797,7 +1797,7 @@ void test_sfparse_parser_dispstring(void) {
     /* bad display string utf-8 (invalid hex) */
     sfparse_parser_bytes_init(&sfp, "%\"%g0%1w\"");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1806,7 +1806,7 @@ void test_sfparse_parser_dispstring(void) {
     /* bad display string utf-8 (invalid 3-byte seq) */
     sfparse_parser_bytes_init(&sfp, "%\"%e2%28%a1\"");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1815,7 +1815,7 @@ void test_sfparse_parser_dispstring(void) {
     /* bad display string utf-8 (invalid 4-byte seq) */
     sfparse_parser_bytes_init(&sfp, "%\"%f0%28%8c%28\"");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1869,7 +1869,7 @@ void test_sfparse_parser_dispstring(void) {
     sfparse_parser_bytes_init(&sfp, "%\"%e3%81%93%e3%82%93%e3%81%ab%e3%81"
                                     "%a1%e3%81%af%e4%b8%96%e7%95\"");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1878,7 +1878,7 @@ void test_sfparse_parser_dispstring(void) {
     /* Just '%' */
     sfparse_parser_bytes_init(&sfp, "%");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1887,7 +1887,7 @@ void test_sfparse_parser_dispstring(void) {
     /* just '%"' */
     sfparse_parser_bytes_init(&sfp, "%\"");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1916,7 +1916,7 @@ void test_sfparse_parser_dispstring(void) {
       &sfp,
       "%\"%e3%81%93%e3%82%93%e3%81%ab%e3%81%a1%e3%81%af%e4%b8%96%e7%95%8c");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1927,7 +1927,7 @@ void test_sfparse_parser_dispstring(void) {
                                     "\x00"
                                     "\"");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1936,7 +1936,7 @@ void test_sfparse_parser_dispstring(void) {
     /* bad percent encoding (first half) */
     sfparse_parser_bytes_init(&sfp, "%\"%qa\"");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1945,7 +1945,7 @@ void test_sfparse_parser_dispstring(void) {
     /* bad percent encoding (second half) */
     sfparse_parser_bytes_init(&sfp, "%\"%aq\"");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1954,7 +1954,7 @@ void test_sfparse_parser_dispstring(void) {
     /* bad percent encoding (missing 2 bytes) */
     sfparse_parser_bytes_init(&sfp, "%\"%\"");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -1963,7 +1963,7 @@ void test_sfparse_parser_dispstring(void) {
     /* bad percent encoding (missing 2nd byte) */
     sfparse_parser_bytes_init(&sfp, "%\"%a\"");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -2013,7 +2013,7 @@ void test_sfparse_parser_dispstring(void) {
     /* overlong 2 byte sequence */
     sfparse_parser_bytes_init(&sfp, "%\"%c0%af\"");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -2023,7 +2023,7 @@ void test_sfparse_parser_dispstring(void) {
     sfparse_parser_bytes_init(
       &sfp, "%\"This is intended for display to %C3%BCsers.\"");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -2229,8 +2229,7 @@ void test_sfparse_parser_dictionary(void) {
     assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_true(val.boolean);
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
-               sfparse_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_dict(&sfp, &key, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -2244,8 +2243,7 @@ void test_sfparse_parser_dictionary(void) {
     assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
-               sfparse_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_dict(&sfp, &key, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -2411,8 +2409,7 @@ void test_sfparse_parser_dictionary(void) {
     assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
     assert_str_sfparse_vec_eq("b", &key);
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
-               sfparse_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_dict(&sfp, &key, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -2424,8 +2421,7 @@ void test_sfparse_parser_dictionary(void) {
     assert_int(0, ==, sfparse_parser_dict(&sfp, &key, &val));
     assert_str_sfparse_vec_eq("a", &key);
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
-               sfparse_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_dict(&sfp, &key, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -2464,8 +2460,7 @@ void test_sfparse_parser_dictionary(void) {
     assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
-               sfparse_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_dict(&sfp, &key, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -2479,8 +2474,7 @@ void test_sfparse_parser_dictionary(void) {
     assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
-               sfparse_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_dict(&sfp, &key, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -2499,8 +2493,7 @@ void test_sfparse_parser_dictionary(void) {
     assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
     assert_true(val.boolean);
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
-               sfparse_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_dict(&sfp, &key, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -2511,8 +2504,7 @@ void test_sfparse_parser_dictionary(void) {
     /* Empty value */
     sfparse_parser_bytes_init(&sfp, "a=");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
-               sfparse_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_dict(&sfp, &key, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -2644,7 +2636,7 @@ void test_sfparse_parser_list(void) {
     assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(42, ==, val.integer);
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_list(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -2657,7 +2649,7 @@ void test_sfparse_parser_list(void) {
     assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_list(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -2804,8 +2796,7 @@ void test_sfparse_parser_list_list(void) {
     assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(1, ==, val.integer);
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
-               sfparse_parser_inner_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_inner_list(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -2825,8 +2816,7 @@ void test_sfparse_parser_list_list(void) {
     assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(42, ==, val.integer);
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
-               sfparse_parser_inner_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_inner_list(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -2846,8 +2836,7 @@ void test_sfparse_parser_list_list(void) {
     assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
     assert_int64(2, ==, val.integer);
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
-               sfparse_parser_inner_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_inner_list(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -2863,8 +2852,7 @@ void test_sfparse_parser_list_list(void) {
     assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
     assert_str_sfparse_vec_eq("abc", &val.vec);
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
-               sfparse_parser_inner_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_inner_list(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -2876,8 +2864,7 @@ void test_sfparse_parser_list_list(void) {
     assert_int(0, ==, sfparse_parser_list(&sfp, &val));
     assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
-               sfparse_parser_inner_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_inner_list(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -2888,7 +2875,7 @@ void test_sfparse_parser_list_list(void) {
     /* Just ')' */
     sfparse_parser_bytes_init(&sfp, ")");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_list(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -3107,8 +3094,7 @@ void test_sfparse_parser_param_dict(void) {
 
     assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
-               sfparse_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_dict(&sfp, &key, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -3122,8 +3108,7 @@ void test_sfparse_parser_param_dict(void) {
     assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
     assert_str_sfparse_vec_eq("b", &val.vec);
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
-               sfparse_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_param(&sfp, &key, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -3139,8 +3124,7 @@ void test_sfparse_parser_param_dict(void) {
 
     assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
-               sfparse_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_dict(&sfp, &key, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -3225,8 +3209,7 @@ void test_sfparse_parser_param_dict(void) {
 
     assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
-               sfparse_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_dict(&sfp, &key, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -3248,8 +3231,7 @@ void test_sfparse_parser_param_dict(void) {
 
     assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
-               sfparse_parser_dict(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_dict(&sfp, &key, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -3265,8 +3247,7 @@ void test_sfparse_parser_param_dict(void) {
     assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
     assert_str_sfparse_vec_eq("b", &val.vec);
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
-               sfparse_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_param(&sfp, &key, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -3448,7 +3429,7 @@ void test_sfparse_parser_param_list(void) {
 
     assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_list(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -3467,8 +3448,7 @@ void test_sfparse_parser_param_list(void) {
     assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
     assert_str_sfparse_vec_eq("text/plain", &val.vec);
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
-               sfparse_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_param(&sfp, &key, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -3489,7 +3469,7 @@ void test_sfparse_parser_param_list(void) {
 
     assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_list(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -3579,7 +3559,7 @@ void test_sfparse_parser_param_list(void) {
 
     assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_list(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -3594,7 +3574,7 @@ void test_sfparse_parser_param_list(void) {
 
     assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_list(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_list(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -3609,8 +3589,7 @@ void test_sfparse_parser_param_list(void) {
     assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
     assert_str_sfparse_vec_eq("a", &val.vec);
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
-               sfparse_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_param(&sfp, &key, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -3745,8 +3724,7 @@ void test_sfparse_parser_param_list_list(void) {
     assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
     assert_str_sfparse_vec_eq("a", &val.vec);
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
-               sfparse_parser_param(&sfp, &key, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_param(&sfp, &key, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -3816,7 +3794,7 @@ void test_sfparse_parser_number_generated(void) {
     /* too many digit 0 decimal */
     sfparse_parser_bytes_init(&sfp, "000000000000000.0");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -3825,7 +3803,7 @@ void test_sfparse_parser_number_generated(void) {
     /* too many fractional digits 0 decimal */
     sfparse_parser_bytes_init(&sfp, "000000000000.0000");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -3834,7 +3812,7 @@ void test_sfparse_parser_number_generated(void) {
     /* too many digit 9 decimal */
     sfparse_parser_bytes_init(&sfp, "999999999999999.9");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -3843,7 +3821,7 @@ void test_sfparse_parser_number_generated(void) {
     /* too many fractional digits 9 decimal */
     sfparse_parser_bytes_init(&sfp, "999999999999.9999");
 
-    assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, &val));
+    assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
 
     sfparse_parser_bytes_free();
   }
@@ -3877,12 +3855,12 @@ void test_sfparse_parser_string_generated(void) {
       rv = sfparse_parser_item(&sfp, NULL);
 
       if (i == 0x22) {
-        assert_int(SFPARSE_ERR_PARSE_ERROR, ==, rv);
+        assert_int(SFPARSE_ERR_PARSE, ==, rv);
       } else {
         assert_int(SFPARSE_ERR_EOF, ==, rv);
       }
     } else {
-      assert_int(SFPARSE_ERR_PARSE_ERROR, ==, rv);
+      assert_int(SFPARSE_ERR_PARSE, ==, rv);
     }
 
     sfparse_parser_bytes_free();
@@ -3905,7 +3883,7 @@ void test_sfparse_parser_string_generated(void) {
       assert_int(0, ==, rv);
       assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, NULL));
     } else {
-      assert_int(SFPARSE_ERR_PARSE_ERROR, ==, rv);
+      assert_int(SFPARSE_ERR_PARSE, ==, rv);
     }
 
     sfparse_parser_bytes_free();
@@ -3949,8 +3927,7 @@ void test_sfparse_parser_token_generated(void) {
         assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, &key, &val));
         assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_item(&sfp, &val));
       } else {
-        assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
-                   sfparse_parser_item(&sfp, NULL));
+        assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, NULL));
       }
     }
 
@@ -3983,17 +3960,16 @@ void test_sfparse_parser_token_generated(void) {
       assert_int(0, ==, rv);
       assert_enum(sfparse_type, SFPARSE_TYPE_INTEGER, ==, val.type);
       assert_int64((int64_t)(i - '0'), ==, val.integer);
-      assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_item(&sfp, NULL));
+      assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, NULL));
     } else if (i == '(') {
       assert_int(0, ==, rv);
       assert_enum(sfparse_type, SFPARSE_TYPE_INNER_LIST, ==, val.type);
       assert_int(0, ==, sfparse_parser_inner_list(&sfp, &val));
       assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
       assert_str_sfparse_vec_eq("a", &val.vec);
-      assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
-                 sfparse_parser_inner_list(&sfp, NULL));
+      assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_inner_list(&sfp, NULL));
     } else {
-      assert_int(SFPARSE_ERR_PARSE_ERROR, ==, rv);
+      assert_int(SFPARSE_ERR_PARSE, ==, rv);
     }
 
     sfparse_parser_bytes_free();
@@ -4029,7 +4005,7 @@ void test_sfparse_parser_key_generated(void) {
       assert_int64(1, ==, val.integer);
       assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, NULL, NULL));
     } else {
-      assert_int(SFPARSE_ERR_PARSE_ERROR, ==, rv);
+      assert_int(SFPARSE_ERR_PARSE, ==, rv);
     }
 
     sfparse_parser_bytes_free();
@@ -4061,8 +4037,7 @@ void test_sfparse_parser_key_generated(void) {
       assert_str_sfparse_vec_eq("a", &key);
       assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
       assert_str_sfparse_vec_eq("a", &val.vec);
-      assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
-                 sfparse_parser_dict(&sfp, NULL, NULL));
+      assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_dict(&sfp, NULL, NULL));
     } else {
       assert_int(0, ==, rv);
       assert_str_sfparse_vec_eq("a", &key);
@@ -4083,7 +4058,7 @@ void test_sfparse_parser_key_generated(void) {
         assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, NULL, NULL));
         assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, NULL, NULL));
       } else {
-        assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
+        assert_int(SFPARSE_ERR_PARSE, ==,
                    sfparse_parser_dict(&sfp, NULL, NULL));
       }
     }
@@ -4118,7 +4093,7 @@ void test_sfparse_parser_key_generated(void) {
       assert_int64(1, ==, val.integer);
       assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_dict(&sfp, NULL, NULL));
     } else {
-      assert_int(SFPARSE_ERR_PARSE_ERROR, ==, rv);
+      assert_int(SFPARSE_ERR_PARSE, ==, rv);
     }
 
     sfparse_parser_bytes_free();
@@ -4151,7 +4126,7 @@ void test_sfparse_parser_key_generated(void) {
       assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
       assert_str_sfparse_vec_eq("a", &val.vec);
       assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, NULL, NULL));
-      assert_int(SFPARSE_ERR_PARSE_ERROR, ==, sfparse_parser_list(&sfp, NULL));
+      assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_list(&sfp, NULL));
     } else {
       assert_str_sfparse_vec_eq("a", &key);
       assert_enum(sfparse_type, SFPARSE_TYPE_BOOLEAN, ==, val.type);
@@ -4173,10 +4148,9 @@ void test_sfparse_parser_key_generated(void) {
           assert_int(0, ==, rv);
           assert_enum(sfparse_type, SFPARSE_TYPE_TOKEN, ==, val.type);
           assert_str_sfparse_vec_eq("a", &val.vec);
-          assert_int(SFPARSE_ERR_PARSE_ERROR, ==,
-                     sfparse_parser_list(&sfp, NULL));
+          assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_list(&sfp, NULL));
         } else {
-          assert_int(SFPARSE_ERR_PARSE_ERROR, ==, rv);
+          assert_int(SFPARSE_ERR_PARSE, ==, rv);
         }
       }
     }
@@ -4215,7 +4189,7 @@ void test_sfparse_parser_key_generated(void) {
       assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_param(&sfp, NULL, NULL));
       assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, NULL));
     } else {
-      assert_int(SFPARSE_ERR_PARSE_ERROR, ==, rv);
+      assert_int(SFPARSE_ERR_PARSE, ==, rv);
     }
 
     sfparse_parser_bytes_free();
@@ -4252,7 +4226,7 @@ void test_sfparse_parser_byteseq_generated(void) {
 
       assert_int(SFPARSE_ERR_EOF, ==, rv);
     } else {
-      assert_int(SFPARSE_ERR_PARSE_ERROR, ==, rv);
+      assert_int(SFPARSE_ERR_PARSE, ==, rv);
     }
 
     sfparse_parser_bytes_free();

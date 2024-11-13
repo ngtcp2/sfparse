@@ -95,10 +95,10 @@ typedef enum sfparse_type {
 /**
  * @macro
  *
- * :macro:`SFPARSE_ERR_PARSE_ERROR` indicates fatal parse error has
+ * :macro:`SFPARSE_ERR_PARSE` indicates fatal parse error has
  * occurred, and it is not possible to continue the processing.
  */
-#define SFPARSE_ERR_PARSE_ERROR -1
+#define SFPARSE_ERR_PARSE -1
 
 /**
  * @macro
@@ -263,8 +263,8 @@ void sfparse_parser_init(sfparse_parser *sfp, const uint8_t *data,
  * Caller should keep calling this function until it returns negative
  * error code.  If it returns :macro:`SFPARSE_ERR_EOF`, all parameters
  * have read, and caller can continue to read rest of the values.  If
- * it returns :macro:`SFPARSE_ERR_PARSE_ERROR`, it encountered fatal
- * error while parsing field value.
+ * it returns :macro:`SFPARSE_ERR_PARSE`, it encountered fatal error
+ * while parsing field value.
  */
 int sfparse_parser_param(sfparse_parser *sfp, sfparse_vec *dest_key,
                          sfparse_value *dest_value);
@@ -291,7 +291,7 @@ int sfparse_parser_param(sfparse_parser *sfp, sfparse_vec *dest_key,
  *
  * :macro:`SFPARSE_ERR_EOF`
  *     All values in the dictionary have read.
- * :macro:`SFPARSE_ERR_PARSE_ERROR`
+ * :macro:`SFPARSE_ERR_PARSE`
  *     It encountered fatal error while parsing field value.
  */
 int sfparse_parser_dict(sfparse_parser *sfp, sfparse_vec *dest_key,
@@ -315,7 +315,7 @@ int sfparse_parser_dict(sfparse_parser *sfp, sfparse_vec *dest_key,
  *
  * :macro:`SFPARSE_ERR_EOF`
  *     All values in the list have read.
- * :macro:`SFPARSE_ERR_PARSE_ERROR`
+ * :macro:`SFPARSE_ERR_PARSE`
  *     It encountered fatal error while parsing field value.
  */
 int sfparse_parser_list(sfparse_parser *sfp, sfparse_value *dest);
@@ -342,7 +342,7 @@ int sfparse_parser_list(sfparse_parser *sfp, sfparse_value *dest);
  *
  * :macro:`SFPARSE_ERR_EOF`
  *     There is nothing left to read.
- * :macro:`SFPARSE_ERR_PARSE_ERROR`
+ * :macro:`SFPARSE_ERR_PARSE`
  *     It encountered fatal error while parsing field value.
  */
 int sfparse_parser_item(sfparse_parser *sfp, sfparse_value *dest);
@@ -369,7 +369,7 @@ int sfparse_parser_item(sfparse_parser *sfp, sfparse_value *dest);
  *
  * :macro:`SFPARSE_ERR_EOF`
  *     All values in the inner list have read.
- * :macro:`SFPARSE_ERR_PARSE_ERROR`
+ * :macro:`SFPARSE_ERR_PARSE`
  *     It encountered fatal error while parsing field value.
  */
 int sfparse_parser_inner_list(sfparse_parser *sfp, sfparse_value *dest);
