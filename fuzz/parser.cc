@@ -2,14 +2,14 @@
 
 namespace {
 void asDict(const uint8_t *data, size_t size) {
-  sf_parser sfp;
-  sf_vec key;
-  sf_value val;
+  sfparse_parser sfp;
+  sfparse_vec key;
+  sfparse_value val;
 
-  sf_parser_init(&sfp, data, size);
+  sfparse_parser_init(&sfp, data, size);
 
   for (;;) {
-    auto rv = sf_parser_dict(&sfp, &key, &val);
+    auto rv = sfparse_parser_dict(&sfp, &key, &val);
     if (rv != 0) {
       break;
     }
@@ -19,13 +19,13 @@ void asDict(const uint8_t *data, size_t size) {
 
 namespace {
 void asList(const uint8_t *data, size_t size) {
-  sf_parser sfp;
-  sf_value val;
+  sfparse_parser sfp;
+  sfparse_value val;
 
-  sf_parser_init(&sfp, data, size);
+  sfparse_parser_init(&sfp, data, size);
 
   for (;;) {
-    auto rv = sf_parser_list(&sfp, &val);
+    auto rv = sfparse_parser_list(&sfp, &val);
     if (rv != 0) {
       break;
     }
@@ -35,17 +35,17 @@ void asList(const uint8_t *data, size_t size) {
 
 namespace {
 void asItem(const uint8_t *data, size_t size) {
-  sf_parser sfp;
-  sf_value val;
+  sfparse_parser sfp;
+  sfparse_value val;
 
-  sf_parser_init(&sfp, data, size);
+  sfparse_parser_init(&sfp, data, size);
 
-  auto rv = sf_parser_item(&sfp, &val);
+  auto rv = sfparse_parser_item(&sfp, &val);
   if (rv != 0) {
     return;
   }
 
-  sf_parser_item(&sfp, &val);
+  sfparse_parser_item(&sfp, &val);
 }
 } // namespace
 
