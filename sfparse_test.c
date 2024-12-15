@@ -970,7 +970,7 @@ void test_sfparse_parser_number(void) {
   }
 
   {
-    /* leading 0 integer" */
+    /* leading 0 integer */
     sfparse_parser_bytes_init(&sfp, "042");
 
     assert_int(0, ==, sfparse_parser_item(&sfp, &val));
@@ -1125,7 +1125,7 @@ void test_sfparse_parser_number(void) {
   }
 
   {
-    /* decimal, whitespace before decimal" */
+    /* decimal, whitespace before decimal */
     sfparse_parser_bytes_init(&sfp, "1 .23");
 
     assert_int(0, ==, sfparse_parser_item(&sfp, &val));
@@ -1426,7 +1426,7 @@ void test_sfparse_parser_string(void) {
   }
 
   {
-    /* tab in string" */
+    /* tab in string */
     sfparse_parser_bytes_init(&sfp, "\"\\t\"");
 
     assert_int(SFPARSE_ERR_PARSE, ==, sfparse_parser_item(&sfp, &val));
@@ -2534,7 +2534,7 @@ void test_sfparse_parser_list(void) {
   }
 
   {
-    /* empty list" */
+    /* empty list */
     sfparse_parser_init(&sfp, (const uint8_t *)"", 0);
 
     assert_int(SFPARSE_ERR_EOF, ==, sfparse_parser_list(&sfp, &val));
@@ -2718,7 +2718,7 @@ void test_sfparse_parser_list_list(void) {
   }
 
   {
-    /* empty item list of lists" */
+    /* empty item list of lists */
     sfparse_parser_bytes_init(&sfp, "()");
 
     assert_int(0, ==, sfparse_parser_list(&sfp, &val));
