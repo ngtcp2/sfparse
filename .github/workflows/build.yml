@@ -14,7 +14,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
       with:
         submodules: recursive
     - name: Linux setup
@@ -93,7 +93,7 @@ jobs:
       HOST: ${{ matrix.host }}
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
       with:
         submodules: recursive
     - name: Prepare for i386
