@@ -856,27 +856,30 @@ static int parser_dispstring(sfparse_parser *sfp, sfparse_value *dest) {
     case 0:
       return SFPARSE_ERR_PARSE;
     case 1:
-      if (utf8state != UTF8_ACCEPT) {
-        return SFPARSE_ERR_PARSE;
-      }
-
       ++sfp->pos;
 
       break;
     case 2:
-      ++sfp->pos;
+      for (;;) {
+        ++sfp->pos;
 
-      if (sfp->pos + 2 > sfp->end) {
-        return SFPARSE_ERR_PARSE;
-      }
+        if (sfp->pos + 2 > sfp->end || pctdecode(&c, &sfp->pos) != 0) {
+          return SFPARSE_ERR_PARSE;
+        }
 
-      if (pctdecode(&c, &sfp->pos) != 0) {
-        return SFPARSE_ERR_PARSE;
-      }
+        utf8_decode(&utf8state, c);
+        if (utf8state == UTF8_ACCEPT) {
+          if (sfp->pos != sfp->end && *sfp->pos == '%') {
+            continue;
+          }
 
-      utf8_decode(&utf8state, c);
-      if (utf8state == UTF8_REJECT) {
-        return SFPARSE_ERR_PARSE;
+          break;
+        }
+
+        if (utf8state == UTF8_REJECT || sfp->pos + 1 > sfp->end ||
+            *sfp->pos != '%') {
+          return SFPARSE_ERR_PARSE;
+        }
       }
 
       break;
