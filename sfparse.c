@@ -884,9 +884,7 @@ static int parser_dispstring(sfparse_parser *sfp, sfparse_value *dest) {
 
       break;
     case 3:
-      if (utf8state != UTF8_ACCEPT) {
-        return SFPARSE_ERR_PARSE;
-      }
+      assert(utf8state == UTF8_ACCEPT);
 
       if (dest) {
         dest->type = SFPARSE_TYPE_DISPSTRING;
