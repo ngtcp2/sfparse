@@ -3848,8 +3848,8 @@ void test_sfparse_parser_string_generated(void) {
 
     rv = sfparse_parser_item(&sfp, &val);
 
-    if (i == 0x20 || i == 0x21 || (0x23 <= i && i <= 0x5b) ||
-        (0x5d <= i && i <= 0x7e) || i == 0x22) {
+    if (i == 0x20 || i == 0x21 || (0x23 <= i && i <= 0x5B) ||
+        (0x5D <= i && i <= 0x7E) || i == 0x22) {
       assert_int(0, ==, rv);
 
       rv = sfparse_parser_item(&sfp, NULL);
