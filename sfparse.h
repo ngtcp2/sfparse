@@ -33,6 +33,26 @@
 #  define WIN32
 #endif /* (defined(_WIN32) || defined(__WIN32__)) && !defined(WIN32) */
 
+#if defined(_WIN32)
+#  if defined(SFPARSE_STATIC)
+#    define SFPARSE_API
+#  elif defined(SFPARSE_BUILDING)
+#    define SFPARSE_API __declspec(dllexport)
+#  else
+#    define SFPARSE_API __declspec(dllimport)
+#  endif
+#elif defined(__GNUC__) || defined(__clang__)
+#  if defined(SFPARSE_STATIC)
+#    define SFPARSE_API
+#  elif defined(SFPARSE_BUILDING)
+#    define SFPARSE_API __attribute__((visibility("default")))
+#  else
+#    define SFPARSE_API
+#  endif
+#else
+#  define SFPARSE_API
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* defined(__cplusplus) */
@@ -247,8 +267,8 @@ typedef struct sfparse_parser {
  * `sfparse_parser_init` initializes |sfp| with the given data encoded
  * in Structured Field Values pointed by |data| of length |datalen|.
  */
-void sfparse_parser_init(sfparse_parser *sfp, const uint8_t *data,
-                         size_t datalen);
+SFPARSE_API void sfparse_parser_init(sfparse_parser *sfp, const uint8_t *data,
+                                     size_t datalen);
 
 /**
  * @function
@@ -266,8 +286,8 @@ void sfparse_parser_init(sfparse_parser *sfp, const uint8_t *data,
  * it returns :macro:`SFPARSE_ERR_PARSE`, it encountered fatal error
  * while parsing field value.
  */
-int sfparse_parser_param(sfparse_parser *sfp, sfparse_vec *dest_key,
-                         sfparse_value *dest_value);
+SFPARSE_API int sfparse_parser_param(sfparse_parser *sfp, sfparse_vec *dest_key,
+                                     sfparse_value *dest_value);
 
 /**
  * @function
@@ -294,8 +314,8 @@ int sfparse_parser_param(sfparse_parser *sfp, sfparse_vec *dest_key,
  * :macro:`SFPARSE_ERR_PARSE`
  *     It encountered fatal error while parsing field value.
  */
-int sfparse_parser_dict(sfparse_parser *sfp, sfparse_vec *dest_key,
-                        sfparse_value *dest_value);
+SFPARSE_API int sfparse_parser_dict(sfparse_parser *sfp, sfparse_vec *dest_key,
+                                    sfparse_value *dest_value);
 
 /**
  * @function
@@ -318,7 +338,7 @@ int sfparse_parser_dict(sfparse_parser *sfp, sfparse_vec *dest_key,
  * :macro:`SFPARSE_ERR_PARSE`
  *     It encountered fatal error while parsing field value.
  */
-int sfparse_parser_list(sfparse_parser *sfp, sfparse_value *dest);
+SFPARSE_API int sfparse_parser_list(sfparse_parser *sfp, sfparse_value *dest);
 
 /**
  * @function
@@ -345,7 +365,7 @@ int sfparse_parser_list(sfparse_parser *sfp, sfparse_value *dest);
  * :macro:`SFPARSE_ERR_PARSE`
  *     It encountered fatal error while parsing field value.
  */
-int sfparse_parser_item(sfparse_parser *sfp, sfparse_value *dest);
+SFPARSE_API int sfparse_parser_item(sfparse_parser *sfp, sfparse_value *dest);
 
 /**
  * @function
@@ -372,7 +392,8 @@ int sfparse_parser_item(sfparse_parser *sfp, sfparse_value *dest);
  * :macro:`SFPARSE_ERR_PARSE`
  *     It encountered fatal error while parsing field value.
  */
-int sfparse_parser_inner_list(sfparse_parser *sfp, sfparse_value *dest);
+SFPARSE_API int sfparse_parser_inner_list(sfparse_parser *sfp,
+                                          sfparse_value *dest);
 
 /**
  * @function
@@ -393,7 +414,7 @@ int sfparse_parser_inner_list(sfparse_parser *sfp, sfparse_value *dest);
  * This function sets the length of unescaped string to
  * :member:`dest->len <sfparse_vec.len>`.
  */
-void sfparse_unescape(sfparse_vec *dest, const sfparse_vec *src);
+SFPARSE_API void sfparse_unescape(sfparse_vec *dest, const sfparse_vec *src);
 
 /**
  * @function
@@ -412,7 +433,8 @@ void sfparse_unescape(sfparse_vec *dest, const sfparse_vec *src);
  * This function sets the length of decoded byte string to
  * :member:`dest->len <sfparse_vec.len>`.
  */
-void sfparse_base64decode(sfparse_vec *dest, const sfparse_vec *src);
+SFPARSE_API void sfparse_base64decode(sfparse_vec *dest,
+                                      const sfparse_vec *src);
 
 /**
  * @function
@@ -433,7 +455,7 @@ void sfparse_base64decode(sfparse_vec *dest, const sfparse_vec *src);
  * This function sets the length of decoded byte string to
  * :member:`dest->len <sfparse_vec.len>`.
  */
-void sfparse_pctdecode(sfparse_vec *dest, const sfparse_vec *src);
+SFPARSE_API void sfparse_pctdecode(sfparse_vec *dest, const sfparse_vec *src);
 
 #ifdef __cplusplus
 }
