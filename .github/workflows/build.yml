@@ -22,7 +22,7 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install \
-          g++-14 \
+          g++-15 \
           clang-21 \
           autoconf \
           automake \
@@ -52,8 +52,8 @@ jobs:
     - name: Setup gcc (Linux)
       if: runner.os == 'Linux' && matrix.compiler == 'gcc'
       run: |
-        echo 'CC=gcc-14' >> $GITHUB_ENV
-        echo 'CXX=g++-14' >> $GITHUB_ENV
+        echo 'CC=gcc-15' >> $GITHUB_ENV
+        echo 'CXX=g++-15' >> $GITHUB_ENV
     - name: Setup gcc (MacOS)
       if: runner.os == 'macOS' && matrix.compiler == 'gcc'
       run: |
